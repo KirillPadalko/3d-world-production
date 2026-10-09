@@ -1,0 +1,142 @@
+{
+  "report_version": "1.0",
+  "generator": {
+    "name": "environment-generator",
+    "version": "0.1.0"
+  },
+  "success": true,
+  "dry_run": false,
+  "error": null,
+  "blueprint_id": "rural-crossroads",
+  "recipe_id": "stylized-rural",
+  "overrides_id": null,
+  "seed": 1337,
+  "input_fingerprint": "sha256:25d0c4bb3a23ba1a8b1dbe0bc9231b12b28587b0f757b0da4f71d924dc45a7cf",
+  "manifest_content_hash": "sha256:1ead77b293bbfe84d95bae71fc87c9aa686c4364b8e50b2b6cf5fedaee7d1c83",
+  "stages": [
+    {
+      "name": "load_inputs",
+      "status": "succeeded",
+      "duration_ms": null,
+      "summary": {
+        "blueprint_id": "rural-crossroads",
+        "recipe_id": "stylized-rural",
+        "features": 47,
+        "archetypes": 84
+      },
+      "issues": []
+    },
+    {
+      "name": "resolve_inputs",
+      "status": "succeeded",
+      "duration_ms": null,
+      "summary": {
+        "seed": 1337,
+        "applied_operations": 0,
+        "pending_entity_operations": 0,
+        "dropped_features": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "resolve_assets",
+      "status": "succeeded",
+      "duration_ms": null,
+      "summary": {
+        "registry_id": "builtin-stylized",
+        "archetypes": 79,
+        "excluded_archetypes": 5,
+        "unmet_needs": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "plan_generation",
+      "status": "succeeded",
+      "duration_ms": null,
+      "summary": {
+        "tasks": 8,
+        "order": "terrain > roads > buildings > fences > infrastructure > vegetation > props > atmosphere",
+        "estimated_entities": 660
+      },
+      "issues": []
+    },
+    {
+      "name": "generate_scene",
+      "status": "succeeded",
+      "duration_ms": null,
+      "summary": {
+        "entities": 638,
+        "entities.terrain": 2,
+        "entities.roads": 9,
+        "entities.buildings": 13,
+        "entities.fences": 179,
+        "entities.infrastructure": 23,
+        "entities.vegetation": 388,
+        "entities.props": 24,
+        "entities.atmosphere": 0
+      },
+      "issues": [
+        {
+          "severity": "info",
+          "code": "FENCE_ROAD_GAP",
+          "message": "Left 2 panel opening(s) where the fence crosses a road.",
+          "location": "fences/f-yard",
+          "entity_ids": []
+        }
+      ]
+    },
+    {
+      "name": "validate_layout",
+      "status": "succeeded",
+      "duration_ms": null,
+      "summary": {
+        "rules": 7,
+        "checked_entities": 638,
+        "errors": 0,
+        "warnings": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "export_manifest",
+      "status": "succeeded",
+      "duration_ms": null,
+      "summary": {
+        "content_hash": "sha256:1ead77b293bbfe84d95bae71fc87c9aa686c4364b8e50b2b6cf5fedaee7d1c83",
+        "entities": 638,
+        "path": "scene-manifest.json"
+      },
+      "issues": []
+    },
+    {
+      "name": "build_report",
+      "status": "succeeded",
+      "duration_ms": null,
+      "summary": {},
+      "issues": []
+    }
+  ],
+  "statistics": {
+    "entities": 638,
+    "placeholders": 0,
+    "category.building": 13,
+    "category.fence": 179,
+    "category.infrastructure": 23,
+    "category.prop": 24,
+    "category.road": 9,
+    "category.terrain": 1,
+    "category.vegetation": 388,
+    "category.water": 1
+  },
+  "issue_counts": {
+    "error": 0,
+    "warning": 0,
+    "info": 1
+  },
+  "outputs": {
+    "manifest": "scene-manifest.json",
+    "preview": "preview.svg",
+    "report": "generation-report.json"
+  }
+}

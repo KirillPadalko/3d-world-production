@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "id": "war-torn",
+  "name": "War-torn (damaged, foggy dusk)",
+  "description": "Same locations after fighting: most buildings damaged or ruined, sandbag positions and wrecks as clutter, thinner vegetation, dusk with fog.",
+  "seed": 42,
+  "style": { "theme": "war_torn", "weathering": 0.8 },
+  "assets": {
+    "required_tags": ["stylized"],
+    "preferred_tags": ["weathered"],
+    "excluded_tags": ["modern"],
+    "fallback": "placeholder"
+  },
+  "filters": { "min_confidence": 0.5 },
+  "terrain": { "cell_size_m": 4.0, "noise_scale_m": 45, "octaves": 4 },
+  "buildings": {
+    "damage_ratio": 0.65,
+    "ruin_fraction": 0.4,
+    "zone_fill": { "enabled": false }
+  },
+  "vegetation": { "density_scale": 0.7, "min_spacing_m": 3.5 },
+  "infrastructure": { "street_lights": { "enabled": false } },
+  "props": {
+    "clutter": {
+      "per_building": 2.5,
+      "max_distance_m": 5,
+      "kind_weights": { "sandbags": 3, "wreck": 1, "barrel": 2, "crate": 2, "tires": 1 }
+    }
+  },
+  "atmosphere": { "time_of_day": "dusk", "weather": "fog", "fog_density_scale": 0.8 },
+  "validation": { "fail_on_error": true }
+}

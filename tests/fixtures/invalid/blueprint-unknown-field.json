@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "id": "typo",
+  "name": "Typo in a field name",
+  "extent": { "width_m": 50, "depth_m": 50 },
+  "buildings": [
+    {
+      "id": "b",
+      "kind": "house",
+      "flors": 2,
+      "geometry": { "type": "rectangle", "center": [10, 10], "size": [8, 6] }
+    }
+  ]
+}

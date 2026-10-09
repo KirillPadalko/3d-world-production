@@ -1,0 +1,170 @@
+{
+  "schema_version": "1.0",
+  "id": "industrial-outskirts",
+  "name": "Industrial outskirts",
+  "description": "Edge of a town: a factory compound behind concrete walls, warehouses along a service road, an apartment block and allotment gardens. Hand-authored example.",
+  "source": {
+    "kind": "synthetic",
+    "analyzer": "hand-authored",
+    "notes": "The geo reference is illustrative only."
+  },
+  "geo_reference": { "latitude": 51.0, "longitude": 10.0, "heading_deg": 12.0 },
+  "extent": { "width_m": 180, "depth_m": 140 },
+  "biome": "temperate",
+  "terrain": { "base_elevation_m": 120.0, "relief": "flat", "ground_cover": "dirt" },
+  "atmosphere": { "time_of_day": "morning", "weather": "overcast", "season": "autumn" },
+  "zones": [
+    {
+      "id": "z-compound",
+      "kind": "industrial",
+      "geometry": { "type": "rectangle", "center": [55, 95], "size": [90, 70] }
+    },
+    {
+      "id": "z-housing",
+      "kind": "residential",
+      "density": 0.5,
+      "geometry": { "type": "rectangle", "center": [145, 105], "size": [66, 66] }
+    }
+  ],
+  "roads": [
+    {
+      "id": "r-service",
+      "kind": "street",
+      "width_m": 7,
+      "surface": "concrete",
+      "geometry": { "type": "polyline", "points": [[0, 52], [90, 54], [180, 50]] }
+    },
+    {
+      "id": "r-gate",
+      "kind": "street",
+      "surface": "concrete",
+      "geometry": { "type": "polyline", "points": [[60, 53.5], [60, 75]] }
+    },
+    {
+      "id": "r-estate",
+      "kind": "street",
+      "geometry": { "type": "polyline", "points": [[112, 53], [112, 140]] }
+    },
+    {
+      "id": "t-allotments",
+      "kind": "dirt_track",
+      "geometry": { "type": "polyline", "points": [[112, 22], [160, 18], [178, 6]] }
+    }
+  ],
+  "buildings": [
+    {
+      "id": "b-factory",
+      "kind": "factory",
+      "floors": 2,
+      "wall_material": "brick",
+      "geometry": { "type": "rectangle", "center": [40, 105], "size": [40, 22], "rotation_deg": 0 }
+    },
+    {
+      "id": "b-warehouse-1",
+      "kind": "warehouse",
+      "roof": "gable",
+      "geometry": { "type": "rectangle", "center": [85, 95], "size": [26, 16], "rotation_deg": 90 }
+    },
+    {
+      "id": "b-warehouse-2",
+      "kind": "warehouse",
+      "roof": "flat",
+      "condition": "damaged",
+      "geometry": { "type": "rectangle", "center": [30, 72], "size": [28, 14], "rotation_deg": 0 }
+    },
+    {
+      "id": "b-office",
+      "kind": "office",
+      "floors": 3,
+      "roof": "flat",
+      "geometry": { "type": "rectangle", "center": [80, 72], "size": [14, 10], "rotation_deg": 0 }
+    },
+    {
+      "id": "b-apartments",
+      "kind": "apartment_block",
+      "floors": 5,
+      "roof": "flat",
+      "geometry": { "type": "rectangle", "center": [140, 110], "size": [24, 12], "rotation_deg": 90 }
+    },
+    {
+      "id": "b-garages",
+      "kind": "garage",
+      "roof": "flat",
+      "geometry": { "type": "rectangle", "center": [140, 70], "size": [7, 5], "rotation_deg": 0 }
+    }
+  ],
+  "vegetation": [
+    {
+      "id": "allotments",
+      "kind": "orchard",
+      "density": 0.6,
+      "geometry": { "type": "rectangle", "center": [140, 34], "size": [36, 16], "rotation_deg": -3 }
+    },
+    {
+      "id": "wasteland-scrub",
+      "kind": "scrub",
+      "density": 0.4,
+      "geometry": { "type": "polygon", "points": [[2, 4], [95, 2], [100, 44], [4, 44]] }
+    },
+    {
+      "id": "estate-trees",
+      "kind": "tree_line",
+      "geometry": { "type": "polyline", "points": [[118, 60], [118, 136]] }
+    },
+    {
+      "id": "park-woodland",
+      "kind": "woodland",
+      "density": 0.7,
+      "geometry": { "type": "rectangle", "center": [165, 120], "size": [26, 38] }
+    }
+  ],
+  "fences": [
+    {
+      "id": "f-compound",
+      "kind": "concrete_wall",
+      "closed": true,
+      "geometry": { "type": "polyline", "points": [[8, 60], [100, 60], [100, 132], [8, 132]] },
+      "gaps": [{ "offset_m": 50, "width_m": 6 }]
+    },
+    {
+      "id": "f-allotments",
+      "kind": "wire",
+      "closed": true,
+      "geometry": { "type": "polyline", "points": [[120, 24.5], [160, 22.5], [161, 44], [121, 46]] }
+    }
+  ],
+  "infrastructure": [
+    {
+      "id": "pipe-1",
+      "kind": "pipeline",
+      "geometry": { "type": "polyline", "points": [[10, 92], [60, 92], [60, 86]] }
+    },
+    {
+      "id": "power-estate",
+      "kind": "power_line",
+      "geometry": { "type": "polyline", "points": [[106, 58], [106, 138]] }
+    },
+    {
+      "id": "i-mast",
+      "kind": "antenna_mast",
+      "geometry": { "type": "point", "position": [92, 124] }
+    },
+    {
+      "id": "i-billboard",
+      "kind": "billboard",
+      "geometry": { "type": "point", "position": [150, 60], "rotation_deg": 180 }
+    }
+  ],
+  "props": [
+    {
+      "id": "p-truck",
+      "kind": "vehicle",
+      "geometry": { "type": "point", "position": [70, 66], "rotation_deg": 90 }
+    },
+    {
+      "id": "p-dumpster",
+      "kind": "dumpster",
+      "geometry": { "type": "point", "position": [128, 92], "rotation_deg": 90 }
+    }
+  ]
+}

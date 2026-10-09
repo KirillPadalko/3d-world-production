@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "id": "bad-registry",
+  "name": "Bad archetype id",
+  "archetypes": [
+    {
+      "id": "NoDots",
+      "category": "prop",
+      "kinds": ["crate"],
+      "dimensions": { "width_m": 1, "depth_m": 1, "height_m": 1 },
+      "asset_ref": "x"
+    }
+  ]
+}

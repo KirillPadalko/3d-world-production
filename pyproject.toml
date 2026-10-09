@@ -1,0 +1,94 @@
+[project]
+name = "environment-generator"
+dynamic = ["version"]
+description = "Deterministic, engine-agnostic procedural environment generator: LocationBlueprint + LocationRecipe -> portable scene manifest."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Environment Generator contributors" }]
+keywords = ["procedural-generation", "level-design", "environment", "gamedev", "isometric"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Games/Entertainment",
+    "Topic :: Multimedia :: Graphics :: 3D Modeling",
+    "Typing :: Typed",
+]
+dependencies = ["pydantic>=2.7,<3"]
+
+[project.scripts]
+envgen = "environment_generator.cli.main:main"
+environment-generator = "environment_generator.cli.main:main"
+
+[dependency-groups]
+dev = [
+    "jsonschema>=4.22",
+    "mypy>=1.11",
+    "pytest>=8.2",
+    "pytest-cov>=5.0",
+    "ruff>=0.6",
+]
+
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/environment_generator/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/environment_generator"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "schemas", "examples", "docs", "tests", "README.md", "LICENSE"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "C4", "RUF", "N", "PTH", "RET", "PIE"]
+ignore = [
+    "RET504", # explicit intermediate variables often read better in geometry code
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["PLR2004"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["environment_generator"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src"]
+plugins = ["pydantic.mypy"]
+warn_unreachable = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "slow: tests that run the full pipeline on large examples",
+]
+
+[tool.coverage.run]
+source = ["environment_generator"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError", "@abstractmethod"]

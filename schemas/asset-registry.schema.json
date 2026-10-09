@@ -1,0 +1,336 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:environment-generator:schema:asset-registry:1.0",
+  "$defs": {
+    "Archetype": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 128,
+          "pattern": "^[a-z0-9_]+(\\.[a-z0-9_]+)+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "category": {
+          "$ref": "#/$defs/AssetCategory"
+        },
+        "kinds": {
+          "description": "Semantic kinds this archetype can represent.",
+          "items": {
+            "pattern": "^[a-z0-9_]+$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Kinds",
+          "type": "array"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "dimensions": {
+          "$ref": "#/$defs/Dimensions"
+        },
+        "variants": {
+          "default": 1,
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Variants",
+          "type": "integer"
+        },
+        "asset_ref": {
+          "maxLength": 512,
+          "minLength": 1,
+          "title": "Asset Ref",
+          "type": "string"
+        },
+        "weight": {
+          "default": 1.0,
+          "description": "Relative selection weight.",
+          "exclusiveMinimum": 0.0,
+          "title": "Weight",
+          "type": "number"
+        },
+        "biomes": {
+          "description": "Empty means any biome.",
+          "items": {
+            "$ref": "#/$defs/Biome"
+          },
+          "title": "Biomes",
+          "type": "array"
+        },
+        "cover": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CoverLevel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "scalable": {
+          "default": true,
+          "description": "Whether non-uniform scaling to fit a footprint is acceptable.",
+          "title": "Scalable",
+          "type": "boolean"
+        },
+        "constraints": {
+          "$ref": "#/$defs/ArchetypeConstraints"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        }
+      },
+      "required": [
+        "id",
+        "category",
+        "kinds",
+        "dimensions",
+        "asset_ref"
+      ],
+      "title": "Archetype",
+      "type": "object"
+    },
+    "ArchetypeConstraints": {
+      "additionalProperties": false,
+      "description": "Soft constraints; mismatches lower an archetype's fit score.",
+      "properties": {
+        "min_floors": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Floors"
+        },
+        "max_floors": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Floors"
+        },
+        "roofs": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/RoofKind"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Roofs"
+        },
+        "conditions": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Condition"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Conditions"
+        },
+        "surfaces": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/RoadSurface"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Surfaces"
+        }
+      },
+      "title": "ArchetypeConstraints",
+      "type": "object"
+    },
+    "AssetCategory": {
+      "enum": [
+        "terrain",
+        "water",
+        "road",
+        "building",
+        "fence",
+        "infrastructure",
+        "vegetation",
+        "prop"
+      ],
+      "title": "AssetCategory",
+      "type": "string"
+    },
+    "Biome": {
+      "enum": [
+        "temperate",
+        "boreal",
+        "mediterranean",
+        "arid",
+        "tropical",
+        "alpine"
+      ],
+      "title": "Biome",
+      "type": "string"
+    },
+    "Condition": {
+      "enum": [
+        "intact",
+        "damaged",
+        "ruined"
+      ],
+      "title": "Condition",
+      "type": "string"
+    },
+    "CoverLevel": {
+      "description": "Tactical hint for the game: how much protection the object offers.",
+      "enum": [
+        "none",
+        "partial",
+        "half",
+        "full"
+      ],
+      "title": "CoverLevel",
+      "type": "string"
+    },
+    "Dimensions": {
+      "additionalProperties": false,
+      "description": "Axis-aligned size in the object's local frame (X width, Y depth, Z height).",
+      "properties": {
+        "width_m": {
+          "minimum": 0.0,
+          "title": "Width M",
+          "type": "number"
+        },
+        "depth_m": {
+          "minimum": 0.0,
+          "title": "Depth M",
+          "type": "number"
+        },
+        "height_m": {
+          "minimum": 0.0,
+          "title": "Height M",
+          "type": "number"
+        }
+      },
+      "required": [
+        "width_m",
+        "depth_m",
+        "height_m"
+      ],
+      "title": "Dimensions",
+      "type": "object"
+    },
+    "RoadSurface": {
+      "enum": [
+        "asphalt",
+        "concrete",
+        "gravel",
+        "dirt",
+        "cobblestone"
+      ],
+      "title": "RoadSurface",
+      "type": "string"
+    },
+    "RoofKind": {
+      "enum": [
+        "flat",
+        "gable",
+        "hip",
+        "mono_pitch"
+      ],
+      "title": "RoofKind",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "A set of archetypes (public contract v1.0).",
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+      "title": "Id",
+      "type": "string"
+    },
+    "name": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "maxLength": 2000,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Description"
+    },
+    "archetypes": {
+      "items": {
+        "$ref": "#/$defs/Archetype"
+      },
+      "maxItems": 20000,
+      "minItems": 1,
+      "title": "Archetypes",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "name",
+    "archetypes"
+  ],
+  "title": "AssetRegistryDocument",
+  "type": "object"
+}

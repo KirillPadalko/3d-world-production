@@ -1,0 +1,148 @@
+{
+  "report_version": "1.0",
+  "generator": {
+    "name": "environment-generator",
+    "version": "0.1.0"
+  },
+  "success": true,
+  "dry_run": false,
+  "error": null,
+  "blueprint_id": "industrial-outskirts",
+  "recipe_id": "war-torn",
+  "overrides_id": null,
+  "seed": 42,
+  "input_fingerprint": "sha256:17728d5c506917656a6cca0183a75ae9734a9799c93c65c0422c448544ffb74f",
+  "manifest_content_hash": "sha256:b65ecd1b1ba284294efc19b32ca6cc97d5a52b7cb1f1a50f1f6f1dba66f57c75",
+  "stages": [
+    {
+      "name": "load_inputs",
+      "status": "succeeded",
+      "duration_ms": null,
+      "summary": {
+        "blueprint_id": "industrial-outskirts",
+        "recipe_id": "war-torn",
+        "features": 24,
+        "archetypes": 84
+      },
+      "issues": []
+    },
+    {
+      "name": "resolve_inputs",
+      "status": "succeeded",
+      "duration_ms": null,
+      "summary": {
+        "seed": 42,
+        "applied_operations": 0,
+        "pending_entity_operations": 0,
+        "dropped_features": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "resolve_assets",
+      "status": "succeeded",
+      "duration_ms": null,
+      "summary": {
+        "registry_id": "builtin-stylized",
+        "archetypes": 78,
+        "excluded_archetypes": 6,
+        "unmet_needs": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "plan_generation",
+      "status": "succeeded",
+      "duration_ms": null,
+      "summary": {
+        "tasks": 8,
+        "order": "terrain > roads > buildings > fences > infrastructure > vegetation > props > atmosphere",
+        "estimated_entities": 303
+      },
+      "issues": []
+    },
+    {
+      "name": "generate_scene",
+      "status": "succeeded",
+      "duration_ms": null,
+      "summary": {
+        "entities": 251,
+        "entities.terrain": 1,
+        "entities.roads": 5,
+        "entities.buildings": 6,
+        "entities.fences": 141,
+        "entities.infrastructure": 8,
+        "entities.vegetation": 73,
+        "entities.props": 17,
+        "entities.atmosphere": 0
+      },
+      "issues": [
+        {
+          "severity": "warning",
+          "code": "BUILDING_SCALE_DEVIATION",
+          "message": "Archetype building.ruin.apartment_shell scaled by 0.58, 0.83, 1.00 to fit the footprint.",
+          "location": "buildings/b-office",
+          "entity_ids": ["building.b-office"]
+        },
+        {
+          "severity": "info",
+          "code": "FENCE_ROAD_GAP",
+          "message": "Left 1 panel opening(s) where the fence crosses a road.",
+          "location": "fences/f-compound",
+          "entity_ids": []
+        }
+      ]
+    },
+    {
+      "name": "validate_layout",
+      "status": "succeeded",
+      "duration_ms": null,
+      "summary": {
+        "rules": 7,
+        "checked_entities": 251,
+        "errors": 0,
+        "warnings": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "export_manifest",
+      "status": "succeeded",
+      "duration_ms": null,
+      "summary": {
+        "content_hash": "sha256:b65ecd1b1ba284294efc19b32ca6cc97d5a52b7cb1f1a50f1f6f1dba66f57c75",
+        "entities": 251,
+        "path": "scene-manifest.json"
+      },
+      "issues": []
+    },
+    {
+      "name": "build_report",
+      "status": "succeeded",
+      "duration_ms": null,
+      "summary": {},
+      "issues": []
+    }
+  ],
+  "statistics": {
+    "entities": 251,
+    "placeholders": 0,
+    "category.building": 6,
+    "category.fence": 141,
+    "category.infrastructure": 8,
+    "category.prop": 17,
+    "category.road": 5,
+    "category.terrain": 1,
+    "category.vegetation": 73
+  },
+  "issue_counts": {
+    "error": 0,
+    "warning": 1,
+    "info": 1
+  },
+  "outputs": {
+    "manifest": "scene-manifest.json",
+    "preview": "preview.svg",
+    "report": "generation-report.json"
+  }
+}

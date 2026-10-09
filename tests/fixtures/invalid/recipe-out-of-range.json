@@ -1,0 +1,7 @@
+{
+  "schema_version": "1.0",
+  "id": "bad-recipe",
+  "name": "Out of range",
+  "terrain": { "cell_size_m": 0.1 },
+  "vegetation": { "density_scale": 50 }
+}

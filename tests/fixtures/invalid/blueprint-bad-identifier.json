@@ -1,0 +1,6 @@
+{
+  "schema_version": "1.0",
+  "id": "bad id with spaces",
+  "name": "Bad identifier",
+  "extent": { "width_m": 50, "depth_m": 50 }
+}

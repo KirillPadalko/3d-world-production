@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "id": "designer-pass-01",
+  "blueprint_id": "rural-crossroads",
+  "description": "Level designer pass for an evening mission: drop the farm shed, ruin the barn, add a checkpoint, swap the shop model and clear a firing lane.",
+  "strict": true,
+  "recipe_patch": {
+    "atmosphere": { "time_of_day": "dusk", "weather": "overcast" },
+    "vegetation": { "density_scale": 0.8 }
+  },
+  "feature_operations": [
+    { "op": "remove", "collection": "buildings", "id": "b-shed-1" },
+    { "op": "patch", "collection": "buildings", "id": "b-barn", "patch": { "condition": "ruined" } },
+    {
+      "op": "add",
+      "collection": "props",
+      "feature": {
+        "id": "p-checkpoint-1",
+        "kind": "sandbags",
+        "geometry": { "type": "point", "position": [136, 101], "rotation_deg": 90 }
+      }
+    },
+    {
+      "op": "add",
+      "collection": "props",
+      "feature": {
+        "id": "p-checkpoint-2",
+        "kind": "sandbags",
+        "geometry": { "type": "point", "position": [123, 99], "rotation_deg": 15 }
+      }
+    }
+  ],
+  "entity_operations": [
+    { "op": "set_archetype", "entity_id": "building.b-shop", "archetype_id": "building.house.flat_modern" },
+    { "op": "remove", "entity_id": "vegetation.t-oak-2" },
+    { "op": "set_transform", "entity_id": "prop.p-car-1", "position": [120.5, 119.0, 2.0], "yaw_deg": 0 }
+  ]
+}

@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint, types and contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: "3.12"
+      - name: Install (locked)
+        run: uv sync --locked
+      - name: Formatting
+        run: uv run ruff format --check .
+      - name: Lint
+        run: uv run ruff check .
+      - name: Type check (mypy --strict)
+        run: uv run mypy
+      - name: Committed JSON Schemas match the models
+        run: uv run envgen schema check
+
+  test:
+    name: Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: ${{ matrix.python-version }}
+      - name: Install (locked)
+        run: uv sync --locked
+      - name: Unit, integration and contract tests
+        run: uv run pytest --cov --cov-report=term
+      - name: CLI smoke test
+        run: |
+          uv run envgen generate \
+            -b examples/blueprints/rural-crossroads.blueprint.json \
+            -r examples/recipes/stylized-rural.recipe.json \
+            -o examples/overrides/rural-crossroads.designer-pass.overrides.json \
+            -d build/ci-scene --preview --write-plan
+          uv run envgen verify build/ci-scene/scene-manifest.json
+      - name: Upload generated scene
+        if: matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-scene
+          path: build/ci-scene
+
+  package:
+    name: Build and run the wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - name: Build sdist and wheel
+        run: uv build
+      - name: Install the wheel in a clean environment and run it
+        run: |
+          uv venv /tmp/wheel-env
+          uv pip install --python /tmp/wheel-env dist/*.whl
+          cd /tmp
+          /tmp/wheel-env/bin/envgen generate -b "$GITHUB_WORKSPACE/examples/blueprints/minimal.blueprint.json" -d /tmp/wheel-out
+          /tmp/wheel-env/bin/envgen verify /tmp/wheel-out/scene-manifest.json

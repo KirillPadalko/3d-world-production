@@ -1,0 +1,822 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:environment-generator:schema:location-recipe:1.0",
+  "$defs": {
+    "AssetSelectionSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "required_tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Required Tags",
+          "type": "array"
+        },
+        "preferred_tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Preferred Tags",
+          "type": "array"
+        },
+        "excluded_tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Excluded Tags",
+          "type": "array"
+        },
+        "fallback": {
+          "$ref": "#/$defs/FallbackPolicy",
+          "default": "placeholder"
+        }
+      },
+      "title": "AssetSelectionSpec",
+      "type": "object"
+    },
+    "AtmosphereRecipe": {
+      "additionalProperties": false,
+      "description": "Lighting and weather. ``None`` keeps the blueprint observation.",
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "time_of_day": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeOfDay"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "weather": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Weather"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "season": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Season"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "fog_density_scale": {
+          "default": 1.0,
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Fog Density Scale",
+          "type": "number"
+        },
+        "wind_speed_mps": {
+          "anyOf": [
+            {
+              "maximum": 60.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Wind Speed Mps"
+        }
+      },
+      "title": "AtmosphereRecipe",
+      "type": "object"
+    },
+    "BuildingKind": {
+      "enum": [
+        "house",
+        "apartment_block",
+        "barn",
+        "shed",
+        "garage",
+        "warehouse",
+        "factory",
+        "shop",
+        "office",
+        "church"
+      ],
+      "title": "BuildingKind",
+      "type": "string"
+    },
+    "BuildingRecipe": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "orient_to_roads": {
+          "default": true,
+          "title": "Orient To Roads",
+          "type": "boolean"
+        },
+        "road_search_radius_m": {
+          "default": 40.0,
+          "maximum": 500.0,
+          "minimum": 0.0,
+          "title": "Road Search Radius M",
+          "type": "number"
+        },
+        "damage_ratio": {
+          "default": 0.0,
+          "description": "Share of intact buildings turned into damaged ones.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Damage Ratio",
+          "type": "number"
+        },
+        "ruin_fraction": {
+          "default": 0.25,
+          "description": "Share of the damaged buildings (above) that become ruins.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Ruin Fraction",
+          "type": "number"
+        },
+        "zone_fill": {
+          "$ref": "#/$defs/ZoneFillRecipe"
+        }
+      },
+      "title": "BuildingRecipe",
+      "type": "object"
+    },
+    "ClutterRecipe": {
+      "additionalProperties": false,
+      "description": "Small props scattered around buildings.",
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "per_building": {
+          "default": 1.5,
+          "maximum": 50.0,
+          "minimum": 0.0,
+          "title": "Per Building",
+          "type": "number"
+        },
+        "max_distance_m": {
+          "default": 4.0,
+          "maximum": 50.0,
+          "minimum": 0.5,
+          "title": "Max Distance M",
+          "type": "number"
+        },
+        "kind_weights": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              "propertyNames": {
+                "$ref": "#/$defs/PropKind"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Replaces the built-in per-building-kind prop tables when set.",
+          "title": "Kind Weights"
+        }
+      },
+      "title": "ClutterRecipe",
+      "type": "object"
+    },
+    "FallbackPolicy": {
+      "description": "What to do when no archetype in the registry fits a request.",
+      "enum": [
+        "placeholder",
+        "error"
+      ],
+      "title": "FallbackPolicy",
+      "type": "string"
+    },
+    "FeatureFilter": {
+      "additionalProperties": false,
+      "properties": {
+        "min_confidence": {
+          "default": 0.0,
+          "description": "Blueprint features below this confidence are ignored.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Min Confidence",
+          "type": "number"
+        }
+      },
+      "title": "FeatureFilter",
+      "type": "object"
+    },
+    "FenceRecipe": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "gap_at_roads": {
+          "default": true,
+          "description": "Leave openings where a fence crosses a road.",
+          "title": "Gap At Roads",
+          "type": "boolean"
+        },
+        "height_scale": {
+          "default": 1.0,
+          "maximum": 4.0,
+          "minimum": 0.25,
+          "title": "Height Scale",
+          "type": "number"
+        }
+      },
+      "title": "FenceRecipe",
+      "type": "object"
+    },
+    "InfrastructureRecipe": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "pole_spacing_m": {
+          "default": 35.0,
+          "maximum": 500.0,
+          "minimum": 5.0,
+          "title": "Pole Spacing M",
+          "type": "number"
+        },
+        "street_lights": {
+          "$ref": "#/$defs/StreetLightRecipe"
+        }
+      },
+      "title": "InfrastructureRecipe",
+      "type": "object"
+    },
+    "LayoutValidationRecipe": {
+      "additionalProperties": false,
+      "properties": {
+        "fail_on_error": {
+          "default": true,
+          "title": "Fail On Error",
+          "type": "boolean"
+        },
+        "max_entities": {
+          "default": 50000,
+          "maximum": 1000000,
+          "minimum": 1,
+          "title": "Max Entities",
+          "type": "integer"
+        },
+        "min_building_spacing_m": {
+          "default": 0.5,
+          "maximum": 50.0,
+          "minimum": 0.0,
+          "title": "Min Building Spacing M",
+          "type": "number"
+        },
+        "check_road_obstruction": {
+          "default": true,
+          "title": "Check Road Obstruction",
+          "type": "boolean"
+        },
+        "check_water_obstruction": {
+          "default": true,
+          "title": "Check Water Obstruction",
+          "type": "boolean"
+        },
+        "ground_tolerance_m": {
+          "default": 2.0,
+          "maximum": 100.0,
+          "minimum": 0.0,
+          "title": "Ground Tolerance M",
+          "type": "number"
+        }
+      },
+      "title": "LayoutValidationRecipe",
+      "type": "object"
+    },
+    "PropKind": {
+      "enum": [
+        "vehicle",
+        "wreck",
+        "crate",
+        "barrel",
+        "pallet",
+        "sandbags",
+        "hay_bale",
+        "bench",
+        "dumpster",
+        "cart",
+        "firewood",
+        "tires",
+        "generic"
+      ],
+      "title": "PropKind",
+      "type": "string"
+    },
+    "PropRecipe": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "clutter": {
+          "$ref": "#/$defs/ClutterRecipe"
+        }
+      },
+      "title": "PropRecipe",
+      "type": "object"
+    },
+    "RoadKind": {
+      "enum": [
+        "highway",
+        "street",
+        "rural_road",
+        "dirt_track",
+        "footpath"
+      ],
+      "title": "RoadKind",
+      "type": "string"
+    },
+    "RoadRecipe": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "width_scale": {
+          "default": 1.0,
+          "maximum": 4.0,
+          "minimum": 0.25,
+          "title": "Width Scale",
+          "type": "number"
+        },
+        "sample_spacing_m": {
+          "default": 4.0,
+          "maximum": 100.0,
+          "minimum": 0.5,
+          "title": "Sample Spacing M",
+          "type": "number"
+        },
+        "detect_junctions": {
+          "default": true,
+          "title": "Detect Junctions",
+          "type": "boolean"
+        }
+      },
+      "title": "RoadRecipe",
+      "type": "object"
+    },
+    "Season": {
+      "enum": [
+        "spring",
+        "summer",
+        "autumn",
+        "winter"
+      ],
+      "title": "Season",
+      "type": "string"
+    },
+    "StreetLightRecipe": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "road_kinds": {
+          "items": {
+            "$ref": "#/$defs/RoadKind"
+          },
+          "title": "Road Kinds",
+          "type": "array"
+        },
+        "spacing_m": {
+          "default": 30.0,
+          "maximum": 500.0,
+          "minimum": 5.0,
+          "title": "Spacing M",
+          "type": "number"
+        },
+        "offset_m": {
+          "default": 0.8,
+          "maximum": 20.0,
+          "minimum": 0.0,
+          "title": "Offset M",
+          "type": "number"
+        },
+        "placement": {
+          "default": "alternate",
+          "enum": [
+            "alternate",
+            "left",
+            "right",
+            "both"
+          ],
+          "title": "Placement",
+          "type": "string"
+        }
+      },
+      "title": "StreetLightRecipe",
+      "type": "object"
+    },
+    "StyleSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "theme": {
+          "default": "default",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "title": "Theme",
+          "type": "string"
+        },
+        "weathering": {
+          "default": 0.0,
+          "description": "0 = pristine, 1 = heavily worn. >= 0.5 prefers archetypes tagged 'weathered'.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Weathering",
+          "type": "number"
+        }
+      },
+      "title": "StyleSpec",
+      "type": "object"
+    },
+    "TerrainRecipe": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "cell_size_m": {
+          "default": 4.0,
+          "maximum": 50.0,
+          "minimum": 0.5,
+          "title": "Cell Size M",
+          "type": "number"
+        },
+        "noise_amplitude_m": {
+          "anyOf": [
+            {
+              "maximum": 200.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Defaults to a value derived from the blueprint relief.",
+          "title": "Noise Amplitude M"
+        },
+        "noise_scale_m": {
+          "default": 60.0,
+          "maximum": 2000.0,
+          "minimum": 1.0,
+          "title": "Noise Scale M",
+          "type": "number"
+        },
+        "octaves": {
+          "default": 3,
+          "maximum": 8,
+          "minimum": 1,
+          "title": "Octaves",
+          "type": "integer"
+        },
+        "carve_water": {
+          "default": true,
+          "title": "Carve Water",
+          "type": "boolean"
+        },
+        "water_depth_m": {
+          "default": 1.5,
+          "maximum": 20.0,
+          "minimum": 0.0,
+          "title": "Water Depth M",
+          "type": "number"
+        }
+      },
+      "title": "TerrainRecipe",
+      "type": "object"
+    },
+    "TimeOfDay": {
+      "enum": [
+        "dawn",
+        "morning",
+        "noon",
+        "afternoon",
+        "dusk",
+        "night"
+      ],
+      "title": "TimeOfDay",
+      "type": "string"
+    },
+    "VegetationRecipe": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "density_scale": {
+          "default": 1.0,
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Density Scale",
+          "type": "number"
+        },
+        "min_spacing_m": {
+          "default": 3.0,
+          "maximum": 50.0,
+          "minimum": 0.25,
+          "title": "Min Spacing M",
+          "type": "number"
+        },
+        "max_instances_per_feature": {
+          "default": 1500,
+          "maximum": 20000,
+          "minimum": 0,
+          "title": "Max Instances Per Feature",
+          "type": "integer"
+        },
+        "scale_jitter": {
+          "default": 0.15,
+          "maximum": 0.9,
+          "minimum": 0.0,
+          "title": "Scale Jitter",
+          "type": "number"
+        },
+        "understory_ratio": {
+          "default": 0.2,
+          "description": "Share of forest/woodland instances that become bushes.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Understory Ratio",
+          "type": "number"
+        },
+        "road_clearance_m": {
+          "default": 1.0,
+          "maximum": 50.0,
+          "minimum": 0.0,
+          "title": "Road Clearance M",
+          "type": "number"
+        },
+        "building_clearance_m": {
+          "default": 1.5,
+          "maximum": 50.0,
+          "minimum": 0.0,
+          "title": "Building Clearance M",
+          "type": "number"
+        }
+      },
+      "title": "VegetationRecipe",
+      "type": "object"
+    },
+    "Weather": {
+      "enum": [
+        "clear",
+        "partly_cloudy",
+        "overcast",
+        "fog",
+        "rain",
+        "storm",
+        "snow"
+      ],
+      "title": "Weather",
+      "type": "string"
+    },
+    "ZoneFillRecipe": {
+      "additionalProperties": false,
+      "description": "Procedurally add buildings along roads inside matching zones.",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "zone_kinds": {
+          "items": {
+            "$ref": "#/$defs/ZoneKind"
+          },
+          "title": "Zone Kinds",
+          "type": "array"
+        },
+        "building_weights": {
+          "additionalProperties": {
+            "exclusiveMinimum": 0.0,
+            "type": "number"
+          },
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/$defs/BuildingKind"
+          },
+          "title": "Building Weights",
+          "type": "object"
+        },
+        "lot_spacing_m": {
+          "default": 20.0,
+          "maximum": 200.0,
+          "minimum": 4.0,
+          "title": "Lot Spacing M",
+          "type": "number"
+        },
+        "setback_m": {
+          "default": 5.0,
+          "maximum": 100.0,
+          "minimum": 0.0,
+          "title": "Setback M",
+          "type": "number"
+        },
+        "spacing_m": {
+          "default": 3.0,
+          "description": "Minimum gap between infill buildings and existing objects.",
+          "maximum": 50.0,
+          "minimum": 0.0,
+          "title": "Spacing M",
+          "type": "number"
+        },
+        "max_per_zone": {
+          "default": 40,
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Max Per Zone",
+          "type": "integer"
+        }
+      },
+      "title": "ZoneFillRecipe",
+      "type": "object"
+    },
+    "ZoneKind": {
+      "enum": [
+        "residential",
+        "commercial",
+        "industrial",
+        "agricultural",
+        "military",
+        "park",
+        "forest",
+        "open_field",
+        "wasteland"
+      ],
+      "title": "ZoneKind",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Stylisation and generation settings (public contract v1.0).",
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+      "title": "Id",
+      "type": "string"
+    },
+    "name": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "maxLength": 2000,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Description"
+    },
+    "applies_to": {
+      "description": "Blueprint id glob patterns this recipe is meant for; empty = any.",
+      "items": {
+        "maxLength": 100,
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Applies To",
+      "type": "array"
+    },
+    "seed": {
+      "default": 0,
+      "maximum": 9223372036854775807,
+      "minimum": 0,
+      "title": "Seed",
+      "type": "integer"
+    },
+    "style": {
+      "$ref": "#/$defs/StyleSpec"
+    },
+    "assets": {
+      "$ref": "#/$defs/AssetSelectionSpec"
+    },
+    "filters": {
+      "$ref": "#/$defs/FeatureFilter"
+    },
+    "terrain": {
+      "$ref": "#/$defs/TerrainRecipe"
+    },
+    "roads": {
+      "$ref": "#/$defs/RoadRecipe"
+    },
+    "buildings": {
+      "$ref": "#/$defs/BuildingRecipe"
+    },
+    "fences": {
+      "$ref": "#/$defs/FenceRecipe"
+    },
+    "infrastructure": {
+      "$ref": "#/$defs/InfrastructureRecipe"
+    },
+    "vegetation": {
+      "$ref": "#/$defs/VegetationRecipe"
+    },
+    "props": {
+      "$ref": "#/$defs/PropRecipe"
+    },
+    "atmosphere": {
+      "$ref": "#/$defs/AtmosphereRecipe"
+    },
+    "validation": {
+      "$ref": "#/$defs/LayoutValidationRecipe"
+    },
+    "metadata": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          }
+        ]
+      },
+      "propertyNames": {
+        "maxLength": 64,
+        "minLength": 1
+      },
+      "title": "Metadata",
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "name"
+  ],
+  "title": "LocationRecipe",
+  "type": "object"
+}

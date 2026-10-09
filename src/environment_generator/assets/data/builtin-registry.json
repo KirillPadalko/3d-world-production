@@ -1,0 +1,1900 @@
+{
+  "schema_version": "1.0",
+  "id": "builtin-stylized",
+  "name": "Built-in stylized archetypes",
+  "description": "Engine-agnostic archetype catalogue shipped with the generator. asset_ref values are logical envgen:// keys; an engine integration supplies its own registry (same schema) that maps archetypes to real assets.",
+  "archetypes": [
+    {
+      "id": "terrain.ground.grass",
+      "category": "terrain",
+      "kinds": [
+        "grass"
+      ],
+      "tags": [
+        "stylized",
+        "grass"
+      ],
+      "dimensions": {
+        "width_m": 1,
+        "depth_m": 1,
+        "height_m": 0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://terrain/ground/grass",
+      "description": "Ground material: grass."
+    },
+    {
+      "id": "terrain.ground.dirt",
+      "category": "terrain",
+      "kinds": [
+        "dirt"
+      ],
+      "tags": [
+        "stylized",
+        "dirt"
+      ],
+      "dimensions": {
+        "width_m": 1,
+        "depth_m": 1,
+        "height_m": 0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://terrain/ground/dirt",
+      "description": "Ground material: dirt."
+    },
+    {
+      "id": "terrain.ground.sand",
+      "category": "terrain",
+      "kinds": [
+        "sand"
+      ],
+      "tags": [
+        "stylized",
+        "sand"
+      ],
+      "dimensions": {
+        "width_m": 1,
+        "depth_m": 1,
+        "height_m": 0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://terrain/ground/sand",
+      "description": "Ground material: sand."
+    },
+    {
+      "id": "terrain.ground.gravel",
+      "category": "terrain",
+      "kinds": [
+        "gravel"
+      ],
+      "tags": [
+        "stylized",
+        "gravel"
+      ],
+      "dimensions": {
+        "width_m": 1,
+        "depth_m": 1,
+        "height_m": 0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://terrain/ground/gravel",
+      "description": "Ground material: gravel."
+    },
+    {
+      "id": "terrain.ground.snow",
+      "category": "terrain",
+      "kinds": [
+        "snow"
+      ],
+      "tags": [
+        "stylized",
+        "snow"
+      ],
+      "dimensions": {
+        "width_m": 1,
+        "depth_m": 1,
+        "height_m": 0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://terrain/ground/snow",
+      "description": "Ground material: snow."
+    },
+    {
+      "id": "terrain.ground.mud",
+      "category": "terrain",
+      "kinds": [
+        "mud"
+      ],
+      "tags": [
+        "stylized",
+        "mud"
+      ],
+      "dimensions": {
+        "width_m": 1,
+        "depth_m": 1,
+        "height_m": 0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://terrain/ground/mud",
+      "description": "Ground material: mud."
+    },
+    {
+      "id": "terrain.ground.rock",
+      "category": "terrain",
+      "kinds": [
+        "rock"
+      ],
+      "tags": [
+        "stylized",
+        "rock"
+      ],
+      "dimensions": {
+        "width_m": 1,
+        "depth_m": 1,
+        "height_m": 0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://terrain/ground/rock",
+      "description": "Ground material: rock."
+    },
+    {
+      "id": "terrain.ground.paved",
+      "category": "terrain",
+      "kinds": [
+        "paved"
+      ],
+      "tags": [
+        "stylized",
+        "paved"
+      ],
+      "dimensions": {
+        "width_m": 1,
+        "depth_m": 1,
+        "height_m": 0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://terrain/ground/paved",
+      "description": "Ground material: paved."
+    },
+    {
+      "id": "water.surface.still",
+      "category": "water",
+      "kinds": [
+        "pond",
+        "lake",
+        "marsh"
+      ],
+      "tags": [
+        "stylized"
+      ],
+      "dimensions": {
+        "width_m": 1,
+        "depth_m": 1,
+        "height_m": 0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://water/surface/still",
+      "description": "Still water surface material."
+    },
+    {
+      "id": "water.surface.flowing",
+      "category": "water",
+      "kinds": [
+        "river",
+        "canal"
+      ],
+      "tags": [
+        "stylized"
+      ],
+      "dimensions": {
+        "width_m": 1,
+        "depth_m": 1,
+        "height_m": 0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://water/surface/flowing",
+      "description": "Flowing water surface material."
+    },
+    {
+      "id": "road.profile.asphalt",
+      "category": "road",
+      "kinds": [
+        "highway",
+        "street",
+        "rural_road",
+        "footpath"
+      ],
+      "tags": [
+        "stylized",
+        "asphalt"
+      ],
+      "dimensions": {
+        "width_m": 1,
+        "depth_m": 1,
+        "height_m": 0.05
+      },
+      "variants": 2,
+      "asset_ref": "envgen://road/profile/asphalt",
+      "constraints": {
+        "surfaces": [
+          "asphalt"
+        ]
+      }
+    },
+    {
+      "id": "road.profile.concrete",
+      "category": "road",
+      "kinds": [
+        "highway",
+        "street",
+        "rural_road",
+        "footpath"
+      ],
+      "tags": [
+        "stylized",
+        "concrete"
+      ],
+      "dimensions": {
+        "width_m": 1,
+        "depth_m": 1,
+        "height_m": 0.05
+      },
+      "variants": 1,
+      "asset_ref": "envgen://road/profile/concrete",
+      "constraints": {
+        "surfaces": [
+          "concrete"
+        ]
+      }
+    },
+    {
+      "id": "road.profile.cobblestone",
+      "category": "road",
+      "kinds": [
+        "street",
+        "footpath"
+      ],
+      "tags": [
+        "stylized",
+        "cobblestone"
+      ],
+      "dimensions": {
+        "width_m": 1,
+        "depth_m": 1,
+        "height_m": 0.05
+      },
+      "variants": 1,
+      "asset_ref": "envgen://road/profile/cobblestone",
+      "constraints": {
+        "surfaces": [
+          "cobblestone"
+        ]
+      }
+    },
+    {
+      "id": "road.profile.gravel",
+      "category": "road",
+      "kinds": [
+        "rural_road",
+        "dirt_track",
+        "footpath"
+      ],
+      "tags": [
+        "stylized",
+        "gravel"
+      ],
+      "dimensions": {
+        "width_m": 1,
+        "depth_m": 1,
+        "height_m": 0.05
+      },
+      "variants": 1,
+      "asset_ref": "envgen://road/profile/gravel",
+      "constraints": {
+        "surfaces": [
+          "gravel"
+        ]
+      }
+    },
+    {
+      "id": "road.profile.dirt",
+      "category": "road",
+      "kinds": [
+        "dirt_track",
+        "rural_road",
+        "footpath"
+      ],
+      "tags": [
+        "stylized",
+        "dirt"
+      ],
+      "dimensions": {
+        "width_m": 1,
+        "depth_m": 1,
+        "height_m": 0.05
+      },
+      "variants": 2,
+      "asset_ref": "envgen://road/profile/dirt",
+      "constraints": {
+        "surfaces": [
+          "dirt"
+        ]
+      }
+    },
+    {
+      "id": "road.junction.paved",
+      "category": "road",
+      "kinds": [
+        "junction"
+      ],
+      "tags": [
+        "stylized"
+      ],
+      "dimensions": {
+        "width_m": 1,
+        "depth_m": 1,
+        "height_m": 0.05
+      },
+      "variants": 1,
+      "asset_ref": "envgen://road/junction/paved",
+      "constraints": {
+        "surfaces": [
+          "asphalt",
+          "concrete",
+          "cobblestone"
+        ]
+      }
+    },
+    {
+      "id": "road.junction.unpaved",
+      "category": "road",
+      "kinds": [
+        "junction"
+      ],
+      "tags": [
+        "stylized"
+      ],
+      "dimensions": {
+        "width_m": 1,
+        "depth_m": 1,
+        "height_m": 0.05
+      },
+      "variants": 1,
+      "asset_ref": "envgen://road/junction/unpaved",
+      "constraints": {
+        "surfaces": [
+          "gravel",
+          "dirt"
+        ]
+      }
+    },
+    {
+      "id": "building.house.small_gable",
+      "category": "building",
+      "kinds": [
+        "house"
+      ],
+      "tags": [
+        "stylized",
+        "rural",
+        "brick"
+      ],
+      "dimensions": {
+        "width_m": 9,
+        "depth_m": 7,
+        "height_m": 7.5
+      },
+      "variants": 4,
+      "asset_ref": "envgen://building/house/small_gable",
+      "weight": 2,
+      "cover": "full",
+      "constraints": {
+        "min_floors": 1,
+        "max_floors": 2,
+        "roofs": [
+          "gable"
+        ],
+        "conditions": [
+          "intact",
+          "damaged"
+        ]
+      }
+    },
+    {
+      "id": "building.house.medium_hip",
+      "category": "building",
+      "kinds": [
+        "house"
+      ],
+      "tags": [
+        "stylized",
+        "rural",
+        "plaster"
+      ],
+      "dimensions": {
+        "width_m": 11,
+        "depth_m": 8,
+        "height_m": 8.0
+      },
+      "variants": 3,
+      "asset_ref": "envgen://building/house/medium_hip",
+      "cover": "full",
+      "constraints": {
+        "min_floors": 1,
+        "max_floors": 2,
+        "roofs": [
+          "hip"
+        ],
+        "conditions": [
+          "intact",
+          "damaged"
+        ]
+      }
+    },
+    {
+      "id": "building.house.flat_modern",
+      "category": "building",
+      "kinds": [
+        "house",
+        "office"
+      ],
+      "tags": [
+        "stylized",
+        "modern",
+        "concrete"
+      ],
+      "dimensions": {
+        "width_m": 10,
+        "depth_m": 9,
+        "height_m": 6.5
+      },
+      "variants": 2,
+      "asset_ref": "envgen://building/house/flat_modern",
+      "weight": 0.5,
+      "cover": "full",
+      "constraints": {
+        "min_floors": 1,
+        "max_floors": 3,
+        "roofs": [
+          "flat"
+        ],
+        "conditions": [
+          "intact",
+          "damaged"
+        ]
+      }
+    },
+    {
+      "id": "building.house.timber_cottage",
+      "category": "building",
+      "kinds": [
+        "house"
+      ],
+      "tags": [
+        "stylized",
+        "rural",
+        "wood",
+        "weathered"
+      ],
+      "dimensions": {
+        "width_m": 8,
+        "depth_m": 6,
+        "height_m": 6.0
+      },
+      "variants": 3,
+      "asset_ref": "envgen://building/house/timber_cottage",
+      "cover": "full",
+      "constraints": {
+        "min_floors": 1,
+        "max_floors": 1,
+        "roofs": [
+          "gable",
+          "mono_pitch"
+        ],
+        "conditions": [
+          "intact",
+          "damaged"
+        ]
+      }
+    },
+    {
+      "id": "building.ruin.house_shell",
+      "category": "building",
+      "kinds": [
+        "house",
+        "shop",
+        "office"
+      ],
+      "tags": [
+        "stylized",
+        "weathered",
+        "ruin"
+      ],
+      "dimensions": {
+        "width_m": 9,
+        "depth_m": 7,
+        "height_m": 4.5
+      },
+      "variants": 4,
+      "asset_ref": "envgen://building/ruin/house_shell",
+      "cover": "half",
+      "constraints": {
+        "conditions": [
+          "ruined"
+        ]
+      },
+      "description": "Roofless masonry shell."
+    },
+    {
+      "id": "building.apartment.block_mid",
+      "category": "building",
+      "kinds": [
+        "apartment_block"
+      ],
+      "tags": [
+        "stylized",
+        "urban",
+        "concrete"
+      ],
+      "dimensions": {
+        "width_m": 24,
+        "depth_m": 12,
+        "height_m": 15.0
+      },
+      "variants": 2,
+      "asset_ref": "envgen://building/apartment/block_mid",
+      "cover": "full",
+      "constraints": {
+        "min_floors": 3,
+        "max_floors": 6,
+        "roofs": [
+          "flat"
+        ],
+        "conditions": [
+          "intact",
+          "damaged"
+        ]
+      }
+    },
+    {
+      "id": "building.ruin.apartment_shell",
+      "category": "building",
+      "kinds": [
+        "apartment_block",
+        "office"
+      ],
+      "tags": [
+        "stylized",
+        "weathered",
+        "ruin"
+      ],
+      "dimensions": {
+        "width_m": 24,
+        "depth_m": 12,
+        "height_m": 9.0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://building/ruin/apartment_shell",
+      "cover": "half",
+      "constraints": {
+        "conditions": [
+          "ruined"
+        ]
+      }
+    },
+    {
+      "id": "building.barn.timber",
+      "category": "building",
+      "kinds": [
+        "barn"
+      ],
+      "tags": [
+        "stylized",
+        "rural",
+        "wood"
+      ],
+      "dimensions": {
+        "width_m": 18,
+        "depth_m": 10,
+        "height_m": 9.0
+      },
+      "variants": 2,
+      "asset_ref": "envgen://building/barn/timber",
+      "cover": "full",
+      "constraints": {
+        "min_floors": 1,
+        "max_floors": 2,
+        "roofs": [
+          "gable"
+        ],
+        "conditions": [
+          "intact",
+          "damaged"
+        ]
+      }
+    },
+    {
+      "id": "building.ruin.barn_collapsed",
+      "category": "building",
+      "kinds": [
+        "barn",
+        "shed"
+      ],
+      "tags": [
+        "stylized",
+        "rural",
+        "weathered",
+        "ruin"
+      ],
+      "dimensions": {
+        "width_m": 18,
+        "depth_m": 10,
+        "height_m": 5.0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://building/ruin/barn_collapsed",
+      "cover": "half",
+      "constraints": {
+        "conditions": [
+          "ruined"
+        ]
+      }
+    },
+    {
+      "id": "building.shed.timber",
+      "category": "building",
+      "kinds": [
+        "shed"
+      ],
+      "tags": [
+        "stylized",
+        "rural",
+        "wood"
+      ],
+      "dimensions": {
+        "width_m": 5,
+        "depth_m": 4,
+        "height_m": 3.0
+      },
+      "variants": 3,
+      "asset_ref": "envgen://building/shed/timber",
+      "cover": "full",
+      "constraints": {
+        "max_floors": 1,
+        "roofs": [
+          "mono_pitch",
+          "gable"
+        ],
+        "conditions": [
+          "intact",
+          "damaged"
+        ]
+      }
+    },
+    {
+      "id": "building.garage.single",
+      "category": "building",
+      "kinds": [
+        "garage"
+      ],
+      "tags": [
+        "stylized",
+        "brick"
+      ],
+      "dimensions": {
+        "width_m": 6.5,
+        "depth_m": 4,
+        "height_m": 3.0
+      },
+      "variants": 2,
+      "asset_ref": "envgen://building/garage/single",
+      "cover": "full",
+      "constraints": {
+        "max_floors": 1,
+        "roofs": [
+          "flat",
+          "mono_pitch"
+        ],
+        "conditions": [
+          "intact",
+          "damaged"
+        ]
+      }
+    },
+    {
+      "id": "building.warehouse.steel",
+      "category": "building",
+      "kinds": [
+        "warehouse"
+      ],
+      "tags": [
+        "stylized",
+        "industrial",
+        "metal"
+      ],
+      "dimensions": {
+        "width_m": 30,
+        "depth_m": 18,
+        "height_m": 10.0
+      },
+      "variants": 2,
+      "asset_ref": "envgen://building/warehouse/steel",
+      "cover": "full",
+      "constraints": {
+        "max_floors": 2,
+        "roofs": [
+          "gable",
+          "flat"
+        ],
+        "conditions": [
+          "intact",
+          "damaged"
+        ]
+      }
+    },
+    {
+      "id": "building.factory.brick",
+      "category": "building",
+      "kinds": [
+        "factory"
+      ],
+      "tags": [
+        "stylized",
+        "industrial",
+        "brick"
+      ],
+      "dimensions": {
+        "width_m": 40,
+        "depth_m": 22,
+        "height_m": 14.0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://building/factory/brick",
+      "cover": "full",
+      "constraints": {
+        "min_floors": 1,
+        "max_floors": 4,
+        "conditions": [
+          "intact",
+          "damaged"
+        ]
+      }
+    },
+    {
+      "id": "building.ruin.industrial_shell",
+      "category": "building",
+      "kinds": [
+        "warehouse",
+        "factory",
+        "garage"
+      ],
+      "tags": [
+        "stylized",
+        "industrial",
+        "weathered",
+        "ruin"
+      ],
+      "dimensions": {
+        "width_m": 30,
+        "depth_m": 18,
+        "height_m": 7.0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://building/ruin/industrial_shell",
+      "cover": "half",
+      "constraints": {
+        "conditions": [
+          "ruined"
+        ]
+      }
+    },
+    {
+      "id": "building.shop.corner_store",
+      "category": "building",
+      "kinds": [
+        "shop"
+      ],
+      "tags": [
+        "stylized",
+        "rural",
+        "plaster"
+      ],
+      "dimensions": {
+        "width_m": 12,
+        "depth_m": 9,
+        "height_m": 7.0
+      },
+      "variants": 2,
+      "asset_ref": "envgen://building/shop/corner_store",
+      "cover": "full",
+      "constraints": {
+        "min_floors": 1,
+        "max_floors": 2,
+        "roofs": [
+          "flat",
+          "gable"
+        ],
+        "conditions": [
+          "intact",
+          "damaged"
+        ]
+      }
+    },
+    {
+      "id": "building.office.small",
+      "category": "building",
+      "kinds": [
+        "office"
+      ],
+      "tags": [
+        "stylized",
+        "urban",
+        "concrete"
+      ],
+      "dimensions": {
+        "width_m": 14,
+        "depth_m": 10,
+        "height_m": 10.0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://building/office/small",
+      "cover": "full",
+      "constraints": {
+        "min_floors": 2,
+        "max_floors": 4,
+        "roofs": [
+          "flat"
+        ],
+        "conditions": [
+          "intact",
+          "damaged"
+        ]
+      }
+    },
+    {
+      "id": "building.church.village",
+      "category": "building",
+      "kinds": [
+        "church"
+      ],
+      "tags": [
+        "stylized",
+        "rural",
+        "stone"
+      ],
+      "dimensions": {
+        "width_m": 16,
+        "depth_m": 10,
+        "height_m": 16.0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://building/church/village",
+      "cover": "full",
+      "constraints": {
+        "roofs": [
+          "gable"
+        ],
+        "conditions": [
+          "intact",
+          "damaged"
+        ]
+      }
+    },
+    {
+      "id": "building.ruin.church_shell",
+      "category": "building",
+      "kinds": [
+        "church"
+      ],
+      "tags": [
+        "stylized",
+        "stone",
+        "weathered",
+        "ruin"
+      ],
+      "dimensions": {
+        "width_m": 16,
+        "depth_m": 10,
+        "height_m": 9.0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://building/ruin/church_shell",
+      "cover": "half",
+      "constraints": {
+        "conditions": [
+          "ruined"
+        ]
+      }
+    },
+    {
+      "id": "vegetation.tree.oak",
+      "category": "vegetation",
+      "kinds": [
+        "tree"
+      ],
+      "tags": [
+        "stylized",
+        "deciduous"
+      ],
+      "dimensions": {
+        "width_m": 8,
+        "depth_m": 8,
+        "height_m": 12
+      },
+      "variants": 4,
+      "asset_ref": "envgen://vegetation/tree/oak",
+      "weight": 2,
+      "biomes": [
+        "temperate"
+      ],
+      "cover": "partial"
+    },
+    {
+      "id": "vegetation.tree.birch",
+      "category": "vegetation",
+      "kinds": [
+        "tree"
+      ],
+      "tags": [
+        "stylized",
+        "deciduous"
+      ],
+      "dimensions": {
+        "width_m": 5,
+        "depth_m": 5,
+        "height_m": 13
+      },
+      "variants": 3,
+      "asset_ref": "envgen://vegetation/tree/birch",
+      "biomes": [
+        "temperate",
+        "boreal"
+      ],
+      "cover": "partial"
+    },
+    {
+      "id": "vegetation.tree.pine",
+      "category": "vegetation",
+      "kinds": [
+        "tree"
+      ],
+      "tags": [
+        "stylized",
+        "conifer"
+      ],
+      "dimensions": {
+        "width_m": 5,
+        "depth_m": 5,
+        "height_m": 16
+      },
+      "variants": 3,
+      "asset_ref": "envgen://vegetation/tree/pine",
+      "biomes": [
+        "temperate",
+        "boreal",
+        "alpine"
+      ],
+      "cover": "partial"
+    },
+    {
+      "id": "vegetation.tree.spruce",
+      "category": "vegetation",
+      "kinds": [
+        "tree"
+      ],
+      "tags": [
+        "stylized",
+        "conifer"
+      ],
+      "dimensions": {
+        "width_m": 4.5,
+        "depth_m": 4.5,
+        "height_m": 15
+      },
+      "variants": 3,
+      "asset_ref": "envgen://vegetation/tree/spruce",
+      "weight": 1.5,
+      "biomes": [
+        "boreal",
+        "alpine"
+      ],
+      "cover": "partial"
+    },
+    {
+      "id": "vegetation.tree.olive",
+      "category": "vegetation",
+      "kinds": [
+        "tree",
+        "fruit_tree"
+      ],
+      "tags": [
+        "stylized"
+      ],
+      "dimensions": {
+        "width_m": 5,
+        "depth_m": 5,
+        "height_m": 6
+      },
+      "variants": 2,
+      "asset_ref": "envgen://vegetation/tree/olive",
+      "biomes": [
+        "mediterranean",
+        "arid"
+      ],
+      "cover": "partial"
+    },
+    {
+      "id": "vegetation.tree.palm",
+      "category": "vegetation",
+      "kinds": [
+        "tree"
+      ],
+      "tags": [
+        "stylized"
+      ],
+      "dimensions": {
+        "width_m": 4,
+        "depth_m": 4,
+        "height_m": 10
+      },
+      "variants": 2,
+      "asset_ref": "envgen://vegetation/tree/palm",
+      "biomes": [
+        "tropical",
+        "arid"
+      ],
+      "cover": "partial"
+    },
+    {
+      "id": "vegetation.tree.apple",
+      "category": "vegetation",
+      "kinds": [
+        "fruit_tree"
+      ],
+      "tags": [
+        "stylized",
+        "deciduous"
+      ],
+      "dimensions": {
+        "width_m": 5,
+        "depth_m": 5,
+        "height_m": 5
+      },
+      "variants": 3,
+      "asset_ref": "envgen://vegetation/tree/apple",
+      "biomes": [
+        "temperate",
+        "mediterranean"
+      ],
+      "cover": "partial"
+    },
+    {
+      "id": "vegetation.tree.dead",
+      "category": "vegetation",
+      "kinds": [
+        "tree"
+      ],
+      "tags": [
+        "stylized",
+        "weathered"
+      ],
+      "dimensions": {
+        "width_m": 5,
+        "depth_m": 5,
+        "height_m": 10
+      },
+      "variants": 2,
+      "asset_ref": "envgen://vegetation/tree/dead",
+      "weight": 0.4,
+      "cover": "partial"
+    },
+    {
+      "id": "vegetation.bush.hazel",
+      "category": "vegetation",
+      "kinds": [
+        "bush",
+        "hedge"
+      ],
+      "tags": [
+        "stylized"
+      ],
+      "dimensions": {
+        "width_m": 2.5,
+        "depth_m": 2.5,
+        "height_m": 2.5
+      },
+      "variants": 3,
+      "asset_ref": "envgen://vegetation/bush/hazel",
+      "biomes": [
+        "temperate",
+        "boreal"
+      ],
+      "cover": "partial"
+    },
+    {
+      "id": "vegetation.bush.juniper",
+      "category": "vegetation",
+      "kinds": [
+        "bush"
+      ],
+      "tags": [
+        "stylized",
+        "conifer"
+      ],
+      "dimensions": {
+        "width_m": 2,
+        "depth_m": 2,
+        "height_m": 2
+      },
+      "variants": 2,
+      "asset_ref": "envgen://vegetation/bush/juniper",
+      "biomes": [
+        "boreal",
+        "alpine",
+        "mediterranean"
+      ],
+      "cover": "partial"
+    },
+    {
+      "id": "vegetation.bush.dry_shrub",
+      "category": "vegetation",
+      "kinds": [
+        "bush"
+      ],
+      "tags": [
+        "stylized",
+        "weathered"
+      ],
+      "dimensions": {
+        "width_m": 1.8,
+        "depth_m": 1.8,
+        "height_m": 1.2
+      },
+      "variants": 3,
+      "asset_ref": "envgen://vegetation/bush/dry_shrub",
+      "biomes": [
+        "arid",
+        "mediterranean"
+      ],
+      "cover": "partial"
+    },
+    {
+      "id": "vegetation.hedge.privet",
+      "category": "vegetation",
+      "kinds": [
+        "hedge"
+      ],
+      "tags": [
+        "stylized"
+      ],
+      "dimensions": {
+        "width_m": 1.8,
+        "depth_m": 1.2,
+        "height_m": 1.8
+      },
+      "variants": 2,
+      "asset_ref": "envgen://vegetation/hedge/privet",
+      "biomes": [
+        "temperate",
+        "mediterranean"
+      ],
+      "cover": "partial"
+    },
+    {
+      "id": "vegetation.grass.tall_clump",
+      "category": "vegetation",
+      "kinds": [
+        "grass_clump"
+      ],
+      "tags": [
+        "stylized"
+      ],
+      "dimensions": {
+        "width_m": 1.2,
+        "depth_m": 1.2,
+        "height_m": 0.9
+      },
+      "variants": 4,
+      "asset_ref": "envgen://vegetation/grass/tall_clump",
+      "cover": "none"
+    },
+    {
+      "id": "fence.panel.wooden",
+      "category": "fence",
+      "kinds": [
+        "wooden"
+      ],
+      "tags": [
+        "stylized",
+        "rural",
+        "wood"
+      ],
+      "dimensions": {
+        "width_m": 2.4,
+        "depth_m": 0.15,
+        "height_m": 1.2
+      },
+      "variants": 2,
+      "asset_ref": "envgen://fence/panel/wooden",
+      "cover": "partial"
+    },
+    {
+      "id": "fence.panel.picket",
+      "category": "fence",
+      "kinds": [
+        "picket"
+      ],
+      "tags": [
+        "stylized",
+        "rural",
+        "wood"
+      ],
+      "dimensions": {
+        "width_m": 2.0,
+        "depth_m": 0.1,
+        "height_m": 1.0
+      },
+      "variants": 2,
+      "asset_ref": "envgen://fence/panel/picket",
+      "cover": "none"
+    },
+    {
+      "id": "fence.panel.chain_link",
+      "category": "fence",
+      "kinds": [
+        "chain_link"
+      ],
+      "tags": [
+        "stylized",
+        "industrial",
+        "metal"
+      ],
+      "dimensions": {
+        "width_m": 3.0,
+        "depth_m": 0.08,
+        "height_m": 2.0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://fence/panel/chain_link",
+      "cover": "none"
+    },
+    {
+      "id": "fence.panel.wire",
+      "category": "fence",
+      "kinds": [
+        "wire"
+      ],
+      "tags": [
+        "stylized",
+        "rural",
+        "metal"
+      ],
+      "dimensions": {
+        "width_m": 4.0,
+        "depth_m": 0.1,
+        "height_m": 1.2
+      },
+      "variants": 1,
+      "asset_ref": "envgen://fence/panel/wire",
+      "cover": "none"
+    },
+    {
+      "id": "fence.wall.stone",
+      "category": "fence",
+      "kinds": [
+        "stone_wall"
+      ],
+      "tags": [
+        "stylized",
+        "rural",
+        "stone"
+      ],
+      "dimensions": {
+        "width_m": 2.0,
+        "depth_m": 0.6,
+        "height_m": 1.2
+      },
+      "variants": 3,
+      "asset_ref": "envgen://fence/wall/stone",
+      "cover": "half"
+    },
+    {
+      "id": "fence.wall.brick",
+      "category": "fence",
+      "kinds": [
+        "brick_wall"
+      ],
+      "tags": [
+        "stylized",
+        "brick"
+      ],
+      "dimensions": {
+        "width_m": 2.5,
+        "depth_m": 0.3,
+        "height_m": 2.0
+      },
+      "variants": 2,
+      "asset_ref": "envgen://fence/wall/brick",
+      "cover": "full"
+    },
+    {
+      "id": "fence.wall.concrete",
+      "category": "fence",
+      "kinds": [
+        "concrete_wall"
+      ],
+      "tags": [
+        "stylized",
+        "industrial",
+        "concrete"
+      ],
+      "dimensions": {
+        "width_m": 3.0,
+        "depth_m": 0.25,
+        "height_m": 2.5
+      },
+      "variants": 1,
+      "asset_ref": "envgen://fence/wall/concrete",
+      "cover": "full"
+    },
+    {
+      "id": "fence.railing.metal",
+      "category": "fence",
+      "kinds": [
+        "metal_railing"
+      ],
+      "tags": [
+        "stylized",
+        "urban",
+        "metal"
+      ],
+      "dimensions": {
+        "width_m": 2.0,
+        "depth_m": 0.08,
+        "height_m": 1.1
+      },
+      "variants": 1,
+      "asset_ref": "envgen://fence/railing/metal",
+      "cover": "none"
+    },
+    {
+      "id": "infrastructure.street_light.single_arm",
+      "category": "infrastructure",
+      "kinds": [
+        "street_light"
+      ],
+      "tags": [
+        "stylized"
+      ],
+      "dimensions": {
+        "width_m": 0.4,
+        "depth_m": 1.6,
+        "height_m": 7.0
+      },
+      "variants": 2,
+      "asset_ref": "envgen://infrastructure/street_light/single_arm",
+      "cover": "none"
+    },
+    {
+      "id": "infrastructure.pole.wood",
+      "category": "infrastructure",
+      "kinds": [
+        "utility_pole",
+        "telephone_pole",
+        "power_pole"
+      ],
+      "tags": [
+        "stylized",
+        "rural",
+        "wood"
+      ],
+      "dimensions": {
+        "width_m": 0.35,
+        "depth_m": 0.35,
+        "height_m": 8.0
+      },
+      "variants": 2,
+      "asset_ref": "envgen://infrastructure/pole/wood",
+      "cover": "none"
+    },
+    {
+      "id": "infrastructure.pole.concrete",
+      "category": "infrastructure",
+      "kinds": [
+        "power_pole",
+        "utility_pole"
+      ],
+      "tags": [
+        "stylized",
+        "concrete"
+      ],
+      "dimensions": {
+        "width_m": 0.45,
+        "depth_m": 0.45,
+        "height_m": 10.0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://infrastructure/pole/concrete",
+      "cover": "none"
+    },
+    {
+      "id": "infrastructure.transformer.pad",
+      "category": "infrastructure",
+      "kinds": [
+        "transformer"
+      ],
+      "tags": [
+        "stylized",
+        "industrial"
+      ],
+      "dimensions": {
+        "width_m": 2.0,
+        "depth_m": 1.5,
+        "height_m": 2.0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://infrastructure/transformer/pad",
+      "cover": "full"
+    },
+    {
+      "id": "infrastructure.water_tower.steel",
+      "category": "infrastructure",
+      "kinds": [
+        "water_tower"
+      ],
+      "tags": [
+        "stylized",
+        "rural",
+        "metal"
+      ],
+      "dimensions": {
+        "width_m": 6.0,
+        "depth_m": 6.0,
+        "height_m": 18.0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://infrastructure/water_tower/steel",
+      "cover": "full"
+    },
+    {
+      "id": "infrastructure.antenna.lattice_mast",
+      "category": "infrastructure",
+      "kinds": [
+        "antenna_mast"
+      ],
+      "tags": [
+        "stylized",
+        "metal"
+      ],
+      "dimensions": {
+        "width_m": 2.0,
+        "depth_m": 2.0,
+        "height_m": 25.0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://infrastructure/antenna/lattice_mast",
+      "cover": "none"
+    },
+    {
+      "id": "infrastructure.bus_stop.shelter",
+      "category": "infrastructure",
+      "kinds": [
+        "bus_stop"
+      ],
+      "tags": [
+        "stylized"
+      ],
+      "dimensions": {
+        "width_m": 3.5,
+        "depth_m": 1.6,
+        "height_m": 2.6
+      },
+      "variants": 1,
+      "asset_ref": "envgen://infrastructure/bus_stop/shelter",
+      "cover": "partial"
+    },
+    {
+      "id": "infrastructure.well.stone",
+      "category": "infrastructure",
+      "kinds": [
+        "well"
+      ],
+      "tags": [
+        "stylized",
+        "rural",
+        "stone"
+      ],
+      "dimensions": {
+        "width_m": 1.5,
+        "depth_m": 1.5,
+        "height_m": 1.2
+      },
+      "variants": 1,
+      "asset_ref": "envgen://infrastructure/well/stone",
+      "cover": "half"
+    },
+    {
+      "id": "infrastructure.billboard.roadside",
+      "category": "infrastructure",
+      "kinds": [
+        "billboard"
+      ],
+      "tags": [
+        "stylized"
+      ],
+      "dimensions": {
+        "width_m": 6.0,
+        "depth_m": 0.5,
+        "height_m": 5.0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://infrastructure/billboard/roadside",
+      "cover": "partial"
+    },
+    {
+      "id": "infrastructure.cable.power",
+      "category": "infrastructure",
+      "kinds": [
+        "power_cable"
+      ],
+      "tags": [
+        "stylized"
+      ],
+      "dimensions": {
+        "width_m": 1.0,
+        "depth_m": 1.0,
+        "height_m": 0.05
+      },
+      "variants": 1,
+      "asset_ref": "envgen://infrastructure/cable/power"
+    },
+    {
+      "id": "infrastructure.cable.telephone",
+      "category": "infrastructure",
+      "kinds": [
+        "telephone_cable"
+      ],
+      "tags": [
+        "stylized"
+      ],
+      "dimensions": {
+        "width_m": 1.0,
+        "depth_m": 1.0,
+        "height_m": 0.05
+      },
+      "variants": 1,
+      "asset_ref": "envgen://infrastructure/cable/telephone"
+    },
+    {
+      "id": "infrastructure.pipeline.surface",
+      "category": "infrastructure",
+      "kinds": [
+        "pipeline"
+      ],
+      "tags": [
+        "stylized",
+        "industrial",
+        "metal"
+      ],
+      "dimensions": {
+        "width_m": 1.0,
+        "depth_m": 0.6,
+        "height_m": 0.6
+      },
+      "variants": 1,
+      "asset_ref": "envgen://infrastructure/pipeline/surface",
+      "cover": "half"
+    },
+    {
+      "id": "prop.vehicle.sedan",
+      "category": "prop",
+      "kinds": [
+        "vehicle"
+      ],
+      "tags": [
+        "stylized"
+      ],
+      "dimensions": {
+        "width_m": 1.8,
+        "depth_m": 4.4,
+        "height_m": 1.5
+      },
+      "variants": 4,
+      "asset_ref": "envgen://prop/vehicle/sedan",
+      "weight": 2,
+      "cover": "full",
+      "scalable": false
+    },
+    {
+      "id": "prop.vehicle.pickup",
+      "category": "prop",
+      "kinds": [
+        "vehicle"
+      ],
+      "tags": [
+        "stylized",
+        "rural"
+      ],
+      "dimensions": {
+        "width_m": 2.0,
+        "depth_m": 5.2,
+        "height_m": 1.8
+      },
+      "variants": 3,
+      "asset_ref": "envgen://prop/vehicle/pickup",
+      "cover": "full",
+      "scalable": false
+    },
+    {
+      "id": "prop.vehicle.tractor",
+      "category": "prop",
+      "kinds": [
+        "vehicle"
+      ],
+      "tags": [
+        "stylized",
+        "rural"
+      ],
+      "dimensions": {
+        "width_m": 2.2,
+        "depth_m": 4.0,
+        "height_m": 2.8
+      },
+      "variants": 2,
+      "asset_ref": "envgen://prop/vehicle/tractor",
+      "weight": 0.5,
+      "cover": "full",
+      "scalable": false
+    },
+    {
+      "id": "prop.wreck.car",
+      "category": "prop",
+      "kinds": [
+        "wreck"
+      ],
+      "tags": [
+        "stylized",
+        "weathered"
+      ],
+      "dimensions": {
+        "width_m": 1.8,
+        "depth_m": 4.4,
+        "height_m": 1.2
+      },
+      "variants": 3,
+      "asset_ref": "envgen://prop/wreck/car",
+      "cover": "full",
+      "scalable": false
+    },
+    {
+      "id": "prop.crate.wooden",
+      "category": "prop",
+      "kinds": [
+        "crate"
+      ],
+      "tags": [
+        "stylized",
+        "wood"
+      ],
+      "dimensions": {
+        "width_m": 1.0,
+        "depth_m": 1.0,
+        "height_m": 1.0
+      },
+      "variants": 3,
+      "asset_ref": "envgen://prop/crate/wooden",
+      "cover": "half"
+    },
+    {
+      "id": "prop.crate.stack",
+      "category": "prop",
+      "kinds": [
+        "crate"
+      ],
+      "tags": [
+        "stylized",
+        "wood"
+      ],
+      "dimensions": {
+        "width_m": 2.0,
+        "depth_m": 1.0,
+        "height_m": 1.8
+      },
+      "variants": 2,
+      "asset_ref": "envgen://prop/crate/stack",
+      "weight": 0.5,
+      "cover": "full"
+    },
+    {
+      "id": "prop.barrel.steel",
+      "category": "prop",
+      "kinds": [
+        "barrel"
+      ],
+      "tags": [
+        "stylized",
+        "metal"
+      ],
+      "dimensions": {
+        "width_m": 0.6,
+        "depth_m": 0.6,
+        "height_m": 0.9
+      },
+      "variants": 3,
+      "asset_ref": "envgen://prop/barrel/steel",
+      "cover": "half"
+    },
+    {
+      "id": "prop.pallet.wooden",
+      "category": "prop",
+      "kinds": [
+        "pallet"
+      ],
+      "tags": [
+        "stylized",
+        "wood"
+      ],
+      "dimensions": {
+        "width_m": 1.2,
+        "depth_m": 1.0,
+        "height_m": 0.15
+      },
+      "variants": 2,
+      "asset_ref": "envgen://prop/pallet/wooden",
+      "cover": "none"
+    },
+    {
+      "id": "prop.sandbags.wall",
+      "category": "prop",
+      "kinds": [
+        "sandbags"
+      ],
+      "tags": [
+        "stylized",
+        "military"
+      ],
+      "dimensions": {
+        "width_m": 3.0,
+        "depth_m": 0.8,
+        "height_m": 1.0
+      },
+      "variants": 2,
+      "asset_ref": "envgen://prop/sandbags/wall",
+      "cover": "half"
+    },
+    {
+      "id": "prop.hay_bale.round",
+      "category": "prop",
+      "kinds": [
+        "hay_bale"
+      ],
+      "tags": [
+        "stylized",
+        "rural"
+      ],
+      "dimensions": {
+        "width_m": 1.5,
+        "depth_m": 1.5,
+        "height_m": 1.2
+      },
+      "variants": 2,
+      "asset_ref": "envgen://prop/hay_bale/round",
+      "cover": "half"
+    },
+    {
+      "id": "prop.bench.wooden",
+      "category": "prop",
+      "kinds": [
+        "bench"
+      ],
+      "tags": [
+        "stylized",
+        "wood"
+      ],
+      "dimensions": {
+        "width_m": 1.8,
+        "depth_m": 0.5,
+        "height_m": 0.8
+      },
+      "variants": 2,
+      "asset_ref": "envgen://prop/bench/wooden",
+      "cover": "none"
+    },
+    {
+      "id": "prop.dumpster.steel",
+      "category": "prop",
+      "kinds": [
+        "dumpster"
+      ],
+      "tags": [
+        "stylized",
+        "urban",
+        "metal"
+      ],
+      "dimensions": {
+        "width_m": 2.0,
+        "depth_m": 1.2,
+        "height_m": 1.3
+      },
+      "variants": 2,
+      "asset_ref": "envgen://prop/dumpster/steel",
+      "cover": "full"
+    },
+    {
+      "id": "prop.cart.farm",
+      "category": "prop",
+      "kinds": [
+        "cart"
+      ],
+      "tags": [
+        "stylized",
+        "rural",
+        "wood"
+      ],
+      "dimensions": {
+        "width_m": 1.5,
+        "depth_m": 2.5,
+        "height_m": 1.2
+      },
+      "variants": 2,
+      "asset_ref": "envgen://prop/cart/farm",
+      "cover": "half"
+    },
+    {
+      "id": "prop.firewood.stack",
+      "category": "prop",
+      "kinds": [
+        "firewood"
+      ],
+      "tags": [
+        "stylized",
+        "rural",
+        "wood"
+      ],
+      "dimensions": {
+        "width_m": 2.0,
+        "depth_m": 0.8,
+        "height_m": 1.2
+      },
+      "variants": 2,
+      "asset_ref": "envgen://prop/firewood/stack",
+      "cover": "half"
+    },
+    {
+      "id": "prop.tires.pile",
+      "category": "prop",
+      "kinds": [
+        "tires"
+      ],
+      "tags": [
+        "stylized"
+      ],
+      "dimensions": {
+        "width_m": 1.5,
+        "depth_m": 1.5,
+        "height_m": 0.8
+      },
+      "variants": 2,
+      "asset_ref": "envgen://prop/tires/pile",
+      "cover": "half"
+    },
+    {
+      "id": "prop.generic.box",
+      "category": "prop",
+      "kinds": [
+        "generic"
+      ],
+      "tags": [
+        "stylized"
+      ],
+      "dimensions": {
+        "width_m": 1.0,
+        "depth_m": 1.0,
+        "height_m": 1.0
+      },
+      "variants": 1,
+      "asset_ref": "envgen://prop/generic/box",
+      "cover": "half"
+    }
+  ]
+}

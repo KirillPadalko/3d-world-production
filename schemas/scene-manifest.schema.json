@@ -1,0 +1,974 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:environment-generator:schema:scene-manifest:1.0",
+  "$defs": {
+    "AssetCategory": {
+      "enum": [
+        "terrain",
+        "water",
+        "road",
+        "building",
+        "fence",
+        "infrastructure",
+        "vegetation",
+        "prop"
+      ],
+      "title": "AssetCategory",
+      "type": "string"
+    },
+    "AtmosphereSettings": {
+      "additionalProperties": false,
+      "description": "Engine-agnostic lighting and weather description.",
+      "properties": {
+        "time_of_day": {
+          "$ref": "#/$defs/TimeOfDay"
+        },
+        "weather": {
+          "$ref": "#/$defs/Weather"
+        },
+        "season": {
+          "$ref": "#/$defs/Season"
+        },
+        "key_light_azimuth_deg": {
+          "description": "Compass bearing of the key light, clockwise from local +Y (north).",
+          "title": "Key Light Azimuth Deg",
+          "type": "number"
+        },
+        "key_light_elevation_deg": {
+          "title": "Key Light Elevation Deg",
+          "type": "number"
+        },
+        "key_light_direction": {
+          "description": "Unit vector pointing from the key light towards the scene.",
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Key Light Direction",
+          "type": "array"
+        },
+        "key_light_color": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            }
+          ],
+          "title": "Key Light Color",
+          "type": "array"
+        },
+        "key_light_intensity": {
+          "minimum": 0.0,
+          "title": "Key Light Intensity",
+          "type": "number"
+        },
+        "ambient_color": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            }
+          ],
+          "title": "Ambient Color",
+          "type": "array"
+        },
+        "ambient_intensity": {
+          "minimum": 0.0,
+          "title": "Ambient Intensity",
+          "type": "number"
+        },
+        "fog_color": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            }
+          ],
+          "title": "Fog Color",
+          "type": "array"
+        },
+        "fog_density": {
+          "minimum": 0.0,
+          "title": "Fog Density",
+          "type": "number"
+        },
+        "cloud_cover": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Cloud Cover",
+          "type": "number"
+        },
+        "precipitation": {
+          "enum": [
+            "none",
+            "rain",
+            "snow"
+          ],
+          "title": "Precipitation",
+          "type": "string"
+        },
+        "precipitation_intensity": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Precipitation Intensity",
+          "type": "number"
+        },
+        "wind_speed_mps": {
+          "minimum": 0.0,
+          "title": "Wind Speed Mps",
+          "type": "number"
+        },
+        "wind_direction_deg": {
+          "title": "Wind Direction Deg",
+          "type": "number"
+        },
+        "foliage": {
+          "enum": [
+            "fresh",
+            "full",
+            "autumn",
+            "bare"
+          ],
+          "title": "Foliage",
+          "type": "string"
+        },
+        "style_theme": {
+          "title": "Style Theme",
+          "type": "string"
+        },
+        "weathering": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Weathering",
+          "type": "number"
+        }
+      },
+      "required": [
+        "time_of_day",
+        "weather",
+        "season",
+        "key_light_azimuth_deg",
+        "key_light_elevation_deg",
+        "key_light_direction",
+        "key_light_color",
+        "key_light_intensity",
+        "ambient_color",
+        "ambient_intensity",
+        "fog_color",
+        "fog_density",
+        "cloud_cover",
+        "precipitation",
+        "precipitation_intensity",
+        "wind_speed_mps",
+        "wind_direction_deg",
+        "foliage",
+        "style_theme",
+        "weathering"
+      ],
+      "title": "AtmosphereSettings",
+      "type": "object"
+    },
+    "CoordinateSystem": {
+      "additionalProperties": false,
+      "properties": {
+        "units": {
+          "const": "meters",
+          "default": "meters",
+          "title": "Units",
+          "type": "string"
+        },
+        "handedness": {
+          "const": "right",
+          "default": "right",
+          "title": "Handedness",
+          "type": "string"
+        },
+        "up_axis": {
+          "const": "+z",
+          "default": "+z",
+          "title": "Up Axis",
+          "type": "string"
+        },
+        "x_axis": {
+          "const": "east",
+          "default": "east",
+          "title": "X Axis",
+          "type": "string"
+        },
+        "y_axis": {
+          "const": "north",
+          "default": "north",
+          "title": "Y Axis",
+          "type": "string"
+        },
+        "origin": {
+          "const": "extent_south_west_corner",
+          "default": "extent_south_west_corner",
+          "title": "Origin",
+          "type": "string"
+        },
+        "rotation": {
+          "const": "euler_xyz_extrinsic_degrees_ccw",
+          "default": "euler_xyz_extrinsic_degrees_ccw",
+          "title": "Rotation",
+          "type": "string"
+        },
+        "forward_axis": {
+          "const": "+y",
+          "default": "+y",
+          "title": "Forward Axis",
+          "type": "string"
+        }
+      },
+      "title": "CoordinateSystem",
+      "type": "object"
+    },
+    "Dimensions": {
+      "additionalProperties": false,
+      "description": "Axis-aligned size in the object's local frame (X width, Y depth, Z height).",
+      "properties": {
+        "width_m": {
+          "minimum": 0.0,
+          "title": "Width M",
+          "type": "number"
+        },
+        "depth_m": {
+          "minimum": 0.0,
+          "title": "Depth M",
+          "type": "number"
+        },
+        "height_m": {
+          "minimum": 0.0,
+          "title": "Height M",
+          "type": "number"
+        }
+      },
+      "required": [
+        "width_m",
+        "depth_m",
+        "height_m"
+      ],
+      "title": "Dimensions",
+      "type": "object"
+    },
+    "EntityPolygon": {
+      "additionalProperties": false,
+      "description": "World-space polygon (water surface ...).",
+      "properties": {
+        "type": {
+          "const": "polygon",
+          "title": "Type",
+          "type": "string"
+        },
+        "points": {
+          "items": {
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "minItems": 3,
+          "title": "Points",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type",
+        "points"
+      ],
+      "title": "EntityPolygon",
+      "type": "object"
+    },
+    "EntityPolyline": {
+      "additionalProperties": false,
+      "description": "World-space polyline (road centre line, cable run ...).",
+      "properties": {
+        "type": {
+          "const": "polyline",
+          "title": "Type",
+          "type": "string"
+        },
+        "points": {
+          "items": {
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "minItems": 2,
+          "title": "Points",
+          "type": "array"
+        },
+        "width_m": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Ground footprint width; omitted for overhead lines.",
+          "title": "Width M"
+        }
+      },
+      "required": [
+        "type",
+        "points"
+      ],
+      "title": "EntityPolyline",
+      "type": "object"
+    },
+    "Extent": {
+      "additionalProperties": false,
+      "description": "Size of the playable area; the origin is its south-west corner.",
+      "properties": {
+        "width_m": {
+          "exclusiveMinimum": 0.0,
+          "maximum": 5000.0,
+          "title": "Width M",
+          "type": "number"
+        },
+        "depth_m": {
+          "exclusiveMinimum": 0.0,
+          "maximum": 5000.0,
+          "title": "Depth M",
+          "type": "number"
+        }
+      },
+      "required": [
+        "width_m",
+        "depth_m"
+      ],
+      "title": "Extent",
+      "type": "object"
+    },
+    "GeneratorInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "title": "GeneratorInfo",
+      "type": "object"
+    },
+    "GeneratorName": {
+      "description": "Generator slots, in canonical execution order.",
+      "enum": [
+        "terrain",
+        "roads",
+        "buildings",
+        "fences",
+        "infrastructure",
+        "vegetation",
+        "props",
+        "atmosphere"
+      ],
+      "title": "GeneratorName",
+      "type": "string"
+    },
+    "GroundCover": {
+      "enum": [
+        "grass",
+        "dirt",
+        "sand",
+        "gravel",
+        "snow",
+        "mud",
+        "rock",
+        "paved"
+      ],
+      "title": "GroundCover",
+      "type": "string"
+    },
+    "ManifestSource": {
+      "additionalProperties": false,
+      "properties": {
+        "blueprint_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "title": "Blueprint Id",
+          "type": "string"
+        },
+        "blueprint_name": {
+          "title": "Blueprint Name",
+          "type": "string"
+        },
+        "recipe_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "title": "Recipe Id",
+          "type": "string"
+        },
+        "overrides_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Overrides Id"
+        },
+        "registry_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "title": "Registry Id",
+          "type": "string"
+        },
+        "seed": {
+          "title": "Seed",
+          "type": "integer"
+        },
+        "generator_seeds": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "description": "Seed of each generator task (derived from `seed`, see the plan).",
+          "title": "Generator Seeds",
+          "type": "object"
+        },
+        "input_fingerprint": {
+          "title": "Input Fingerprint",
+          "type": "string"
+        }
+      },
+      "required": [
+        "blueprint_id",
+        "blueprint_name",
+        "recipe_id",
+        "overrides_id",
+        "registry_id",
+        "seed",
+        "generator_seeds",
+        "input_fingerprint"
+      ],
+      "title": "ManifestSource",
+      "type": "object"
+    },
+    "ManifestStatistics": {
+      "additionalProperties": false,
+      "properties": {
+        "entity_count": {
+          "title": "Entity Count",
+          "type": "integer"
+        },
+        "by_category": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "By Category",
+          "type": "object"
+        },
+        "by_generator": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "By Generator",
+          "type": "object"
+        },
+        "placeholder_count": {
+          "title": "Placeholder Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "entity_count",
+        "by_category",
+        "by_generator",
+        "placeholder_count"
+      ],
+      "title": "ManifestStatistics",
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "description": "Why an entity exists: which generator, rule, input feature and overrides.",
+      "properties": {
+        "generator": {
+          "$ref": "#/$defs/GeneratorName"
+        },
+        "implementation": {
+          "title": "Implementation",
+          "type": "string"
+        },
+        "rule": {
+          "title": "Rule",
+          "type": "string"
+        },
+        "source_feature": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Blueprint feature reference, e.g. 'buildings/b-1'.",
+          "title": "Source Feature"
+        },
+        "overrides": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Overrides",
+          "type": "array"
+        }
+      },
+      "required": [
+        "generator",
+        "implementation",
+        "rule"
+      ],
+      "title": "Provenance",
+      "type": "object"
+    },
+    "SceneEntity": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 200,
+          "pattern": "^[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "category": {
+          "$ref": "#/$defs/AssetCategory"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "archetype_id": {
+          "maxLength": 128,
+          "pattern": "^[a-z0-9_]+(\\.[a-z0-9_]+)+$",
+          "title": "Archetype Id",
+          "type": "string"
+        },
+        "asset_ref": {
+          "title": "Asset Ref",
+          "type": "string"
+        },
+        "variant": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Variant",
+          "type": "integer"
+        },
+        "placeholder": {
+          "default": false,
+          "title": "Placeholder",
+          "type": "boolean"
+        },
+        "transform": {
+          "$ref": "#/$defs/Transform"
+        },
+        "dimensions": {
+          "$ref": "#/$defs/Dimensions",
+          "description": "World-space size after scaling."
+        },
+        "geometry": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "polygon": "#/$defs/EntityPolygon",
+                  "polyline": "#/$defs/EntityPolyline"
+                },
+                "propertyName": "type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/EntityPolyline"
+                },
+                {
+                  "$ref": "#/$defs/EntityPolygon"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Geometry"
+        },
+        "parameters": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "title": "Parameters",
+          "type": "object"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        }
+      },
+      "required": [
+        "id",
+        "category",
+        "kind",
+        "archetype_id",
+        "asset_ref",
+        "transform",
+        "dimensions",
+        "provenance"
+      ],
+      "title": "SceneEntity",
+      "type": "object"
+    },
+    "Season": {
+      "enum": [
+        "spring",
+        "summer",
+        "autumn",
+        "winter"
+      ],
+      "title": "Season",
+      "type": "string"
+    },
+    "TerrainData": {
+      "additionalProperties": false,
+      "description": "Regular heightfield. ``heights[row][column]``; row 0 is the southern edge.",
+      "properties": {
+        "origin": {
+          "default": [
+            0.0,
+            0.0
+          ],
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Origin",
+          "type": "array"
+        },
+        "cell_size_m": {
+          "exclusiveMinimum": 0.0,
+          "title": "Cell Size M",
+          "type": "number"
+        },
+        "columns": {
+          "minimum": 2,
+          "title": "Columns",
+          "type": "integer"
+        },
+        "rows": {
+          "minimum": 2,
+          "title": "Rows",
+          "type": "integer"
+        },
+        "heights": {
+          "items": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "title": "Heights",
+          "type": "array"
+        },
+        "min_elevation_m": {
+          "title": "Min Elevation M",
+          "type": "number"
+        },
+        "max_elevation_m": {
+          "title": "Max Elevation M",
+          "type": "number"
+        },
+        "ground_cover": {
+          "$ref": "#/$defs/GroundCover"
+        }
+      },
+      "required": [
+        "cell_size_m",
+        "columns",
+        "rows",
+        "heights",
+        "min_elevation_m",
+        "max_elevation_m",
+        "ground_cover"
+      ],
+      "title": "TerrainData",
+      "type": "object"
+    },
+    "TimeOfDay": {
+      "enum": [
+        "dawn",
+        "morning",
+        "noon",
+        "afternoon",
+        "dusk",
+        "night"
+      ],
+      "title": "TimeOfDay",
+      "type": "string"
+    },
+    "Transform": {
+      "additionalProperties": false,
+      "properties": {
+        "position": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Position",
+          "type": "array"
+        },
+        "rotation_deg": {
+          "default": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Rotation Deg",
+          "type": "array"
+        },
+        "scale": {
+          "default": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Scale",
+          "type": "array"
+        }
+      },
+      "required": [
+        "position"
+      ],
+      "title": "Transform",
+      "type": "object"
+    },
+    "Weather": {
+      "enum": [
+        "clear",
+        "partly_cloudy",
+        "overcast",
+        "fog",
+        "rain",
+        "storm",
+        "snow"
+      ],
+      "title": "Weather",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Portable result of a generation run (public output contract v1.0).",
+  "properties": {
+    "manifest_version": {
+      "const": "1.0",
+      "default": "1.0",
+      "title": "Manifest Version",
+      "type": "string"
+    },
+    "generator": {
+      "$ref": "#/$defs/GeneratorInfo"
+    },
+    "coordinate_system": {
+      "$ref": "#/$defs/CoordinateSystem"
+    },
+    "source": {
+      "$ref": "#/$defs/ManifestSource"
+    },
+    "extent": {
+      "$ref": "#/$defs/Extent"
+    },
+    "terrain": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TerrainData"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "atmosphere": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AtmosphereSettings"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "entities": {
+      "items": {
+        "$ref": "#/$defs/SceneEntity"
+      },
+      "title": "Entities",
+      "type": "array"
+    },
+    "statistics": {
+      "$ref": "#/$defs/ManifestStatistics"
+    },
+    "content_hash": {
+      "description": "sha256 of the canonical JSON of this manifest without this field.",
+      "title": "Content Hash",
+      "type": "string"
+    }
+  },
+  "required": [
+    "generator",
+    "source",
+    "extent",
+    "terrain",
+    "atmosphere",
+    "entities",
+    "statistics",
+    "content_hash"
+  ],
+  "title": "SceneManifest",
+  "type": "object"
+}

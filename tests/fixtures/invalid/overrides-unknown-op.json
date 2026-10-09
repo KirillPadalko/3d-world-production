@@ -1,0 +1,6 @@
+{
+  "schema_version": "1.0",
+  "id": "bad-ops",
+  "blueprint_id": "rural-crossroads",
+  "entity_operations": [{ "op": "explode", "entity_id": "building.b-1" }]
+}

@@ -1,0 +1,1682 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:environment-generator:schema:location-blueprint:1.0",
+  "$defs": {
+    "AtmosphereObservation": {
+      "additionalProperties": false,
+      "description": "Conditions observed in the source material. The recipe may override them.",
+      "properties": {
+        "time_of_day": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeOfDay"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "weather": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Weather"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "season": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Season"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "AtmosphereObservation",
+      "type": "object"
+    },
+    "Biome": {
+      "enum": [
+        "temperate",
+        "boreal",
+        "mediterranean",
+        "arid",
+        "tropical",
+        "alpine"
+      ],
+      "title": "Biome",
+      "type": "string"
+    },
+    "BlueprintSource": {
+      "additionalProperties": false,
+      "description": "Where the blueprint came from; informative, recorded in provenance.",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/SourceKind",
+          "default": "manual"
+        },
+        "reference": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reference"
+        },
+        "captured_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Captured At"
+        },
+        "analyzer": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Tool and version that produced the blueprint.",
+          "title": "Analyzer"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "title": "BlueprintSource",
+      "type": "object"
+    },
+    "Building": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 1.0,
+          "description": "Certainty of the analysis that produced this feature.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "kind": {
+          "$ref": "#/$defs/BuildingKind"
+        },
+        "geometry": {
+          "discriminator": {
+            "mapping": {
+              "polygon": "#/$defs/PolygonGeometry",
+              "rectangle": "#/$defs/RectangleGeometry"
+            },
+            "propertyName": "type"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/PolygonGeometry"
+            },
+            {
+              "$ref": "#/$defs/RectangleGeometry"
+            }
+          ],
+          "title": "Geometry"
+        },
+        "floors": {
+          "default": 1,
+          "maximum": 60,
+          "minimum": 1,
+          "title": "Floors",
+          "type": "integer"
+        },
+        "roof": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoofKind"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "condition": {
+          "$ref": "#/$defs/Condition",
+          "default": "intact"
+        },
+        "wall_material": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WallMaterial"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "geometry"
+      ],
+      "title": "Building",
+      "type": "object"
+    },
+    "BuildingKind": {
+      "enum": [
+        "house",
+        "apartment_block",
+        "barn",
+        "shed",
+        "garage",
+        "warehouse",
+        "factory",
+        "shop",
+        "office",
+        "church"
+      ],
+      "title": "BuildingKind",
+      "type": "string"
+    },
+    "Condition": {
+      "enum": [
+        "intact",
+        "damaged",
+        "ruined"
+      ],
+      "title": "Condition",
+      "type": "string"
+    },
+    "ElevationPoint": {
+      "additionalProperties": false,
+      "properties": {
+        "position": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            }
+          ],
+          "title": "Position",
+          "type": "array"
+        },
+        "elevation_m": {
+          "maximum": 9000.0,
+          "minimum": -1000.0,
+          "title": "Elevation M",
+          "type": "number"
+        }
+      },
+      "required": [
+        "position",
+        "elevation_m"
+      ],
+      "title": "ElevationPoint",
+      "type": "object"
+    },
+    "Extent": {
+      "additionalProperties": false,
+      "description": "Size of the playable area; the origin is its south-west corner.",
+      "properties": {
+        "width_m": {
+          "exclusiveMinimum": 0.0,
+          "maximum": 5000.0,
+          "title": "Width M",
+          "type": "number"
+        },
+        "depth_m": {
+          "exclusiveMinimum": 0.0,
+          "maximum": 5000.0,
+          "title": "Depth M",
+          "type": "number"
+        }
+      },
+      "required": [
+        "width_m",
+        "depth_m"
+      ],
+      "title": "Extent",
+      "type": "object"
+    },
+    "Fence": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 1.0,
+          "description": "Certainty of the analysis that produced this feature.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "kind": {
+          "$ref": "#/$defs/FenceKind"
+        },
+        "geometry": {
+          "$ref": "#/$defs/PolylineGeometry"
+        },
+        "height_m": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 10.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Height M"
+        },
+        "closed": {
+          "default": false,
+          "description": "Connect the last point back to the first.",
+          "title": "Closed",
+          "type": "boolean"
+        },
+        "gaps": {
+          "items": {
+            "$ref": "#/$defs/FenceGap"
+          },
+          "maxItems": 100,
+          "title": "Gaps",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "geometry"
+      ],
+      "title": "Fence",
+      "type": "object"
+    },
+    "FenceGap": {
+      "additionalProperties": false,
+      "description": "An opening (gate, breach) measured along the fence polyline.",
+      "properties": {
+        "offset_m": {
+          "minimum": 0.0,
+          "title": "Offset M",
+          "type": "number"
+        },
+        "width_m": {
+          "exclusiveMinimum": 0.0,
+          "title": "Width M",
+          "type": "number"
+        }
+      },
+      "required": [
+        "offset_m",
+        "width_m"
+      ],
+      "title": "FenceGap",
+      "type": "object"
+    },
+    "FenceKind": {
+      "enum": [
+        "wooden",
+        "picket",
+        "chain_link",
+        "wire",
+        "stone_wall",
+        "brick_wall",
+        "concrete_wall",
+        "metal_railing"
+      ],
+      "title": "FenceKind",
+      "type": "string"
+    },
+    "GeoReference": {
+      "additionalProperties": false,
+      "description": "Optional real-world anchor of the local origin. Never required.",
+      "properties": {
+        "latitude": {
+          "maximum": 90.0,
+          "minimum": -90.0,
+          "title": "Latitude",
+          "type": "number"
+        },
+        "longitude": {
+          "maximum": 180.0,
+          "minimum": -180.0,
+          "title": "Longitude",
+          "type": "number"
+        },
+        "heading_deg": {
+          "default": 0.0,
+          "description": "Compass bearing of the local +Y axis (0 = local north is true north).",
+          "exclusiveMaximum": 360.0,
+          "minimum": 0.0,
+          "title": "Heading Deg",
+          "type": "number"
+        },
+        "altitude_m": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Altitude M"
+        }
+      },
+      "required": [
+        "latitude",
+        "longitude"
+      ],
+      "title": "GeoReference",
+      "type": "object"
+    },
+    "GroundCover": {
+      "enum": [
+        "grass",
+        "dirt",
+        "sand",
+        "gravel",
+        "snow",
+        "mud",
+        "rock",
+        "paved"
+      ],
+      "title": "GroundCover",
+      "type": "string"
+    },
+    "InfrastructureLine": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 1.0,
+          "description": "Certainty of the analysis that produced this feature.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "kind": {
+          "enum": [
+            "power_line",
+            "telephone_line",
+            "pipeline"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "geometry": {
+          "$ref": "#/$defs/PolylineGeometry"
+        },
+        "pole_spacing_m": {
+          "anyOf": [
+            {
+              "maximum": 500.0,
+              "minimum": 5.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pole Spacing M"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "geometry"
+      ],
+      "title": "InfrastructureLine",
+      "type": "object"
+    },
+    "InfrastructurePoint": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 1.0,
+          "description": "Certainty of the analysis that produced this feature.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "kind": {
+          "enum": [
+            "street_light",
+            "utility_pole",
+            "transformer",
+            "water_tower",
+            "antenna_mast",
+            "bus_stop",
+            "well",
+            "billboard"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "geometry": {
+          "$ref": "#/$defs/PointGeometry"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "geometry"
+      ],
+      "title": "InfrastructurePoint",
+      "type": "object"
+    },
+    "PointGeometry": {
+      "additionalProperties": false,
+      "description": "A single position with an optional heading.",
+      "properties": {
+        "type": {
+          "const": "point",
+          "title": "Type",
+          "type": "string"
+        },
+        "position": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            }
+          ],
+          "title": "Position",
+          "type": "array"
+        },
+        "rotation_deg": {
+          "default": 0.0,
+          "maximum": 360.0,
+          "minimum": -360.0,
+          "title": "Rotation Deg",
+          "type": "number"
+        }
+      },
+      "required": [
+        "type",
+        "position"
+      ],
+      "title": "PointGeometry",
+      "type": "object"
+    },
+    "PolygonGeometry": {
+      "additionalProperties": false,
+      "description": "A closed area. The closing point may be repeated or omitted.",
+      "properties": {
+        "type": {
+          "const": "polygon",
+          "title": "Type",
+          "type": "string"
+        },
+        "points": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              },
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "maxItems": 10000,
+          "minItems": 3,
+          "title": "Points",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type",
+        "points"
+      ],
+      "title": "PolygonGeometry",
+      "type": "object"
+    },
+    "PolylineGeometry": {
+      "additionalProperties": false,
+      "description": "An open line through two or more points (roads, fences, hedgerows ...).",
+      "properties": {
+        "type": {
+          "const": "polyline",
+          "title": "Type",
+          "type": "string"
+        },
+        "points": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              },
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "maxItems": 10000,
+          "minItems": 2,
+          "title": "Points",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type",
+        "points"
+      ],
+      "title": "PolylineGeometry",
+      "type": "object"
+    },
+    "Prop": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 1.0,
+          "description": "Certainty of the analysis that produced this feature.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "kind": {
+          "$ref": "#/$defs/PropKind"
+        },
+        "geometry": {
+          "$ref": "#/$defs/PointGeometry"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "geometry"
+      ],
+      "title": "Prop",
+      "type": "object"
+    },
+    "PropKind": {
+      "enum": [
+        "vehicle",
+        "wreck",
+        "crate",
+        "barrel",
+        "pallet",
+        "sandbags",
+        "hay_bale",
+        "bench",
+        "dumpster",
+        "cart",
+        "firewood",
+        "tires",
+        "generic"
+      ],
+      "title": "PropKind",
+      "type": "string"
+    },
+    "RectangleGeometry": {
+      "additionalProperties": false,
+      "description": "An oriented rectangle; ``size`` is ``[width, depth]`` along local X/Y.",
+      "properties": {
+        "type": {
+          "const": "rectangle",
+          "title": "Type",
+          "type": "string"
+        },
+        "center": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            }
+          ],
+          "title": "Center",
+          "type": "array"
+        },
+        "size": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            }
+          ],
+          "title": "Size",
+          "type": "array"
+        },
+        "rotation_deg": {
+          "default": 0.0,
+          "maximum": 360.0,
+          "minimum": -360.0,
+          "title": "Rotation Deg",
+          "type": "number"
+        }
+      },
+      "required": [
+        "type",
+        "center",
+        "size"
+      ],
+      "title": "RectangleGeometry",
+      "type": "object"
+    },
+    "Relief": {
+      "enum": [
+        "flat",
+        "gentle",
+        "hilly",
+        "rugged"
+      ],
+      "title": "Relief",
+      "type": "string"
+    },
+    "Road": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 1.0,
+          "description": "Certainty of the analysis that produced this feature.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "kind": {
+          "$ref": "#/$defs/RoadKind"
+        },
+        "geometry": {
+          "$ref": "#/$defs/PolylineGeometry"
+        },
+        "width_m": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.5,
+              "maximum": 60.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Width M"
+        },
+        "surface": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RoadSurface"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "geometry"
+      ],
+      "title": "Road",
+      "type": "object"
+    },
+    "RoadKind": {
+      "enum": [
+        "highway",
+        "street",
+        "rural_road",
+        "dirt_track",
+        "footpath"
+      ],
+      "title": "RoadKind",
+      "type": "string"
+    },
+    "RoadSurface": {
+      "enum": [
+        "asphalt",
+        "concrete",
+        "gravel",
+        "dirt",
+        "cobblestone"
+      ],
+      "title": "RoadSurface",
+      "type": "string"
+    },
+    "RoofKind": {
+      "enum": [
+        "flat",
+        "gable",
+        "hip",
+        "mono_pitch"
+      ],
+      "title": "RoofKind",
+      "type": "string"
+    },
+    "Season": {
+      "enum": [
+        "spring",
+        "summer",
+        "autumn",
+        "winter"
+      ],
+      "title": "Season",
+      "type": "string"
+    },
+    "SourceKind": {
+      "enum": [
+        "manual",
+        "drone_survey",
+        "satellite",
+        "synthetic"
+      ],
+      "title": "SourceKind",
+      "type": "string"
+    },
+    "TerrainSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "base_elevation_m": {
+          "default": 0.0,
+          "maximum": 9000.0,
+          "minimum": -1000.0,
+          "title": "Base Elevation M",
+          "type": "number"
+        },
+        "relief": {
+          "$ref": "#/$defs/Relief",
+          "default": "gentle"
+        },
+        "ground_cover": {
+          "$ref": "#/$defs/GroundCover",
+          "default": "grass"
+        },
+        "elevation_points": {
+          "description": "Surveyed spot heights; the terrain interpolates through them.",
+          "items": {
+            "$ref": "#/$defs/ElevationPoint"
+          },
+          "maxItems": 1000,
+          "title": "Elevation Points",
+          "type": "array"
+        }
+      },
+      "title": "TerrainSpec",
+      "type": "object"
+    },
+    "TimeOfDay": {
+      "enum": [
+        "dawn",
+        "morning",
+        "noon",
+        "afternoon",
+        "dusk",
+        "night"
+      ],
+      "title": "TimeOfDay",
+      "type": "string"
+    },
+    "VegetationArea": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 1.0,
+          "description": "Certainty of the analysis that produced this feature.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "kind": {
+          "enum": [
+            "forest",
+            "woodland",
+            "orchard",
+            "scrub",
+            "meadow"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "geometry": {
+          "discriminator": {
+            "mapping": {
+              "polygon": "#/$defs/PolygonGeometry",
+              "rectangle": "#/$defs/RectangleGeometry"
+            },
+            "propertyName": "type"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/PolygonGeometry"
+            },
+            {
+              "$ref": "#/$defs/RectangleGeometry"
+            }
+          ],
+          "title": "Geometry"
+        },
+        "density": {
+          "default": 0.6,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Density",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "geometry"
+      ],
+      "title": "VegetationArea",
+      "type": "object"
+    },
+    "VegetationLine": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 1.0,
+          "description": "Certainty of the analysis that produced this feature.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "kind": {
+          "enum": [
+            "hedgerow",
+            "tree_line"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "geometry": {
+          "$ref": "#/$defs/PolylineGeometry"
+        },
+        "spacing_m": {
+          "anyOf": [
+            {
+              "maximum": 100.0,
+              "minimum": 0.5,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Spacing M"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "geometry"
+      ],
+      "title": "VegetationLine",
+      "type": "object"
+    },
+    "VegetationPoint": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 1.0,
+          "description": "Certainty of the analysis that produced this feature.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "kind": {
+          "enum": [
+            "tree",
+            "bush"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "geometry": {
+          "$ref": "#/$defs/PointGeometry"
+        },
+        "height_m": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 120.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Height M"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "geometry"
+      ],
+      "title": "VegetationPoint",
+      "type": "object"
+    },
+    "WallMaterial": {
+      "enum": [
+        "brick",
+        "wood",
+        "concrete",
+        "stone",
+        "plaster",
+        "metal"
+      ],
+      "title": "WallMaterial",
+      "type": "string"
+    },
+    "WaterBody": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 1.0,
+          "description": "Certainty of the analysis that produced this feature.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "kind": {
+          "$ref": "#/$defs/WaterKind"
+        },
+        "geometry": {
+          "discriminator": {
+            "mapping": {
+              "polygon": "#/$defs/PolygonGeometry",
+              "rectangle": "#/$defs/RectangleGeometry"
+            },
+            "propertyName": "type"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/PolygonGeometry"
+            },
+            {
+              "$ref": "#/$defs/RectangleGeometry"
+            }
+          ],
+          "title": "Geometry"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "geometry"
+      ],
+      "title": "WaterBody",
+      "type": "object"
+    },
+    "WaterKind": {
+      "enum": [
+        "pond",
+        "lake",
+        "river",
+        "canal",
+        "marsh"
+      ],
+      "title": "WaterKind",
+      "type": "string"
+    },
+    "Weather": {
+      "enum": [
+        "clear",
+        "partly_cloudy",
+        "overcast",
+        "fog",
+        "rain",
+        "storm",
+        "snow"
+      ],
+      "title": "Weather",
+      "type": "string"
+    },
+    "Zone": {
+      "additionalProperties": false,
+      "description": "A land-use area. Zones drive procedural infill (e.g. extra houses).",
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 1.0,
+          "description": "Certainty of the analysis that produced this feature.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        },
+        "kind": {
+          "$ref": "#/$defs/ZoneKind"
+        },
+        "geometry": {
+          "discriminator": {
+            "mapping": {
+              "polygon": "#/$defs/PolygonGeometry",
+              "rectangle": "#/$defs/RectangleGeometry"
+            },
+            "propertyName": "type"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/PolygonGeometry"
+            },
+            {
+              "$ref": "#/$defs/RectangleGeometry"
+            }
+          ],
+          "title": "Geometry"
+        },
+        "density": {
+          "default": 0.5,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Density",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "geometry"
+      ],
+      "title": "Zone",
+      "type": "object"
+    },
+    "ZoneKind": {
+      "enum": [
+        "residential",
+        "commercial",
+        "industrial",
+        "agricultural",
+        "military",
+        "park",
+        "forest",
+        "open_field",
+        "wasteland"
+      ],
+      "title": "ZoneKind",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Structured description of a real-world location (public contract v1.0).",
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+      "title": "Id",
+      "type": "string"
+    },
+    "name": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "maxLength": 2000,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Description"
+    },
+    "source": {
+      "$ref": "#/$defs/BlueprintSource"
+    },
+    "geo_reference": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/GeoReference"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "extent": {
+      "$ref": "#/$defs/Extent"
+    },
+    "biome": {
+      "$ref": "#/$defs/Biome",
+      "default": "temperate"
+    },
+    "terrain": {
+      "$ref": "#/$defs/TerrainSpec"
+    },
+    "atmosphere": {
+      "$ref": "#/$defs/AtmosphereObservation"
+    },
+    "zones": {
+      "items": {
+        "$ref": "#/$defs/Zone"
+      },
+      "maxItems": 500,
+      "title": "Zones",
+      "type": "array"
+    },
+    "roads": {
+      "items": {
+        "$ref": "#/$defs/Road"
+      },
+      "maxItems": 2000,
+      "title": "Roads",
+      "type": "array"
+    },
+    "buildings": {
+      "items": {
+        "$ref": "#/$defs/Building"
+      },
+      "maxItems": 5000,
+      "title": "Buildings",
+      "type": "array"
+    },
+    "vegetation": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "bush": "#/$defs/VegetationPoint",
+            "forest": "#/$defs/VegetationArea",
+            "hedgerow": "#/$defs/VegetationLine",
+            "meadow": "#/$defs/VegetationArea",
+            "orchard": "#/$defs/VegetationArea",
+            "scrub": "#/$defs/VegetationArea",
+            "tree": "#/$defs/VegetationPoint",
+            "tree_line": "#/$defs/VegetationLine",
+            "woodland": "#/$defs/VegetationArea"
+          },
+          "propertyName": "kind"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/VegetationArea"
+          },
+          {
+            "$ref": "#/$defs/VegetationLine"
+          },
+          {
+            "$ref": "#/$defs/VegetationPoint"
+          }
+        ]
+      },
+      "maxItems": 5000,
+      "title": "Vegetation",
+      "type": "array"
+    },
+    "water": {
+      "items": {
+        "$ref": "#/$defs/WaterBody"
+      },
+      "maxItems": 500,
+      "title": "Water",
+      "type": "array"
+    },
+    "fences": {
+      "items": {
+        "$ref": "#/$defs/Fence"
+      },
+      "maxItems": 2000,
+      "title": "Fences",
+      "type": "array"
+    },
+    "infrastructure": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "antenna_mast": "#/$defs/InfrastructurePoint",
+            "billboard": "#/$defs/InfrastructurePoint",
+            "bus_stop": "#/$defs/InfrastructurePoint",
+            "pipeline": "#/$defs/InfrastructureLine",
+            "power_line": "#/$defs/InfrastructureLine",
+            "street_light": "#/$defs/InfrastructurePoint",
+            "telephone_line": "#/$defs/InfrastructureLine",
+            "transformer": "#/$defs/InfrastructurePoint",
+            "utility_pole": "#/$defs/InfrastructurePoint",
+            "water_tower": "#/$defs/InfrastructurePoint",
+            "well": "#/$defs/InfrastructurePoint"
+          },
+          "propertyName": "kind"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/InfrastructurePoint"
+          },
+          {
+            "$ref": "#/$defs/InfrastructureLine"
+          }
+        ]
+      },
+      "maxItems": 5000,
+      "title": "Infrastructure",
+      "type": "array"
+    },
+    "props": {
+      "items": {
+        "$ref": "#/$defs/Prop"
+      },
+      "maxItems": 10000,
+      "title": "Props",
+      "type": "array"
+    },
+    "metadata": {
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          }
+        ]
+      },
+      "propertyNames": {
+        "maxLength": 64,
+        "minLength": 1
+      },
+      "title": "Metadata",
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "name",
+    "extent"
+  ],
+  "title": "LocationBlueprint",
+  "type": "object"
+}
