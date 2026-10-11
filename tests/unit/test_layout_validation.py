@@ -4,7 +4,6 @@ from typing import Any
 
 from environment_generator.core.issues import Severity
 from environment_generator.models.assets import AssetCategory, Dimensions
-from environment_generator.models.blueprint import Extent
 from environment_generator.models.recipe import GeneratorName, LayoutValidationRecipe
 from environment_generator.models.scene import (
     EntityPolyline,
@@ -14,6 +13,7 @@ from environment_generator.models.scene import (
     TerrainData,
     Transform,
 )
+from environment_generator.models.site import Extent
 from environment_generator.validation.layout import (
     LayoutContext,
     LayoutRule,
@@ -56,7 +56,7 @@ def road_entity() -> SceneEntity:
 
 def scene(*entities: SceneEntity, terrain: TerrainData | None = None) -> Scene:
     return Scene(
-        blueprint_id="t",
+        location_id="t",
         extent=Extent(width_m=100, depth_m=100),
         terrain=terrain,
         atmosphere=None,

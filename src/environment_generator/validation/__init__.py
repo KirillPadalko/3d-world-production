@@ -13,7 +13,6 @@ from environment_generator.validation.layout import (
     default_rules,
 )
 from environment_generator.validation.semantic import (
-    validate_blueprint,
     validate_compatibility,
     validate_recipe,
     validate_registry,
@@ -28,7 +27,6 @@ __all__ = [
     "load_document",
     "parse_document",
     "read_json_document",
-    "validate_blueprint",
     "validate_compatibility",
     "validate_recipe",
     "validate_registry",

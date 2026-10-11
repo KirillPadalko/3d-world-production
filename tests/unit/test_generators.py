@@ -24,11 +24,11 @@ from environment_generator.generators import (
 from environment_generator.generators.base import GenerationContext, SceneGenerator
 from environment_generator.generators.buildings import footprint_rectangle
 from environment_generator.models.assets import AssetCategory
-from environment_generator.models.blueprint import LocationBlueprint
 from environment_generator.models.geometry import PolygonGeometry, area_outline
 from environment_generator.models.recipe import LocationRecipe
 from environment_generator.models.scene import EntityPolygon, EntityPolyline, SceneEntity
-from tests.conftest import make_blueprint, make_context, make_recipe, rect_building, road
+from environment_generator.models.site import SiteDescription
+from tests.conftest import make_context, make_recipe, make_site, rect_building, road
 
 
 def run(context: GenerationContext, *generators: SceneGenerator) -> list[SceneEntity]:
@@ -82,7 +82,7 @@ def test_generator_set_enforces_slots() -> None:
 
 
 def test_terrain_honours_spot_heights_and_carves_water() -> None:
-    blueprint = make_blueprint(
+    blueprint = make_site(
         terrain={
             "relief": "hilly",
             "base_elevation_m": 10,
@@ -104,21 +104,21 @@ def test_terrain_honours_spot_heights_and_carves_water() -> None:
     assert terrain.columns == math.ceil(100 / 4.0) + 1
     water = by_category(output.entities, AssetCategory.WATER)[0]
     assert isinstance(water.geometry, EntityPolygon)
-    level = water.parameters["surface_elevation_m"]
+    level = water.parameters["surfaceElevationM"]
     assert isinstance(level, float)
     assert terrain.to_heightfield().height_at(60, 40) == pytest.approx(level - 1.5)
     assert any(f.layer == "water" for f in context.occupancy)
 
 
 def test_flat_relief_without_spot_heights_is_flat() -> None:
-    blueprint = make_blueprint(terrain={"relief": "flat", "base_elevation_m": 3.0})
+    blueprint = make_site(terrain={"relief": "flat", "base_elevation_m": 3.0})
     terrain = HeightfieldTerrainGenerator().generate(make_context(blueprint)).terrain
     assert terrain is not None
     assert terrain.min_elevation_m == terrain.max_elevation_m == 3.0
 
 
 def test_terrain_noise_depends_on_seed() -> None:
-    blueprint = make_blueprint(terrain={"relief": "rugged"})
+    blueprint = make_site(terrain={"relief": "rugged"})
     a = HeightfieldTerrainGenerator().generate(make_context(blueprint, seed=1)).terrain
     b = HeightfieldTerrainGenerator().generate(make_context(blueprint, seed=2)).terrain
     assert a is not None and b is not None and a.heights != b.heights
@@ -128,7 +128,7 @@ def test_terrain_noise_depends_on_seed() -> None:
 
 
 def test_roads_follow_terrain_and_find_junctions() -> None:
-    blueprint = make_blueprint(
+    blueprint = make_site(
         roads=[
             road("r-a", [[0, 40], [100, 40]], kind="rural_road"),
             road("r-b", [[50, 0], [50, 80]], kind="dirt_track"),
@@ -149,10 +149,10 @@ def test_roads_follow_terrain_and_find_junctions() -> None:
 
 
 def test_road_width_scale() -> None:
-    blueprint = make_blueprint(roads=[road("r", [[0, 10], [100, 10]], kind="street")])
+    blueprint = make_site(roads=[road("r", [[0, 10], [100, 10]], kind="street")])
     recipe = make_recipe(roads={"width_scale": 2.0, "detect_junctions": False})
     (entity,) = run(make_context(blueprint, recipe), PolylineRoadGenerator())
-    assert entity.parameters["width_m"] == pytest.approx(13.0)
+    assert entity.parameters["widthM"] == pytest.approx(13.0)
 
 
 # ----------------------------------------------------------------------------- buildings
@@ -166,7 +166,7 @@ def test_polygon_footprints_become_rectangles() -> None:
 
 
 def test_buildings_face_the_nearest_road() -> None:
-    blueprint = make_blueprint(
+    blueprint = make_site(
         roads=[road("r", [[0, 40], [100, 40]])],
         buildings=[
             rect_building("north", [30, 55], [10, 8]),
@@ -184,7 +184,7 @@ def test_buildings_face_the_nearest_road() -> None:
 
 
 def test_damage_ratio_is_deterministic_per_building() -> None:
-    blueprint = make_blueprint(
+    blueprint = make_site(
         buildings=[
             rect_building(f"b-{i}", [10 + (i % 5) * 18, 10 + (i // 5) * 18], [8, 6])
             for i in range(20)
@@ -207,7 +207,7 @@ def test_zone_infill_respects_zone_roads_and_reserved_points() -> None:
         "density": 1.0,
         "geometry": {"type": "rectangle", "center": [50, 40], "size": [100, 80]},
     }
-    blueprint = make_blueprint(
+    blueprint = make_site(
         zones=[zone],
         roads=[road("r", [[0, 40], [100, 40]])],
         vegetation=[
@@ -245,7 +245,7 @@ def _corners(entity: SceneEntity) -> list[tuple[float, float]]:
 
 
 def test_fence_panels_skip_gaps_and_roads() -> None:
-    blueprint = make_blueprint(
+    blueprint = make_site(
         roads=[road("r", [[50, 0], [50, 80]], kind="dirt_track")],
         fences=[
             {
@@ -272,7 +272,7 @@ def test_fence_panels_skip_gaps_and_roads() -> None:
 
 
 def test_closed_fence_loops() -> None:
-    blueprint = make_blueprint(
+    blueprint = make_site(
         fences=[
             {
                 "id": "f",
@@ -294,7 +294,7 @@ def test_closed_fence_loops() -> None:
 
 
 def test_pole_lines_connect_poles_and_cable() -> None:
-    blueprint = make_blueprint(
+    blueprint = make_site(
         infrastructure=[
             {
                 "id": "pl",
@@ -322,7 +322,7 @@ def test_pole_lines_connect_poles_and_cable() -> None:
 
 
 def test_street_lights_line_lit_roads_without_blocking_them() -> None:
-    blueprint = make_blueprint(roads=[road("s", [[0, 40], [100, 40]], kind="street")])
+    blueprint = make_site(roads=[road("s", [[0, 40], [100, 40]], kind="street")])
     context = make_context(blueprint)
     run(context, PolylineRoadGenerator())
     lights = StandardInfrastructureGenerator().generate(context).entities
@@ -339,8 +339,8 @@ def test_street_lights_line_lit_roads_without_blocking_them() -> None:
 # ----------------------------------------------------------------------------- vegetation
 
 
-def _forest(**extra: Any) -> LocationBlueprint:
-    return make_blueprint(
+def _forest(**extra: Any) -> SiteDescription:
+    return make_site(
         roads=[road("r", [[0, 40], [100, 40]])],
         buildings=[rect_building("b", [20, 60], [10, 8])],
         vegetation=[
@@ -376,10 +376,10 @@ def test_scatter_respects_spacing_and_obstacles() -> None:
 
 def test_scatter_ids_are_stable_when_obstacles_change() -> None:
     recipe = make_recipe(vegetation={"understory_ratio": 0.0})
-    plain = make_blueprint(
+    plain = make_site(
         vegetation=_forest().model_dump(mode="json")["vegetation"][:1],
     )
-    blocked = make_blueprint(
+    blocked = make_site(
         vegetation=plain.model_dump(mode="json")["vegetation"],
         buildings=[rect_building("b", [50, 40], [20, 20])],
     )
@@ -396,7 +396,7 @@ def test_scatter_ids_are_stable_when_obstacles_change() -> None:
 
 
 def test_orchards_lines_and_density_scale() -> None:
-    blueprint = make_blueprint(
+    blueprint = make_site(
         vegetation=[
             {
                 "id": "orch",
@@ -428,13 +428,13 @@ def test_orchards_lines_and_density_scale() -> None:
 
 
 def test_clutter_surrounds_buildings_without_collisions() -> None:
-    blueprint = make_blueprint(
+    blueprint = make_site(
         roads=[road("r", [[0, 40], [100, 40]])],
         buildings=[rect_building("w", [50, 60], [24, 12], kind="warehouse")],
         props=[
             {
                 "id": "car",
-                "kind": "vehicle",
+                "kind": "car",
                 "geometry": {"type": "point", "position": [10, 20], "rotation_deg": 90},
             }
         ],
@@ -446,14 +446,14 @@ def test_clutter_surrounds_buildings_without_collisions() -> None:
     clutter = [p for p in props if p.provenance.rule == "building_clutter"]
     assert 3 <= len(clutter) <= 6
     assert {p.kind for p in clutter} <= {"crate", "pallet", "barrel", "dumpster"}
-    assert all(p.parameters["near_entity"] == "building.w" for p in clutter)
+    assert all(p.parameters["nearEntity"] == "building.w" for p in clutter)
     car = next(p for p in props if p.id == "prop.car")
     assert car.transform.yaw_deg == 90.0
-    assert car.dimensions.depth_m == pytest.approx(4.4)  # vehicles are never stretched
+    assert car.dimensions.depth_m == pytest.approx(4.1)  # vehicles are never stretched
 
 
 def test_clutter_kind_weights_override_tables() -> None:
-    blueprint = make_blueprint(buildings=[rect_building("h", [50, 40], [9, 7])])
+    blueprint = make_site(buildings=[rect_building("h", [50, 40], [9, 7])])
     recipe = make_recipe(props={"clutter": {"per_building": 5, "kind_weights": {"sandbags": 1}}})
     context = make_context(blueprint, recipe)
     run(context, FootprintBuildingGenerator())
@@ -465,9 +465,7 @@ def test_clutter_kind_weights_override_tables() -> None:
 
 
 def test_atmosphere_precedence_and_hemisphere() -> None:
-    blueprint = make_blueprint(
-        atmosphere={"time_of_day": "noon", "weather": "rain", "season": "winter"}
-    )
+    blueprint = make_site(atmosphere={"time_of_day": "noon", "weather": "rain", "season": "winter"})
     settings = PresetAtmosphereProcessor().process(make_context(blueprint))
     assert settings.time_of_day.value == "noon"
     assert settings.precipitation == "snow"  # rain in winter
@@ -478,7 +476,7 @@ def test_atmosphere_precedence_and_hemisphere() -> None:
     assert direction[2] < 0 and direction[1] > 0  # southern sun shines north and down
 
     recipe = make_recipe(atmosphere={"time_of_day": "dusk", "fog_density_scale": 2.0})
-    south = make_blueprint(geo_reference={"latitude": -33.9, "longitude": 18.4, "heading_deg": 0})
+    south = make_site(geo_reference={"latitude": -33.9, "longitude": 18.4, "heading_deg": 0})
     dusk = PresetAtmosphereProcessor().process(make_context(south, recipe))
     assert dusk.time_of_day.value == "dusk"
     assert dusk.key_light_azimuth_deg == pytest.approx((180.0 - 285.0) % 360.0)
@@ -486,7 +484,7 @@ def test_atmosphere_precedence_and_hemisphere() -> None:
 
 
 def test_defaults_when_nothing_is_observed() -> None:
-    settings = PresetAtmosphereProcessor().process(make_context(make_blueprint()))
+    settings = PresetAtmosphereProcessor().process(make_context(make_site()))
     assert (settings.time_of_day.value, settings.weather.value, settings.season.value) == (
         "afternoon",
         "clear",

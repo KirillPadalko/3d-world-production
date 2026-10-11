@@ -12,7 +12,7 @@ Entry points:
 * The ``envgen`` command line interface (:mod:`environment_generator.cli`).
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 #: Name recorded in manifests and reports.
 GENERATOR_NAME = "environment-generator"

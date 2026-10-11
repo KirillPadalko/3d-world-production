@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0",
+  "locationId": "z-up",
+  "name": "Wrong up axis",
+  "metadata": {
+    "createdAt": "2026-01-01T00:00:00Z"
+  },
+  "coordinateSystem": {
+    "unit": "meter",
+    "upAxis": "+z",
+    "eastAxis": "+x",
+    "northAxis": "+z",
+    "handedness": "left",
+    "yawConvention": "degrees_clockwise_from_north",
+    "origin": "southwest_corner",
+    "bounds": {
+      "widthM": 50,
+      "depthM": 50
+    }
+  }
+}

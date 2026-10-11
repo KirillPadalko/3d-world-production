@@ -36,23 +36,30 @@ test, and builds the wheel and runs it from a clean environment.
 
 | Directory | What it covers |
 | --- | --- |
-| `tests/unit` | core primitives (pinned PRNG values), models, semantic checks, asset palette and resolver, each generator, planner, layout rules, override application, each pipeline stage in isolation, exporter/preview, adapters and Unity math, CLI, and the architecture rules |
+| `tests/unit` | core primitives (pinned PRNG values), frames and road curves (pinned Catmull-Rom values), models, recipe/registry checks, asset palette and resolver, the blueprint-to-site adapter, each generator, planner and seed precedence, layout rules, overrides (entity operations, conflicts, placement), each pipeline stage in isolation, exporter (location frame) and preview, adapters and Unity math, CLI (including `blueprint validate/format/migrate`), and the architecture rules |
 | `tests/integration` | end-to-end runs of all examples, overrides, dry run, replay from plan, failure reporting, replaceable components, determinism (including separate processes with different `PYTHONHASHSEED`), golden comparison with `examples/expected-output` |
-| `tests/contract` | committed schemas match the models, schemas are valid 2020-12, every example and expected manifest validates with `jsonschema`, invalid fixtures in `tests/fixtures/invalid` are rejected by schema and models |
+| `tests/contract` | LocationBlueprint v1.0 (`test_location_blueprint.py`: loading the dacha fixture, byte-identical round trip, deterministic and order-independent serialization, schema/semantic/reference/external diagnostics, duplicate IDs, broken road graphs, invalid polygons, missing and mismatching files, provenance, version handling and migrations); recipe/blueprint/overrides independence; committed schemas match the models, are valid 2020-12, every example validates with `jsonschema`, invalid fixtures in `tests/fixtures/invalid` are rejected by schema and models |
 
-Helpers in `tests/conftest.py` build small blueprints (`make_blueprint`,
-`road`, `rect_building`) and generation contexts (`make_context`) for
-generator tests.
+Helpers: `tests/blueprints.py` builds LocationBlueprint v1.0 documents
+(`location_data`, `make_location`, `building`, `segment`, `fence`, `pole`,
+`wire`, ...); `tests/conftest.py` builds internal site descriptions
+(`make_site`, `road`, `rect_building`) and generation contexts
+(`make_context`) for generator tests, and names the example files.
 
 ## Changing behaviour
 
 ### Contracts
 
-1. Edit the model in `src/environment_generator/models/`.
+1. Edit the model in `src/environment_generator/models/` (the blueprint lives
+   in `models/blueprint/`).
 2. `uv run envgen schema export` and review the schema diff.
-3. Update examples, fixtures and docs. Breaking changes to a public contract
-   need a new `schema_version` and a migration note in the changelog of the
-   release.
+3. Update examples, fixtures and docs (`docs/LOCATION_BLUEPRINT.md` for the
+   blueprint). Within a major version only add optional fields with defaults
+   (and bump the minor version); renaming, removing or changing the meaning of
+   a field needs a new major `schemaVersion` and a registered `Migration`
+   (`blueprint/versioning.py`) plus a changelog note.
+4. `uv run envgen blueprint format --check` the example location packages
+   (they are kept in canonical form).
 
 ### Generation output
 
@@ -84,7 +91,7 @@ class MyVegetation(VegetationGenerator):
     implementation = "my_vegetation"
     version = "0.1.0"
 
-    def estimate(self, blueprint, recipe) -> WorkEstimate:
+    def estimate(self, site, recipe) -> WorkEstimate:
         return WorkEstimate(source_features=(), estimated_entities=0, asset_needs=())
 
     def generate(self, context: GenerationContext) -> GeneratorOutput:
@@ -100,9 +107,14 @@ Pipeline(generators=generators).run(...)
 
 Rules for implementations:
 
+* Work in the generator frame (Z up, counter-clockwise yaw); the site
+  description is already converted and the exporter converts back.
 * Use only `context.rng(...)` / `context.unit(...)` for randomness and derive
   labels from feature IDs and local indices; never use `random`, time or
   iteration order of sets.
+* Pass blueprint values through as `attributes` (they win over generator
+  `parameters` with the same key) and honour `context.controls`
+  (`detail_density` scales procedural detail).
 * Build entity IDs from feature IDs (see the ID table in
   [GENERATION_PIPELINE.md](GENERATION_PIPELINE.md#entity-ids)) and emit only
   categories in the slot's `produces`.

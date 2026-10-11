@@ -4,8 +4,8 @@
 
 | # | Stage (`name`) | Class | Input | Output | Fails with |
 | --- | --- | --- | --- | --- | --- |
-| 1 | `load_inputs` | `LoadInputsStage` | `InputBundle` (paths or parsed JSON) | `LoadedInputs` | `InputLoadError`, `ContractValidationError`, `SemanticValidationError` |
-| 2 | `resolve_inputs` | `ResolveInputsStage` | `LoadedInputs` | `ResolvedInputs` | `OverrideError`, `SemanticValidationError` |
+| 1 | `load_inputs` | `LoadInputsStage` | `InputBundle` (paths or parsed JSON) | `LoadedInputs` | `InputLoadError`, `UnsupportedVersionError`, `MigrationError`, `ContractValidationError`, `SemanticValidationError` |
+| 2 | `resolve_inputs` | `ResolveInputsStage` | `LoadedInputs` | `ResolvedInputs` | `OverrideError`, `ExternalDataError` |
 | 3 | `resolve_assets` | `ResolveAssetsStage` | `ResolvedInputs` | `AssetPalette` | `AssetResolutionError` |
 | 4 | `plan_generation` | `PlanGenerationStage` | `PlanningInput(resolved, palette)` | `GenerationPlan` | `PlanningError` |
 | 5 | `generate_scene` | `GenerateSceneStage` | `GenerationPlan` | `Scene` | `PlanningError`, `GenerationError`, `AssetResolutionError`, `OverrideError` |
@@ -23,40 +23,61 @@ stage.
   written.
 * **Replay** (`envgen generate --plan`, `Pipeline.run_plan`): stages 5-8 run
   from a saved plan; 1-4 are reported as skipped. The plan is self-contained
-  (effective blueprint, effective recipe, filtered archetypes, seeds, pending
-  entity operations), and replaying it yields the same manifest as the direct
-  run.
+  (the generator's site description including measured heights, the effective
+  recipe, controls, filtered archetypes, seeds, placement overrides and
+  annotations; floats are written exactly), and replaying it yields the same
+  manifest as the direct run.
 
 ### 1. Load inputs
 
-Reads each document (file path or mapping), validates it against its model
-and collects *all* contract violations before failing, with locations such as
-`blueprint:buildings[3].geometry.points`. Missing recipe -> built-in default
-recipe; missing registry -> built-in registry. Then runs semantic checks on
-the blueprint, recipe, registry and their compatibility (recipe
-`applies_to` globs, overrides `blueprint_id` / `recipe_id`). Computes content
-fingerprints of every input.
+The blueprint is validated with every phase of the
+[LocationBlueprint contract](LOCATION_BLUEPRINT.md#validation-and-diagnostics)
+(version, schema, semantic, reference, external files resolved against the
+*package root*: `InputBundle.package_root`, default the blueprint file's
+folder). An unsupported or migratable version stops here
+(`UnsupportedVersionError` / `MigrationError`). Recipe, overrides and registry
+are validated against their models (camelCase keys only). All contract
+violations of all documents are collected before failing, each with a
+`location` (document) and `path` (`buildings[3].transform.yawDeg`). Missing
+recipe -> built-in default recipe; missing registry -> built-in registry. Then
+recipe, registry and compatibility checks run (recipe `appliesTo` globs on
+`locationId`, overrides `locationId` / `recipeId`). Content fingerprints of
+every input, including the referenced heightmap and mask files, are computed.
 
-### 2. Resolve recipe and overrides
+### 2. Resolve overrides, seeds, controls and the site view
 
 In order:
 
-1. `recipe_patch` is applied to the recipe as an RFC 7396 merge patch (`null`
-   resets a field to its default) and the result is validated again.
-2. `feature_operations` (`add`, `remove`, `patch`) are applied to the blueprint
-   in document order; the result is validated by the model and the semantic
-   checks again. Unknown targets or duplicate IDs raise `OverrideError`.
-3. The master seed is chosen: `--seed` / `seed_override` > `overrides.seed` >
-   `recipe.seed`.
-4. Features below `recipe.filters.min_confidence` are dropped (reported as
-   info).
+1. Entity operations of the overrides (`update`, `replaceArchetype`,
+   `delete`, `add`) are applied to a copy of the blueprint and the result is
+   validated completely again (see
+   [Recipe and overrides](LOCATION_BLUEPRINT.md#recipe-and-overrides)).
+   Conflicts fail or are reported according to `conflictPolicy`; the input
+   blueprint is never modified. Which operations shaped which entity is kept
+   (`override_trace`) and later written to the entities' provenance.
+2. The master seed is chosen: `--seed` / `seed_override` > `recipe.seed` >
+   `blueprint.generation.masterSeed`. Explicit subsystem seeds are merged
+   (recipe over blueprint).
+3. Generation controls are resolved: `structuralSimilarity`,
+   `visualVariation` (recipe, else blueprint `generation`), `detailDensity`
+   (recipe) and `abandonment` (recipe, else blueprint `atmosphere`).
+4. The blueprint is converted into the generator's internal **site
+   description** (`blueprint/site_adapter.py`): positions and headings are
+   converted to the generator frame, road curves are sampled
+   (2 m), the heightmap is decoded, fence missing sections become gaps in
+   metres, wires attach to their poles. Entities whose provenance confidence
+   is below `recipe.filters.minConfidence` are dropped (reported as info).
+   Data the built-in generators do not use yet (surface and slope zones,
+   masks, garden beds) is listed as `NOT_INTERPRETED` info; landmarks and
+   gameplay annotations are passed through to the manifest.
 
-`entity_operations` are carried forward to stage 5.
+Placement overrides are carried forward to stage 5.
 
 ### 3. Resolve asset archetypes
 
 The registry is filtered to a **palette**: archetypes that carry all
-`required_tags`, none of the `excluded_tags`, and support the blueprint biome
+`requiredTags`, none of the `excludedTags`, match one of the
+`allowedArchetypes` globs (when given), and support the location's biome
 (empty `biomes` = any). Every enabled generator reports the archetype kinds it
 will request (`WorkEstimate.asset_needs`); needs no palette archetype covers
 produce `ASSET_KIND_UNAVAILABLE` warnings, or an `AssetResolutionError` when
@@ -78,8 +99,10 @@ pipeline checks the slot contract: categories must be in the slot's
 `produces`, IDs must be unique, the terrain slot must return a heightfield and
 the atmosphere slot must return settings. Generator crashes (`ValueError`,
 `ArithmeticError`, model validation errors, ...) become `GenerationError`
-naming the generator. Finally `entity_operations` are applied and entities are
-sorted by ID.
+naming the generator. Finally the entity-operation trace is copied to the
+affected entities' provenance, placement overrides are applied (converted from
+the location frame) and entities are sorted by ID. The internal scene uses the
+generator frame; the exporter converts it.
 
 ### 6. Validate the layout
 
@@ -114,75 +137,89 @@ same information as text.
 
 ## Coordinate system and units
 
+Public documents - blueprint, overrides and the scene manifest - share the
+**location frame** defined in
+[LOCATION_BLUEPRINT.md](LOCATION_BLUEPRINT.md#spatial-conventions):
+
 | Aspect | Convention |
 | --- | --- |
 | Units | metres, degrees |
-| Axes | right-handed, **+X east, +Y north, +Z up** |
-| Origin | south-west corner of the blueprint `extent`; the playable area is `[0, width_m] x [0, depth_m]` |
-| Rotation | `rotation_deg = [x, y, z]`, extrinsic X then Y then Z; `z` is the yaw, counter-clockwise seen from above |
-| Object frame | local +X = width, local +Y = depth and **front**, local +Z = up; at yaw 0 the front faces north |
-| Archetype dimensions | `width_m` along local X, `depth_m` along local Y, `height_m` along local Z; buildings use `width >= depth` with the front on a long side |
-| Geometry | `geometry.points` are always world coordinates; the entity transform then sits on the first point (roads, cables) or centroid (water) with identity rotation |
-| Heightfield | `heights[row][column]`; row 0 is the southern edge (`y = 0`), column 0 the western edge; sample spacing `cell_size_m`; bilinear interpolation between samples |
-| Geo reference | optional and informative; `heading_deg` is the compass bearing of local +Y |
+| Axes | left-handed, **+X east, +Y up, +Z north** (Unity's axes) |
+| Origin | south-west corner of the bounds; the playable area is `[0, widthM] x [0, depthM]` |
+| Rotation | `rotationDeg = [x, y, z]`, applied Z, then X, then Y (extrinsic; `Quaternion.Euler`); `y` is the yaw, clockwise from north seen from above |
+| Object frame | local +X = width, local +Y = up, local +Z = depth and **front**; at yaw 0 the front faces north |
+| Scale | `[width, height, depth]` factors |
+| Dimensions | `widthM`, `depthM`, `heightM` world sizes after scaling |
+| Geometry | `geometry.points` are world `[x, y, z]` points |
+| Heightfield | `heights[row][column]`; row 0 is the southern edge (`z = 0`), column 0 the western edge; `origin` is `[x, z]`; sample spacing `cellSizeM`; bilinear interpolation between samples |
+| Key light | `keyLightDirection` is a unit vector in the location frame pointing from the light into the scene; `keyLightAzimuthDeg` and `windDirectionDeg` are compass bearings |
 
-The current generators only produce yaw rotations. See
-[ADAPTERS.md](ADAPTERS.md#coordinate-conversion) for the Unity mapping.
+Internally the generators work in a Z-up frame (+X east, +Y north, +Z up,
+counter-clockwise yaw, front = local +Y). `core/frames.py` holds the only
+conversion (`(x, y, z) <-> (x, z, y)`, `yaw -> -yaw`); the site adapter
+converts inputs and the exporter converts outputs. The current generators
+only produce yaw rotations; the exporter refuses anything else rather than
+guess.
 
 ## Entities
 
 ```jsonc
 {
-  "id": "building.b-shop",                 // stable, see table below
-  "category": "building",                  // terrain|water|road|building|fence|infrastructure|vegetation|prop
-  "kind": "shop",                          // semantic kind (blueprint kind or generator-chosen)
-  "archetype_id": "building.house.flat_modern",
-  "asset_ref": "envgen://building/house/flat_modern",
-  "variant": 0,                            // < archetype.variants
+  "id": "building.b-house-02",              // stable, see table below
+  "category": "building",                   // terrain|water|road|building|fence|infrastructure|vegetation|prop
+  "kind": "house",                          // blueprint type or generator-chosen kind
+  "archetypeId": "building.dacha.wooden_house_small",
+  "assetRef": "envgen://building/dacha/wooden_house_small",
+  "variant": 0,                             // < archetype.variants
   "placeholder": false,
-  "transform": { "position": [149.0, 126.0, 2.0133], "rotation_deg": [0, 0, 183.0], "scale": [1, 1, 1] },
-  "dimensions": { "width_m": 10.0, "depth_m": 9.0, "height_m": 6.5 },   // world size after scaling
-  "geometry": null,                        // polyline/polygon for roads, cables, pipelines, water
-  "parameters": { "condition": "intact", "cover": "full", "floors": 1, "foundation_m": 0.0829, "roof": "flat" },
-  "tags": ["intact"],
+  "transform": { "position": [62.0, 142.0853, 63.0], "rotationDeg": [0.0, 180.0, 0.0], "scale": [1.0, 1.0, 1.0] },
+  "dimensions": { "widthM": 6.0, "depthM": 5.0, "heightM": 5.5 },   // world size after scaling
+  "geometry": null,                         // polyline/polygon for roads, cables, water
+  "parameters": {
+    "abandonment": 0.6, "condition": "damaged", "conditionScore": 0.4, "cover": "full",
+    "doors": "closed", "floors": 1, "foundationM": 0.5182, "heightM": 5.5, "plotId": "plot-02",
+    "roof": "gable", "roofType": "gable", "wallMaterial": "wood_board", "windows": "boarded"
+  },
+  "tags": ["damaged"],
   "provenance": {
     "generator": "buildings",
-    "implementation": "footprint_buildings@1.0.0",
+    "implementation": "footprint_buildings@1.1.0",
     "rule": "explicit_footprint",
-    "source_feature": "buildings/b-shop",
-    "overrides": ["designer-pass-01#entity_operations[0]"]
+    "sourceFeature": "buildings/b-house-02",
+    "overrides": ["dacha-designer-pass-01#entityOperations[0]"]
   }
 }
 ```
 
-`parameters.cover` (`none|partial|half|full`) is a tactical hint copied from
-the archetype. Building `parameters.floors` is kept for modular engine
-prefabs; the archetype keeps its designed height and only the footprint is
-scaled to fit.
+`parameters` combine generator values (`condition`: `intact|damaged|ruined`,
+`cover`: `none|partial|half|full` copied from the archetype, `floors`,
+`foundationM`, ...) and blueprint values passed through unchanged
+(`conditionScore`, `abandonment`, `windows`, `doors`, `roofType`,
+`wallMaterial`, `plotId`, `heightM`, `species`, `parentId`, ...). On a key
+collision the blueprint value wins. The archetype keeps its designed height
+and only the footprint is scaled to fit.
 
 ### Entity IDs
 
 | Entity | ID |
 | --- | --- |
 | Terrain | `terrain` |
-| Water body | `water.<feature>` |
-| Road | `road.<feature>` |
-| Road junction | `road.junction.<roadA>.<roadB>.<n>` |
-| Surveyed building | `building.<feature>` |
-| Infill building | `building.fill.<zone>.<road>.<l\|r><nnn>` |
-| Fence / wall panel | `fence.<feature>.e<edge>p<panel>` |
-| Point infrastructure, pipeline | `infrastructure.<feature>` |
-| Pole of a line | `infrastructure.<feature>.pole<nnn>` |
-| Cable of a line | `infrastructure.<feature>.cable` |
-| Street light | `infrastructure.street_light.<road>.<l\|r><nnn>` |
-| Scattered plant | `vegetation.<feature>.<candidate:05d>` |
-| Orchard tree | `vegetation.<feature>.r<row>c<column>` |
-| Hedge / tree-line plant | `vegetation.<feature>.<index:04d>` |
-| Single surveyed plant | `vegetation.<feature>` |
-| Surveyed prop | `prop.<feature>` |
+| Water body | `water.<waterBody>` |
+| Road segment | `road.<segment>` |
+| Road junction | `road.junction.<segmentA>.<segmentB>.<n>` |
+| Blueprint building | `building.<building>` |
+| Infill building | `building.fill.<plot>.<segment>.<l\|r><nnn>` |
+| Fence panel | `fence.<fence>.e<edge>p<panel>` |
+| Infrastructure point (pole, well, light, ...) | `infrastructure.<point>` |
+| Wire between blueprint poles | `infrastructure.<wire>` |
+| Street light | `infrastructure.street_light.<segment>.<l\|r><nnn>` |
+| Scattered plant | `vegetation.<zone>.<candidate:05d>` |
+| Orchard tree | `vegetation.<zone>.r<row>c<column>` |
+| Blueprint tree | `vegetation.<tree>` |
+| Blueprint prop | `prop.<prop>` |
 | Clutter prop | `prop.clutter.<building>.<nn>` |
 
-IDs depend only on feature IDs and local indices. A scattered plant keeps its
+IDs depend only on blueprint entity IDs and local indices. A scattered plant keeps its
 ID and position when other candidates are blocked or freed, because every
 candidate draws from its own random stream.
 
@@ -193,70 +230,80 @@ candidate draws from its own random stream.
 `area_scatter`, `orchard_grid`, `line_planting`, `panel`, `line_pole`,
 `line_cable`, `street_light_spacing`, `building_clutter`, `junction`,
 `centerline`, `water_surface`, `heightfield`, `explicit_point`),
-`source_feature` the blueprint feature (`collection/id`) and `overrides` every
-entity operation applied (`<overrides-id>#entity_operations[<i>]`).
+`sourceFeature` the blueprint entity (`collection/id`) and `overrides` every
+override that shaped the entity: entity operations on its source
+(`<overrides-id>#entityOperations[<i>]`) and placement overrides on the entity
+itself (`<overrides-id>#placementOverrides[<i>]`).
 
 ## Generators
 
-* **Terrain (`heightfield@1.0.0`)** - grid with `cell_size_m` spacing covering
-  the extent. With spot heights, the base surface interpolates them (inverse
-  distance weighting); otherwise it is `base_elevation_m`. Fractal value noise
-  (`noise_amplitude_m`, default from `relief`: flat 0, gentle 1.5, hilly 6,
-  rugged 14 m) adds relief and fades out near spot heights so surveyed values
-  are reproduced exactly. Each water body becomes a flat surface at its lowest
-  shoreline height; the terrain beneath is carved `water_depth_m` deeper.
-* **Roads (`polyline_roads@1.0.0`)** - one entity per road with a
-  terrain-following, densified centre line and width (defaults per road kind,
-  times `width_scale`); surface defaults per kind. Junctions are detected
-  between all road pairs (crossings, T-junctions, shared end points) and
-  merged when close.
-* **Buildings (`footprint_buildings@1.0.0`)** - rectangles are used directly,
-  polygons are reduced to their minimum-area rectangle; the archetype is
-  chosen by kind, footprint fit, floors, roof and condition, and scaled to the
-  footprint. With `orient_to_roads` the front faces the nearest road.
-  `damage_ratio` / `ruin_fraction` deterministically degrade intact buildings.
-  Zone infill samples lots every `lot_spacing_m` along each road inside zones
-  of the listed kinds, keeps a lot with probability `zone.density`, and
-  places a weighted random building facing the road if it lies fully in the
-  zone and keeps `spacing_m` from roads, buildings, water, fences and
-  surveyed point features.
-* **Fences (`panel_fences@1.0.0`)** - each polyline edge is split into equal
-  panels no longer than the archetype panel; declared gaps are cut exactly;
-  with `gap_at_roads` panels crossing a road are left out. Heights default per
-  fence kind.
-* **Infrastructure (`standard_infrastructure@1.0.0`)** - point features placed
-  as surveyed; power/telephone lines get poles at every vertex and in between
-  (at most `pole_spacing_m` apart; blocked poles are nudged along the line or
-  dropped with a warning), poles list their neighbours in `connects_to`, and
-  one cable entity runs through the pole tops; pipelines are one polyline
-  entity. Street lights are placed every `spacing_m` beside roads of the listed
-  kinds, facing the road, skipping blocked spots.
-* **Vegetation (`scatter_vegetation@1.0.0`)** - areas: dart throwing with a
-  target of `area/100 x rate x density x density_scale` (rate per 100 m^2:
-  forest 4, woodland 1.6, scrub 5, meadow 3), kind-dependent spacing and
-  clearance from roads, buildings, water, fences and infrastructure; forests
-  and woodland get an understory share of bushes. Orchards are jittered grids.
-  Hedgerows and tree lines are planted along their polylines. Single surveyed
-  plants are always placed. Species come from the archetype palette (biome
-  filtered, weighted, preferred tags boosted).
-* **Props (`clutter_props@1.0.0`)** - surveyed props as given; clutter around
-  every building (`per_building` on average, kinds from a per-building-kind
-  table or `kind_weights`), placed beside the walls, aligned to the building,
-  avoiding everything already placed.
-* **Atmosphere (`preset_atmosphere@1.0.0`)** - for each of time of day,
-  weather and season the recipe wins, then the blueprint observation, then
-  afternoon / clear / summer. Presets give key light elevation, azimuth,
-  colour and intensity, ambient light, fog, clouds, precipitation (rain turns
-  to snow in winter), wind and foliage state. The azimuth is mirrored for the
-  southern hemisphere and rotated by the blueprint heading.
+* **Terrain (`heightfield@1.1.0`)** - grid with `cellSizeM` spacing covering
+  the bounds. With a blueprint heightmap the grid samples the measured heights
+  (bilinear) and adds no noise. Otherwise the base is the middle of
+  `terrain.elevation` and fractal value noise (`noiseAmplitudeM`, default from
+  the elevation span: flat 0, gentle 1.5, hilly 6, rugged 14 m) adds relief.
+  Each water body becomes a flat surface at its lowest shoreline height; the
+  terrain beneath is carved `waterDepthM` deeper.
+* **Roads (`polyline_roads@1.1.0`)** - one entity per road segment with a
+  terrain-following centre line sampled from the segment curve (polyline or
+  centripetal Catmull-Rom through the node positions and control points) and
+  the blueprint width (times `widthScale`). The road kind used for asset
+  selection follows `importance` and `surface`. Junctions are detected
+  between all segment pairs and merged when close.
+* **Buildings (`footprint_buildings@1.1.0`)** - blueprint buildings are placed
+  exactly at their transform, with their yaw (the front faces the stated
+  direction) and dimensions; the archetype is requested by the building's
+  semantic archetype name first, then its type, and chosen by footprint fit,
+  floors, roof and condition (`condition >= 0.6` intact, `>= 0.25` damaged,
+  else ruined). `damageRatio` / `ruinFraction` deterministically degrade
+  intact buildings. Zone infill (when enabled) fills `vacant_lot` plots: lots
+  every `lotSpacingM` along each road, kept with the plot density, a weighted
+  random building type facing the road if it lies fully inside the plot and
+  keeps `spacingM` from roads, buildings, water, fences and point features.
+* **Fences (`panel_fences@1.1.0`)** - each path edge is split into equal
+  panels no longer than the archetype panel; missing sections are cut exactly;
+  with `gapAtRoads` panels crossing a road are left out. The blueprint height
+  is used (times `heightScale`).
+* **Infrastructure (`standard_infrastructure@1.1.0`)** - blueprint points
+  (poles, lights, wells, signs, containers, ...) are placed as given; a wire
+  becomes one cable entity through the tops of its blueprint poles (no poles
+  are invented; `supportEntityIds` lists them). Lines without blueprint poles
+  (internal use) get poles at most `poleSpacingM` apart. Street lights are
+  placed every `spacingM` beside roads whose importance is listed in
+  `streetLights.roadImportance`, facing the road, skipping blocked spots.
+* **Vegetation (`scatter_vegetation@1.1.0`)** - zones: dart throwing with a
+  target of `area/100 x rate x density x densityScale x detailDensity`
+  (rate per 100 m^2: forest 4, woodland 1.6, scrub 5, meadow 3), kind-dependent
+  spacing and clearance from roads, buildings, water, fences and
+  infrastructure. Each candidate draws a species from the zone's species
+  weights (the species is requested as an archetype kind first, then the
+  generic kind; `unknown` species use generic plants); `understoryDensity`
+  sets the share of bushes. Orchards are jittered grids. Individual trees are
+  always placed. The entity `kind` is the plant form (`tree`, `bush`, ...) and
+  `parameters.species` the species.
+* **Props (`clutter_props@1.1.0`)** - blueprint props as given; clutter around
+  every building (`perBuilding x detailDensity` on average, kinds from a
+  per-building-type table or `kindWeights`), placed beside the walls,
+  aligned to the building, avoiding everything already placed.
+* **Atmosphere (`preset_atmosphere@1.1.0`)** - for each of time of day,
+  weather and season the recipe wins, then the blueprint, then afternoon /
+  clear / summer. Presets give key light elevation, azimuth, colour and
+  intensity, ambient light, fog (raised to the blueprint `fogDensity`), clouds,
+  precipitation (rain turns to snow in winter), wind and foliage state. The
+  azimuth is mirrored for the southern hemisphere and rotated by the geo
+  reference heading. Ground wetness, saturation, contrast, vegetation
+  condition, palette and the resolved abandonment are passed through.
 
 ### Asset resolution
 
 `PaletteAssetResolver.resolve(request)`:
 
-1. Candidates are palette archetypes of the requested category supporting the
-   first requested kind that any archetype supports (later kinds are
-   fallbacks, e.g. `("fruit_tree", "tree")`).
+1. If the first requested kind is the ID of a palette archetype of that
+   category (a blueprint `archetype` may name a registry ID), that archetype
+   is used. Otherwise candidates are palette archetypes of the requested
+   category supporting the first requested kind that any archetype supports
+   (later kinds are fallbacks, e.g. `("wooden_house_small", "house")` or
+   `("birch", "tree")`).
 2. Each candidate gets a fit score (0 = perfect): `-2 |ln(w/w0)| - 2 |ln(d/d0)|`
    for footprint size, `-|ln(h/h0)|` for height, up to `-3` for floors outside
    `[min_floors, max_floors]`, `-1` for a roof mismatch and `-3` for a
@@ -269,8 +316,9 @@ entity operation applied (`<overrides-id>#entity_operations[<i>]`).
 
 ## Determinism
 
-**Guarantee:** the same blueprint, recipe, overrides, registry, generator
-version and seed produce a byte-identical `scene-manifest.json` (and, with
+**Guarantee:** the same blueprint (including its external files), recipe,
+overrides, registry, generator version and seeds produce a byte-identical
+`scene-manifest.json` (and, with
 `--no-timings`, `generation-report.json`) in any process, independent of
 `PYTHONHASHSEED`, input file formatting or key order. This is covered by
 `tests/integration/test_determinism.py`, which also runs the CLI in separate
@@ -280,22 +328,26 @@ How:
 
 * **Seeds.** `derive_seed(base, *labels)` = first 8 bytes (big-endian) of
   `SHA-256("base\x1flabel1\x1flabel2...")`, masked to 63 bits.
-  * master seed: `--seed` > `overrides.seed` > `recipe.seed`;
-  * generator task seed: `derive_seed(master, "generator", <slot>)` (listed in
-    the plan and in `manifest.source.generator_seeds`);
+  * master seed: `--seed` > `recipe.seed` > `blueprint.generation.masterSeed`;
+  * generator task seed: the explicit subsystem seed (recipe `subsystemSeeds`
+    over blueprint `generation.subsystemSeeds`), else
+    `derive_seed(master, "generator", <slot>)`; the plan records the seed
+    and its source (`derived`, `blueprint`, `recipe`), the manifest lists
+    them in `source.generatorSeeds`;
   * per feature / candidate streams: `derive_seed(task_seed, <labels...>)`,
-    e.g. `("scatter", "forest-east", 42)`;
-  * asset choices: `derive_seed(master, "assets")`, then per entity ID.
+    e.g. `("scatter", "vz-forest-north", 42)`;
+  * asset choices: the `assets` subsystem seed, else
+    `derive_seed(master, "assets")`, then per entity ID.
 * **PRNG.** xoshiro256**, state initialised with four SplitMix64 outputs of
   the seed; `random()` = `(next_u64 >> 11) * 2^-53`. Reference values are
   pinned in `tests/unit/test_core_primitives.py`.
 * **Ordering.** Features are processed sorted by ID, generators in plan
   order, spatial queries return insertion order, entities are sorted by ID,
   set iteration is never used for output.
-* **Serialisation.** Floats are rounded to 4 decimals (0.1 mm), `-0.0`
-  becomes `0.0`. `content_hash` is the SHA-256 of the canonical JSON
-  (sorted keys, compact) of the manifest without the `content_hash` field;
-  `envgen verify` recomputes it.
+* **Serialisation.** Manifest floats are rounded to 4 decimals (0.1 mm),
+  `-0.0` becomes `0.0`. `contentHash` is the SHA-256 of the canonical JSON
+  (sorted keys, compact) of the manifest without the `contentHash` field;
+  `envgen verify` recomputes it. Plans and blueprints keep floats exactly.
 * **Versioning.** Any change that alters output must bump the generator's
   `version` and the package version; both are recorded in the plan, the
   manifest (`generator.version`, `provenance.implementation`) and the input
@@ -309,18 +361,21 @@ to 0.1 mm absorbs this in practice; the golden tests compare floats with a
 
 ## Manifest format
 
+All keys are camelCase.
+
 | Field | Content |
 | --- | --- |
-| `manifest_version` | `"1.0"` |
+| `manifestVersion` | `"1.0"` |
 | `generator` | `{name, version}` |
-| `coordinate_system` | the conventions above, as constants |
-| `source` | blueprint id and name, recipe id, overrides id, registry id, master seed, `generator_seeds`, `input_fingerprint` |
-| `extent` | `{width_m, depth_m}` |
-| `terrain` | heightfield (`cell_size_m`, `columns`, `rows`, `heights`, min/max, `ground_cover`) or `null` when disabled |
+| `coordinateSystem` | the location-frame conventions above, as constants (`upAxis: "+y"`, `northAxis: "+z"`, `handedness: "left"`, `rotationOrder: "zxy"`, `forwardAxis: "+z"`, ...) |
+| `source` | `locationId`, `locationName`, `recipeId`, `overridesId`, `registryId`, master `seed`, `generatorSeeds`, resolved `controls` and `inputFingerprint` |
+| `extent` | `{widthM, depthM}` |
+| `terrain` | heightfield (`origin`, `cellSizeM`, `columns`, `rows`, `heights`, min/max, `groundCover`) or `null` when disabled |
 | `atmosphere` | `AtmosphereSettings` or `null` when disabled |
 | `entities` | sorted by `id` |
+| `annotations` | blueprint `landmarks` and `gameplay`, unchanged |
 | `statistics` | counts by category and generator, placeholder count |
-| `content_hash` | `sha256:<hex>` |
+| `contentHash` | `sha256:<hex>` |
 
 The file is pretty-printed with short numeric arrays (points, colours,
 heightfield rows) on one line, which keeps diffs readable.

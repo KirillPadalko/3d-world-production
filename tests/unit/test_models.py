@@ -3,13 +3,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from environment_generator.models.blueprint import (
-    FeatureCollection,
-    LocationBlueprint,
-    VegetationArea,
-    VegetationLine,
-    VegetationPoint,
-)
+from environment_generator.core.errors import ContractValidationError
 from environment_generator.models.geometry import (
     PolygonGeometry,
     PolylineGeometry,
@@ -17,51 +11,52 @@ from environment_generator.models.geometry import (
     area_outline,
     geometry_points,
 )
-from environment_generator.models.overrides import LocationOverrides, PatchFeature, SetTransform
+from environment_generator.models.overrides import (
+    AddEntity,
+    DeleteEntity,
+    LocationOverrides,
+    ReplaceArchetype,
+    UpdateEntity,
+)
 from environment_generator.models.recipe import GeneratorName, LocationRecipe
 from environment_generator.models.scene import TerrainData
-from tests.conftest import RURAL_BLUEPRINT, blueprint_data, load_json, make_blueprint, road
+from environment_generator.models.site import (
+    SiteDescription,
+    VegetationArea,
+    VegetationPoint,
+)
+from environment_generator.validation.contract import parse_document
+from tests.conftest import make_recipe, make_site, road, site_data
 
 
-def test_example_blueprint_parses() -> None:
-    blueprint = LocationBlueprint.model_validate(load_json(RURAL_BLUEPRINT))
-    assert blueprint.id == "rural-crossroads"
-    assert blueprint.feature_count() == 47
-    kinds = {type(v) for v in blueprint.vegetation}
-    assert kinds == {VegetationArea, VegetationLine, VegetationPoint}
-    assert len(blueprint.collection(FeatureCollection.BUILDINGS)) == 11
-
-
-def test_unknown_fields_are_rejected() -> None:
-    with pytest.raises(ValidationError, match="extra"):
-        LocationBlueprint.model_validate(blueprint_data(colour="red"))
-
-
-def test_schema_version_is_required_and_pinned() -> None:
-    data = blueprint_data()
-    del data["schema_version"]
-    with pytest.raises(ValidationError):
-        LocationBlueprint.model_validate(data)
-    with pytest.raises(ValidationError):
-        LocationBlueprint.model_validate(blueprint_data(schema_version="2.0"))
-
-
-def test_identifiers_cannot_contain_dots() -> None:
-    with pytest.raises(ValidationError, match="pattern"):
-        make_blueprint(roads=[road("r.1", [[0, 0], [10, 0]])])
-
-
-def test_vegetation_kind_selects_geometry_type() -> None:
-    ok = make_blueprint(
+def test_site_vegetation_kind_selects_geometry_type() -> None:
+    ok = make_site(
         vegetation=[{"id": "t", "kind": "tree", "geometry": {"type": "point", "position": [1, 1]}}]
     )
     assert isinstance(ok.vegetation[0], VegetationPoint)
+    area = make_site(
+        vegetation=[
+            {
+                "id": "f",
+                "kind": "forest",
+                "geometry": {"type": "polygon", "points": [[0, 0], [9, 0], [9, 9]]},
+            }
+        ]
+    )
+    assert isinstance(area.vegetation[0], VegetationArea)
     with pytest.raises(ValidationError):
-        make_blueprint(
+        make_site(
             vegetation=[
                 {"id": "f", "kind": "forest", "geometry": {"type": "point", "position": [1, 1]}}
             ]
         )
+
+
+def test_site_rejects_unknown_fields_and_dotted_ids() -> None:
+    with pytest.raises(ValidationError, match="extra"):
+        SiteDescription.model_validate(site_data(colour="red"))
+    with pytest.raises(ValidationError, match="pattern"):
+        make_site(roads=[road("r.1", [[0, 0], [10, 0]])])
 
 
 def test_polygon_points_are_normalised() -> None:
@@ -74,55 +69,71 @@ def test_polygon_points_are_normalised() -> None:
 
 
 def test_area_outline_of_rectangle() -> None:
-    rect = RectangleGeometry(type="rectangle", center=(5, 5), size=(4, 2))
-    assert sorted(area_outline(rect)) == [(3.0, 4.0), (3.0, 6.0), (7.0, 4.0), (7.0, 6.0)]
-    assert len(geometry_points(rect)) == 4
+    rectangle = RectangleGeometry(type="rectangle", center=(5, 5), size=(4, 2))
+    assert sorted(area_outline(rectangle)) == [(3.0, 4.0), (3.0, 6.0), (7.0, 4.0), (7.0, 6.0)]
+    assert len(geometry_points(rectangle)) == 4
 
 
 def test_non_finite_numbers_are_rejected() -> None:
     with pytest.raises(ValidationError):
-        make_blueprint(extent={"width_m": float("inf"), "depth_m": 10})
+        make_site(extent={"width_m": float("inf"), "depth_m": 10})
 
 
 def test_recipe_defaults_and_generator_flags() -> None:
     recipe = LocationRecipe.default()
-    assert recipe.seed == 0
+    assert recipe.seed is None  # falls back to the blueprint's masterSeed
+    assert recipe.structural_similarity is None
     assert all(recipe.generator_enabled(name) for name in GeneratorName)
-    disabled = LocationRecipe.model_validate(
-        {"schema_version": "1.0", "id": "r", "name": "R", "props": {"enabled": False}}
-    )
+    disabled = make_recipe(props={"enabled": False})
     assert not disabled.generator_enabled(GeneratorName.PROPS)
 
 
 def test_weathering_implies_preferred_tag() -> None:
-    recipe = LocationRecipe.model_validate(
-        {"schema_version": "1.0", "id": "r", "name": "R", "style": {"weathering": 0.7}}
-    )
+    recipe = make_recipe(style={"weathering": 0.7})
     assert "weathered" in recipe.effective_preferred_tags()
     assert "weathered" not in LocationRecipe.default().effective_preferred_tags()
+
+
+def test_public_documents_accept_camel_case_only() -> None:
+    data = {"schemaVersion": "1.0", "id": "r", "name": "R", "detailDensity": 2.0}
+    assert parse_document(LocationRecipe, data, "recipe").detail_density == 2.0
+    with pytest.raises(ContractValidationError) as info:
+        parse_document(LocationRecipe, {**data, "detail_density": 2.0}, "recipe")
+    assert any(issue.path == "detail_density" for issue in info.value.issues)
+
+
+def test_recipe_rejects_unknown_building_and_prop_kinds() -> None:
+    with pytest.raises(ValidationError):
+        make_recipe(buildings={"zoneFill": {"buildingWeights": {"castle": 1}}})
+    with pytest.raises(ValidationError):
+        make_recipe(props={"clutter": {"kindWeights": {"wreck": 1}}})
 
 
 def test_overrides_discriminated_operations() -> None:
     overrides = LocationOverrides.model_validate(
         {
-            "schema_version": "1.0",
+            "schemaVersion": "1.0",
             "id": "o",
-            "blueprint_id": "b",
-            "feature_operations": [
-                {"op": "patch", "collection": "buildings", "id": "b-1", "patch": {"floors": 2}}
+            "locationId": "loc",
+            "entityOperations": [
+                {"op": "update", "id": "b-1", "patch": {"floors": 2}},
+                {"op": "replaceArchetype", "id": "b-2", "archetype": "wooden_house_small"},
+                {"op": "delete", "id": "t-1", "expectedType": "trees"},
+                {"op": "add", "collection": "props", "entity": {"id": "p-1"}},
             ],
-            "entity_operations": [{"op": "set_transform", "entity_id": "prop.p-1", "yaw_deg": 90}],
+            "placementOverrides": [{"entityId": "prop.p-1", "yawDeg": 90}],
         }
     )
-    assert isinstance(overrides.feature_operations[0], PatchFeature)
-    assert isinstance(overrides.entity_operations[0], SetTransform)
+    kinds = [type(op) for op in overrides.entity_operations]
+    assert kinds == [UpdateEntity, ReplaceArchetype, DeleteEntity, AddEntity]
+    assert overrides.conflict_policy.value == "fail"
     with pytest.raises(ValidationError):
         LocationOverrides.model_validate(
             {
-                "schema_version": "1.0",
+                "schemaVersion": "1.0",
                 "id": "o",
-                "blueprint_id": "b",
-                "feature_operations": [{"op": "explode", "collection": "buildings", "id": "x"}],
+                "locationId": "loc",
+                "entityOperations": [{"op": "explode", "id": "x"}],
             }
         )
 

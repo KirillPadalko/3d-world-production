@@ -10,14 +10,14 @@ from environment_generator.generators.base import (
     GenerationContext,
     WorkEstimate,
 )
-from environment_generator.models.blueprint import (
-    LocationBlueprint,
+from environment_generator.models.recipe import LocationRecipe
+from environment_generator.models.scene import RGB, AtmosphereSettings, Foliage, Precipitation
+from environment_generator.models.site import (
     Season,
+    SiteDescription,
     TimeOfDay,
     Weather,
 )
-from environment_generator.models.recipe import LocationRecipe
-from environment_generator.models.scene import RGB, AtmosphereSettings, Foliage, Precipitation
 
 
 @dataclass(frozen=True)
@@ -58,6 +58,7 @@ WEATHER: dict[Weather, _WeatherLook] = {
     Weather.RAIN: _WeatherLook(0.95, 0.015, "rain", 0.6, 7.0, 0.45),
     Weather.STORM: _WeatherLook(1.0, 0.02, "rain", 1.0, 14.0, 0.35),
     Weather.SNOW: _WeatherLook(0.9, 0.02, "snow", 0.6, 4.0, 0.55),
+    Weather.LIGHT_RAIN: _WeatherLook(0.85, 0.01, "rain", 0.3, 5.0, 0.55),
 }
 
 FOLIAGE: dict[Season, Foliage] = {
@@ -68,6 +69,8 @@ FOLIAGE: dict[Season, Foliage] = {
 }
 
 _FOG_GREY: RGB = (0.7, 0.72, 0.75)
+FOG_MIN = 0.002
+FOG_MAX = 0.06
 
 
 def _mix(a: RGB, b: RGB, t: float) -> RGB:
@@ -82,29 +85,32 @@ class PresetAtmosphereProcessor(AtmosphereProcessor):
     """Table-driven lighting presets.
 
     Precedence for each of time of day / weather / season: recipe value, then
-    the blueprint observation, then afternoon / clear / summer. The key light
-    azimuth accounts for the hemisphere and the blueprint's heading when a geo
+    the site observation, then afternoon / clear / summer. The key light
+    azimuth accounts for the hemisphere and the site's heading when a geo
     reference is present.
     """
 
     implementation = "preset_atmosphere"
-    version = "1.0.0"
+    version = "1.1.0"
 
-    def estimate(self, blueprint: LocationBlueprint, recipe: LocationRecipe) -> WorkEstimate:
+    def estimate(self, site: SiteDescription, recipe: LocationRecipe) -> WorkEstimate:
         return WorkEstimate(("atmosphere",), 0, ())
 
     def process(self, context: GenerationContext) -> AtmosphereSettings:
-        blueprint = context.blueprint
+        site = context.site
         recipe = context.recipe
-        observed = blueprint.atmosphere
+        observed = site.atmosphere
         time_of_day = recipe.atmosphere.time_of_day or observed.time_of_day or TimeOfDay.AFTERNOON
         weather = recipe.atmosphere.weather or observed.weather or Weather.CLEAR
-        season = recipe.atmosphere.season or observed.season or Season.SUMMER
+        recipe_season = recipe.atmosphere.season
+        if recipe_season is Season.UNKNOWN:
+            recipe_season = None
+        season = recipe_season or observed.season or Season.SUMMER
         light = LIGHTING[time_of_day]
         look = WEATHER[weather]
 
         azimuth = light.azimuth_deg
-        geo = blueprint.geo_reference
+        geo = site.geo_reference
         if geo is not None:
             if geo.latitude < 0 and time_of_day is not TimeOfDay.NIGHT:
                 azimuth = (180.0 - azimuth) % 360.0
@@ -117,7 +123,11 @@ class PresetAtmosphereProcessor(AtmosphereProcessor):
             -math.cos(az) * math.cos(el),
             -math.sin(el),
         )
-        fog_density = look.fog_density * recipe.atmosphere.fog_density_scale
+        fog_density = look.fog_density
+        if observed.fog_density is not None and observed.fog_density > 0:
+            # Normalised 0..1 observation -> exponential fog coefficient 0.002..0.06.
+            fog_density = max(fog_density, FOG_MIN + (FOG_MAX - FOG_MIN) * observed.fog_density)
+        fog_density *= recipe.atmosphere.fog_density_scale
         wind_speed = (
             recipe.atmosphere.wind_speed_mps
             if recipe.atmosphere.wind_speed_mps is not None
@@ -147,4 +157,12 @@ class PresetAtmosphereProcessor(AtmosphereProcessor):
             foliage=FOLIAGE[season],
             style_theme=recipe.style.theme,
             weathering=recipe.style.weathering,
+            ground_wetness=observed.ground_wetness if observed.ground_wetness is not None else 0.0,
+            saturation=observed.saturation if observed.saturation is not None else 1.0,
+            contrast=observed.contrast if observed.contrast is not None else 1.0,
+            abandonment=context.controls.abandonment,
+            vegetation_condition=(
+                observed.vegetation_condition if observed.vegetation_condition is not None else 1.0
+            ),
+            palette=list(observed.palette),
         )

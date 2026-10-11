@@ -7,7 +7,14 @@ import pytest
 
 from environment_generator import __version__
 from environment_generator.cli.main import main
-from tests.conftest import MINIMAL_BLUEPRINT, RURAL_BLUEPRINT, RURAL_RECIPE, SCHEMAS
+from tests.blueprints import location_data
+from tests.conftest import (
+    DACHA_BLUEPRINT,
+    MINIMAL_BLUEPRINT,
+    RURAL_BLUEPRINT,
+    RURAL_RECIPE,
+    SCHEMAS,
+)
 
 
 def test_version(capsys: pytest.CaptureFixture[str]) -> None:
@@ -28,9 +35,11 @@ def test_validate_reports_contract_errors(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     bad = tmp_path / "bad.json"
-    bad.write_text(json.dumps({"schema_version": "1.0", "id": "x", "name": "X"}), encoding="utf-8")
+    data = location_data()
+    del data["coordinateSystem"]
+    bad.write_text(json.dumps(data), encoding="utf-8")
     assert main(["validate", "-b", str(bad)]) == 3
-    assert "extent" in capsys.readouterr().err
+    assert "coordinateSystem" in capsys.readouterr().err
 
 
 def test_plan_writes_plan(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -130,16 +139,16 @@ def test_registry_from_environment(monkeypatch: pytest.MonkeyPatch, tmp_path: Pa
     registry.write_text(
         json.dumps(
             {
-                "schema_version": "1.0",
+                "schemaVersion": "1.0",
                 "id": "env-registry",
                 "name": "Env",
                 "archetypes": [
                     {
                         "id": "prop.box.plain",
                         "category": "prop",
-                        "kinds": ["generic"],
-                        "dimensions": {"width_m": 1, "depth_m": 1, "height_m": 1},
-                        "asset_ref": "x",
+                        "kinds": ["other"],
+                        "dimensions": {"widthM": 1, "depthM": 1, "heightM": 1},
+                        "assetRef": "x",
                     }
                 ],
             }
@@ -151,5 +160,68 @@ def test_registry_from_environment(monkeypatch: pytest.MonkeyPatch, tmp_path: Pa
     out = tmp_path / "out"
     assert main(["generate", "-b", str(MINIMAL_BLUEPRINT), "-d", str(out)]) == 0
     manifest = json.loads((out / "scene-manifest.json").read_text(encoding="utf-8"))
-    assert manifest["source"]["registry_id"] == "env-registry"
-    assert manifest["statistics"]["placeholder_count"] > 0
+    assert manifest["source"]["registryId"] == "env-registry"
+    assert manifest["statistics"]["placeholderCount"] > 0
+
+
+def test_blueprint_validate(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["blueprint", "validate", str(DACHA_BLUEPRINT)]) == 0
+    assert "valid (schema 1.0; 0 error(s)" in capsys.readouterr().out
+    bad = tmp_path / "location.blueprint.json"
+    bad.write_text(
+        json.dumps(
+            location_data(
+                terrain={
+                    "heightmap": {
+                        "file": {"path": "missing.r16"},
+                        "encoding": "raw_u16_le",
+                        "columns": 2,
+                        "rows": 2,
+                        "rowOrder": "south_to_north",
+                        "heightScaleM": 0.01,
+                    }
+                }
+            )
+        ),
+        encoding="utf-8",
+    )
+    assert main(["blueprint", "validate", str(bad), "--json"]) == 3
+    report = json.loads(capsys.readouterr().out)
+    assert report["valid"] is False
+    assert [d["code"] for d in report["diagnostics"]] == ["EXTERNAL_FILE_MISSING"]
+    assert report["diagnostics"][0]["path"] == "terrain.heightmap.file"
+    assert main(["blueprint", "validate", str(bad), "--no-external"]) == 0
+
+
+def test_blueprint_format(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["blueprint", "format", "--check", str(DACHA_BLUEPRINT)]) == 0
+    messy = tmp_path / "messy.json"
+    messy.write_text(json.dumps(location_data(status="draft")), encoding="utf-8")
+    assert main(["blueprint", "format", "--check", str(messy)]) == 3
+    capsys.readouterr()
+    assert main(["blueprint", "format", str(messy)]) == 0
+    canonical = capsys.readouterr().out
+    assert '"status"' not in canonical  # defaults are omitted
+    target = tmp_path / "clean.json"
+    assert main(["blueprint", "format", str(messy), "--output", str(target)]) == 0
+    assert target.read_text(encoding="utf-8") == canonical
+    assert main(["blueprint", "format", str(messy), "--output", str(messy)]) == 6
+    assert main(["blueprint", "format", str(messy), "--output", str(target)]) == 6  # exists
+
+
+def test_blueprint_migrate_never_overwrites_without_consent(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    source = tmp_path / "location.blueprint.json"
+    source.write_text(json.dumps(location_data()), encoding="utf-8")
+    original = source.read_bytes()
+    with pytest.raises(SystemExit):
+        main(["blueprint", "migrate", str(source)])  # --output or --in-place is required
+    assert main(["blueprint", "migrate", str(source), "--output", str(source)]) == 6
+    assert source.read_bytes() == original
+    assert main(["blueprint", "migrate", str(source), "--in-place"]) == 0
+    assert "Already current" in capsys.readouterr().out
+    assert source.read_bytes() == original
+    future = tmp_path / "future.json"
+    future.write_text(json.dumps(location_data(schemaVersion="2.0")), encoding="utf-8")
+    assert main(["blueprint", "migrate", str(future), "--output", str(tmp_path / "o.json")]) == 3

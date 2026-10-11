@@ -17,16 +17,17 @@ from environment_generator.models.pipeline import GenerationPlan
 from environment_generator.models.report import StageStatus
 from environment_generator.models.scene import Scene
 from environment_generator.pipeline import InputBundle, Pipeline, PipelineOptions
+from tests.blueprints import building, location_data, straight_road
 from tests.conftest import (
+    DACHA_BLUEPRINT,
+    DACHA_OVERRIDES,
+    DACHA_RECIPE,
     INDUSTRIAL_BLUEPRINT,
     MINIMAL_BLUEPRINT,
     RURAL_BLUEPRINT,
     RURAL_OVERRIDES,
     RURAL_RECIPE,
     WAR_TORN_RECIPE,
-    blueprint_data,
-    rect_building,
-    road,
 )
 
 EXAMPLE_CASES = [
@@ -36,6 +37,10 @@ EXAMPLE_CASES = [
     (INDUSTRIAL_BLUEPRINT, RURAL_RECIPE, None),
     (INDUSTRIAL_BLUEPRINT, WAR_TORN_RECIPE, None),
     (MINIMAL_BLUEPRINT, None, None),
+    (DACHA_BLUEPRINT, None, None),
+    (DACHA_BLUEPRINT, DACHA_RECIPE, None),
+    (DACHA_BLUEPRINT, DACHA_RECIPE, DACHA_OVERRIDES),
+    (DACHA_BLUEPRINT, WAR_TORN_RECIPE, None),
 ]
 
 
@@ -80,16 +85,41 @@ def test_overrides_are_applied_and_traceable() -> None:
     after = {e.id: e for e in edited.manifest.entities}
     assert "building.b-shed-1" in before and "building.b-shed-1" not in after
     assert "vegetation.t-oak-2" in before and "vegetation.t-oak-2" not in after
-    assert after["building.b-barn"].parameters["condition"] == "ruined"
+    barn = after["building.b-barn"]
+    assert barn.parameters["condition"] == "ruined"
+    assert barn.provenance.overrides == ["designer-pass-01#entityOperations[1]"]
     assert "prop.p-checkpoint-1" in after
     shop = after["building.b-shop"]
-    assert shop.archetype_id == "building.house.flat_modern"
-    assert shop.provenance.overrides == ["designer-pass-01#entity_operations[0]"]
+    assert shop.archetype_id == "building.house.flat_modern"  # registry ID as archetype hint
+    assert shop.provenance.overrides == ["designer-pass-01#entityOperations[2]"]
     car = after["prop.p-car-1"]
-    assert car.transform.position == (120.5, 119.0, 2.0)
-    assert edited.manifest.atmosphere is not None
-    assert edited.manifest.atmosphere.time_of_day.value == "dusk"
+    assert car.transform.position == (120.5, 2.0, 119.0)  # location frame, as written
+    assert car.provenance.overrides == ["designer-pass-01#placementOverrides[0]"]
     assert edited.manifest.source.overrides_id == "designer-pass-01"
+    untouched = before["building.b-house-1"]
+    assert after["building.b-house-1"] == untouched
+
+
+def test_dacha_fixture_generates_from_its_own_package() -> None:
+    result = Pipeline().run(
+        InputBundle(blueprint=DACHA_BLUEPRINT, recipe=DACHA_RECIPE, overrides=DACHA_OVERRIDES)
+    )
+    assert result.success, result.error
+    manifest = result.manifest
+    assert manifest is not None and manifest.terrain is not None
+    # The terrain follows the external heightmap (140.5 .. 146.4 m), not synthetic noise.
+    assert 140.0 < manifest.terrain.min_elevation_m < manifest.terrain.max_elevation_m < 147.0
+    assert {lm.id for lm in manifest.annotations.landmarks} >= {"lm-old-oak", "lm-abandoned-house"}
+    assert len(manifest.annotations.gameplay.cover_zones) == 4
+    ids = {e.id for e in manifest.entities}
+    assert {"building.b-banya-02", "infrastructure.w-main", "prop.pr-sandbags-junction"} <= ids
+    assert "prop.pr-tires-06" not in ids
+    house = next(e for e in manifest.entities if e.id == "building.b-house-02")
+    # Blueprint values pass through and are never replaced by coarser generator values.
+    assert house.parameters["wallMaterial"] == "wood_board"
+    assert house.parameters["windows"] == "boarded"  # from the designer pass
+    assert manifest.source.controls.detail_density == 1.2
+    assert manifest.source.controls.structural_similarity == 0.9  # from the blueprint
 
 
 def test_dry_run_stops_after_planning(tmp_path: Path) -> None:
@@ -127,10 +157,10 @@ def test_generation_from_saved_plan_matches_direct_run(tmp_path: Path) -> None:
 
 def test_failures_produce_reports_and_skip_later_stages(tmp_path: Path) -> None:
     overrides = {
-        "schema_version": "1.0",
+        "schemaVersion": "1.0",
         "id": "bad",
-        "blueprint_id": "rural-crossroads",
-        "entity_operations": [{"op": "remove", "entity_id": "building.does-not-exist"}],
+        "locationId": "rural-crossroads",
+        "placementOverrides": [{"entityId": "building.does-not-exist", "yawDeg": 0}],
     }
     result = Pipeline().run(
         InputBundle(blueprint=RURAL_BLUEPRINT, recipe=RURAL_RECIPE, overrides=overrides),
@@ -147,18 +177,15 @@ def test_failures_produce_reports_and_skip_later_stages(tmp_path: Path) -> None:
 
 
 def test_layout_errors_fail_unless_disabled() -> None:
-    data = blueprint_data(
-        roads=[road("r", [[0, 40], [100, 40]])],
-        buildings=[rect_building("on-road", [50, 40], [10, 8])],
-    )
+    data = location_data(roads=straight_road(), buildings=[building("on-road", 50, 40)])
     failed = Pipeline().run(InputBundle(blueprint=data))
     assert isinstance(failed.error, LayoutValidationError)
     assert any(i.code == "LAYOUT_ROAD_OBSTRUCTED" for i in failed.error.issues)
     lenient = {
-        "schema_version": "1.0",
+        "schemaVersion": "1.0",
         "id": "l",
         "name": "L",
-        "validation": {"fail_on_error": False},
+        "validation": {"failOnError": False},
     }
     passed = Pipeline().run(InputBundle(blueprint=data, recipe=lenient))
     assert passed.success and passed.layout is not None

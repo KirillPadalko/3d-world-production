@@ -22,7 +22,7 @@ from environment_generator.models.base import (
     PositiveFloat,
     Tag,
 )
-from environment_generator.models.blueprint import Biome, Condition, RoadSurface, RoofKind
+from environment_generator.models.site import Biome, Condition, RoadSurface, RoofKind
 
 
 class AssetCategory(StrEnum):
@@ -46,7 +46,7 @@ class CoverLevel(StrEnum):
 
 
 class Dimensions(ContractModel):
-    """Axis-aligned size in the object's local frame (X width, Y depth, Z height)."""
+    """Size of an object: width (side to side), depth (front to back), height (up)."""
 
     width_m: Annotated[float, Field(ge=0.0)]
     depth_m: Annotated[float, Field(ge=0.0)]

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 from environment_generator.assets.resolver import AssetRequest
@@ -28,18 +28,20 @@ from environment_generator.generators.base import (
     VegetationGenerator,
     WorkEstimate,
     feature_ref,
+    kinds_with_hint,
     make_entity,
 )
 from environment_generator.models.assets import AssetCategory, AssetNeed
-from environment_generator.models.blueprint import (
-    LocationBlueprint,
+from environment_generator.models.base import MetadataValue
+from environment_generator.models.geometry import area_outline
+from environment_generator.models.recipe import LocationRecipe
+from environment_generator.models.scene import VEGETATION_SOLID_FRACTION
+from environment_generator.models.site import (
+    SiteDescription,
     VegetationArea,
     VegetationLine,
     VegetationPoint,
 )
-from environment_generator.models.geometry import area_outline
-from environment_generator.models.recipe import LocationRecipe
-from environment_generator.models.scene import VEGETATION_SOLID_FRACTION
 
 
 @dataclass(frozen=True)
@@ -74,6 +76,8 @@ SPACING_FACTOR: dict[str, float] = {
     "grass_clump": 0.4,
 }
 VEGETATION_LAYER = AssetCategory.VEGETATION.value
+#: Generic plant kinds; anything else requested first is a species or archetype hint.
+GENERIC_KINDS = frozenset({"tree", "fruit_tree", "bush", "hedge", "grass_clump"})
 
 
 class ScatterVegetationGenerator(VegetationGenerator):
@@ -84,14 +88,14 @@ class ScatterVegetationGenerator(VegetationGenerator):
     """
 
     implementation = "scatter_vegetation"
-    version = "1.0.0"
+    version = "1.1.0"
 
-    def estimate(self, blueprint: LocationBlueprint, recipe: LocationRecipe) -> WorkEstimate:
+    def estimate(self, site: SiteDescription, recipe: LocationRecipe) -> WorkEstimate:
         config = recipe.vegetation
         sources: list[str] = []
         needs: list[AssetNeed] = []
         count = 0
-        for feature in blueprint.vegetation:
+        for feature in site.vegetation:
             ref = feature_ref("vegetation", feature.id)
             sources.append(ref)
             if isinstance(feature, VegetationArea):
@@ -115,7 +119,7 @@ class ScatterVegetationGenerator(VegetationGenerator):
                     + 1
                 )
             else:
-                kinds = POINT_KINDS[feature.kind]
+                kinds = kinds_with_hint(feature.archetype, *POINT_KINDS[feature.kind])
                 count += 1
             needs.append(
                 AssetNeed(category=AssetCategory.VEGETATION, kinds=list(kinds), reason=ref)
@@ -130,7 +134,7 @@ class ScatterVegetationGenerator(VegetationGenerator):
 
     def generate(self, context: GenerationContext) -> GeneratorOutput:
         output = GeneratorOutput()
-        for feature in sorted(context.blueprint.vegetation, key=lambda f: f.id):
+        for feature in sorted(context.site.vegetation, key=lambda f: f.id):
             if isinstance(feature, VegetationArea):
                 if feature.kind == "orchard":
                     self._orchard(context, feature, output)
@@ -175,8 +179,9 @@ class ScatterVegetationGenerator(VegetationGenerator):
         tags: Sequence[str],
         explicit: bool = False,
         height: float | None = None,
+        attributes: Mapping[str, MetadataValue] | None = None,
     ) -> bool:
-        extent = context.blueprint.extent
+        extent = context.site.extent
         if not (0.0 <= point[0] <= extent.width_m and 0.0 <= point[1] <= extent.depth_m):
             return False
         spacing_circle = Footprint.from_circle(entity_id, VEGETATION_LAYER, point, spacing / 2.0)
@@ -194,18 +199,27 @@ class ScatterVegetationGenerator(VegetationGenerator):
         trunk = max(0.1, VEGETATION_SOLID_FRACTION * min(nominal.width_m, nominal.depth_m) * size)
         if not explicit and self._blocked(context, point, trunk):
             return False
+        matched = selection.matched_kind
+        if matched in GENERIC_KINDS:
+            kind = matched
+        else:  # a species/archetype hint matched: report the archetype's plant form
+            kind = next((k for k in selection.archetype.kinds if k in GENERIC_KINDS), kinds[-1])
         entity = make_entity(
             self,
             entity_id=entity_id,
             category=AssetCategory.VEGETATION,
-            kind=selection.matched_kind,
+            kind=kind,
             selection=selection,
             position=(point[0], point[1], context.terrain.height_at(*point)),
             yaw_deg=yaw,
             scale=(size, size, size),
             rule=rule,
             source_feature=source,
-            parameters={"source_kind": source_kind},
+            parameters={
+                "source_kind": source_kind,
+                "species": None if matched in GENERIC_KINDS else matched,
+            },
+            attributes=attributes,
             tags=tags,
         )
         output.entities.append(entity)
@@ -221,8 +235,16 @@ class ScatterVegetationGenerator(VegetationGenerator):
         outline = area_outline(feature.geometry)
         rule = AREA_RULES[feature.kind]
         target = self._area_target(rule, polygon_area(outline), feature.density, context.recipe)
+        target = min(
+            round(target * context.controls.detail_density), config.max_instances_per_feature
+        )
         if target <= 0:
             return
+        understory = (
+            feature.understory if feature.understory is not None else config.understory_ratio
+        )
+        species = [s.species for s in feature.species]
+        weights = [s.weight for s in feature.species]
         min_x, min_y, max_x, max_y = bounds_of(outline)
         accepted = 0
         for candidate in range(target * 8 + 16):
@@ -235,20 +257,23 @@ class ScatterVegetationGenerator(VegetationGenerator):
             if not point_in_polygon(point, outline):
                 continue
             kinds = rule.kinds
-            if rule.understory and rng.random() < config.understory_ratio:
+            if rule.understory and rng.random() < understory:
                 kinds = ("bush",)
+            elif species:
+                kinds = (species[rng.weighted_index(weights)], *rule.kinds)
             if self._try_place(
                 context,
                 output,
                 entity_id=f"vegetation.{feature.id}.{candidate:05d}",
                 kinds=kinds,
                 point=point,
-                spacing=config.min_spacing_m * SPACING_FACTOR[kinds[0]],
+                spacing=config.min_spacing_m * SPACING_FACTOR[kinds[-1]],
                 rng=rng,
                 rule="area_scatter",
                 source=feature_ref("vegetation", feature.id),
                 source_kind=feature.kind,
                 tags=feature.tags,
+                attributes=feature.attributes,
             ):
                 accepted += 1
         if accepted < target // 2:
@@ -322,14 +347,14 @@ class ScatterVegetationGenerator(VegetationGenerator):
     def _point(
         self, context: GenerationContext, feature: VegetationPoint, output: GeneratorOutput
     ) -> None:
-        kinds = POINT_KINDS[feature.kind]
+        kinds = kinds_with_hint(feature.archetype, *POINT_KINDS[feature.kind])
         self._try_place(
             context,
             output,
             entity_id=f"vegetation.{feature.id}",
             kinds=kinds,
             point=feature.geometry.position,
-            spacing=context.recipe.vegetation.min_spacing_m * SPACING_FACTOR[kinds[0]],
+            spacing=context.recipe.vegetation.min_spacing_m * SPACING_FACTOR[kinds[-1]],
             rng=context.rng("point", feature.id),
             rule="explicit_point",
             source=feature_ref("vegetation", feature.id),
@@ -337,4 +362,5 @@ class ScatterVegetationGenerator(VegetationGenerator):
             tags=feature.tags,
             explicit=True,
             height=feature.height_m,
+            attributes=feature.attributes,
         )

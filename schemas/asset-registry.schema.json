@@ -43,10 +43,10 @@
           "title": "Variants",
           "type": "integer"
         },
-        "asset_ref": {
+        "assetRef": {
           "maxLength": 512,
           "minLength": 1,
-          "title": "Asset Ref",
+          "title": "Assetref",
           "type": "string"
         },
         "weight": {
@@ -103,7 +103,7 @@
         "category",
         "kinds",
         "dimensions",
-        "asset_ref"
+        "assetRef"
       ],
       "title": "Archetype",
       "type": "object"
@@ -112,7 +112,7 @@
       "additionalProperties": false,
       "description": "Soft constraints; mismatches lower an archetype's fit score.",
       "properties": {
-        "min_floors": {
+        "minFloors": {
           "anyOf": [
             {
               "minimum": 1,
@@ -123,9 +123,9 @@
             }
           ],
           "default": null,
-          "title": "Min Floors"
+          "title": "Minfloors"
         },
-        "max_floors": {
+        "maxFloors": {
           "anyOf": [
             {
               "minimum": 1,
@@ -136,7 +136,7 @@
             }
           ],
           "default": null,
-          "title": "Max Floors"
+          "title": "Maxfloors"
         },
         "roofs": {
           "anyOf": [
@@ -235,28 +235,28 @@
     },
     "Dimensions": {
       "additionalProperties": false,
-      "description": "Axis-aligned size in the object's local frame (X width, Y depth, Z height).",
+      "description": "Size of an object: width (side to side), depth (front to back), height (up).",
       "properties": {
-        "width_m": {
+        "widthM": {
           "minimum": 0.0,
-          "title": "Width M",
+          "title": "Widthm",
           "type": "number"
         },
-        "depth_m": {
+        "depthM": {
           "minimum": 0.0,
-          "title": "Depth M",
+          "title": "Depthm",
           "type": "number"
         },
-        "height_m": {
+        "heightM": {
           "minimum": 0.0,
-          "title": "Height M",
+          "title": "Heightm",
           "type": "number"
         }
       },
       "required": [
-        "width_m",
-        "depth_m",
-        "height_m"
+        "widthM",
+        "depthM",
+        "heightM"
       ],
       "title": "Dimensions",
       "type": "object"
@@ -286,9 +286,9 @@
   "additionalProperties": false,
   "description": "A set of archetypes (public contract v1.0).",
   "properties": {
-    "schema_version": {
+    "schemaVersion": {
       "const": "1.0",
-      "title": "Schema Version",
+      "title": "Schemaversion",
       "type": "string"
     },
     "id": {
@@ -326,7 +326,7 @@
     }
   },
   "required": [
-    "schema_version",
+    "schemaVersion",
     "id",
     "name",
     "archetypes"

@@ -10,7 +10,7 @@ from typing import Any, TypeVar
 from pydantic import BaseModel, ValidationError
 
 from environment_generator.core.errors import ContractValidationError, InputLoadError
-from environment_generator.core.issues import ValidationIssue
+from environment_generator.core.issues import Severity, ValidationIssue
 
 ModelT = TypeVar("ModelT", bound=BaseModel)
 
@@ -63,19 +63,26 @@ def validation_issues(error: ValidationError, label: str) -> list[ValidationIssu
     for detail in error.errors(include_url=False):
         location = format_location(tuple(detail["loc"]))
         issues.append(
-            ValidationIssue.error(
-                "CONTRACT_" + detail["type"].upper(),
-                detail["msg"],
-                location=f"{label}:{location}" if location else label,
+            ValidationIssue(
+                severity=Severity.ERROR,
+                code="CONTRACT_" + detail["type"].upper(),
+                message=detail["msg"],
+                category="schema",
+                location=label,
+                path=location or None,
             )
         )
     return issues
 
 
 def parse_document(model: type[ModelT], data: Mapping[str, Any], label: str) -> ModelT:
-    """Validate ``data`` against ``model``; raises :class:`ContractValidationError`."""
+    """Validate ``data`` against ``model``; raises :class:`ContractValidationError`.
+
+    Public documents are camelCase JSON; Python field names are not accepted
+    as keys, so every document has exactly one spelling.
+    """
     try:
-        return model.model_validate(data)
+        return model.model_validate(data, by_alias=True, by_name=False)
     except ValidationError as exc:
         issues = validation_issues(exc, label)
         raise ContractValidationError(

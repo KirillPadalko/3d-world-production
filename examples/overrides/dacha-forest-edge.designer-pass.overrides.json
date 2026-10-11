@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0",
+  "id": "dacha-designer-pass-01",
+  "locationId": "dacha-forest-edge",
+  "recipeId": "dacha-overgrown",
+  "description": "Level designer pass: board up house 2, upgrade house 6, widen the hole in fence 1, add a sandbag position at the junction, remove the tyre pile and turn the bench.",
+  "author": "level design",
+  "conflictPolicy": "fail",
+  "entityOperations": [
+    {
+      "op": "update",
+      "id": "b-house-02",
+      "expectedType": "buildings",
+      "patch": { "condition": 0.4, "abandonment": 0.6, "openings": { "windows": "boarded" } }
+    },
+    {
+      "op": "replaceArchetype",
+      "id": "b-house-06",
+      "expectedType": "buildings",
+      "archetype": "wooden_house_medium"
+    },
+    {
+      "op": "update",
+      "id": "f-plot-01",
+      "expectedType": "fences",
+      "patch": {
+        "missingSections": [
+          { "start": 0.05, "end": 0.08 },
+          { "start": 0.55, "end": 0.6 }
+        ]
+      }
+    },
+    { "op": "delete", "id": "pr-tires-06", "expectedType": "props" },
+    {
+      "op": "add",
+      "collection": "props",
+      "entity": {
+        "id": "pr-sandbags-junction",
+        "label": "Sandbag position",
+        "propType": "sandbags",
+        "transform": { "position": [86.0, 141.21, 36.0], "yawDeg": 0.0 },
+        "provenance": { "category": "manual", "notes": "Designer addition, not observed." }
+      }
+    }
+  ],
+  "placementOverrides": [
+    { "entityId": "prop.pr-bench-common", "yawDeg": 180.0 },
+    { "entityId": "building.b-garage-06", "position": [101.0, 141.02, 27.0] }
+  ]
+}

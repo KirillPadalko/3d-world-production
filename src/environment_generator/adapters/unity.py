@@ -5,14 +5,12 @@ is the job of a Unity-side (C#) importer that does not exist yet. The
 coordinate helpers below are real, pure-math functions with tests; a Unity
 importer can port them line by line.
 
-Manifest frame: right-handed, +X east, +Y north, +Z up, yaw counter-clockwise
-from above, local +Y is an object's front.
-
-Unity frame: left-handed, +X right, +Y up, +Z forward.
-
-Mapping: ``unity = (x, z, y)`` for positions and scales; rotations are
-converted by conjugating with the axis swap, which for a pure yaw ``θ`` gives a
-Unity Y rotation of ``-θ``.
+The manifest uses the location frame of LocationBlueprint v1.0: metres,
++X east, +Y up, +Z north, left-handed, an object's front is local +Z, and
+``rotationDeg`` are Euler angles applied Z, then X, then Y (extrinsic). That is
+Unity's own convention, so positions, scales and ``Quaternion.Euler(rotationDeg)``
+are used unchanged; map east/north to Unity's world axes by placing the
+imported root object, never by swapping components.
 """
 
 from __future__ import annotations
@@ -23,7 +21,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from environment_generator.core.errors import AdapterUnavailableError
-from environment_generator.models.scene import SceneEntity
+from environment_generator.core.geometry import normalize_angle_deg
+from environment_generator.models.scene import ManifestEntity
 
 Vec3 = tuple[float, float, float]
 Quaternion = tuple[float, float, float, float]  # (x, y, z, w)
@@ -31,19 +30,18 @@ Matrix3 = tuple[Vec3, Vec3, Vec3]
 
 
 def to_unity_position(position: Vec3) -> Vec3:
-    x, y, z = position
-    return (x, z, y)
+    """Unity ``transform.localPosition``: identical to the manifest position."""
+    return position
 
 
 def to_unity_scale(scale: Vec3) -> Vec3:
-    sx, sy, sz = scale
-    return (sx, sz, sy)
+    """Unity ``transform.localScale``: identical to the manifest scale."""
+    return scale
 
 
 def to_unity_yaw(yaw_deg: float) -> float:
-    """Unity ``eulerAngles.y`` for a manifest yaw, in ``[0, 360)``."""
-    result = (-yaw_deg) % 360.0
-    return 0.0 if result == 360.0 else result
+    """Unity ``eulerAngles.y`` for a manifest yaw (both clockwise from +Z), in ``[0, 360)``."""
+    return normalize_angle_deg(yaw_deg)
 
 
 def _rotation_x(angle: float) -> Matrix3:
@@ -73,20 +71,13 @@ def _matmul(a: Matrix3, b: Matrix3) -> Matrix3:
 
 
 def manifest_rotation_matrix(rotation_deg: Vec3) -> Matrix3:
-    """Rotation matrix of an extrinsic X-Y-Z Euler rotation (``Rz @ Ry @ Rx``)."""
+    """Matrix of a manifest rotation: extrinsic Z, then X, then Y (``Ry @ Rx @ Rz``).
+
+    Same as Unity's ``Quaternion.Euler``; a positive Y angle turns +Z towards +X
+    (clockwise seen from above).
+    """
     rx, ry, rz = (math.radians(a) for a in rotation_deg)
-    return _matmul(_rotation_z(rz), _matmul(_rotation_y(ry), _rotation_x(rx)))
-
-
-def to_unity_rotation_matrix(rotation_deg: Vec3) -> Matrix3:
-    """The same physical rotation expressed in Unity axes (``M R M`` with M swapping Y/Z)."""
-    r = manifest_rotation_matrix(rotation_deg)
-    swap = (0, 2, 1)
-    return (
-        (r[swap[0]][swap[0]], r[swap[0]][swap[1]], r[swap[0]][swap[2]]),
-        (r[swap[1]][swap[0]], r[swap[1]][swap[1]], r[swap[1]][swap[2]]),
-        (r[swap[2]][swap[0]], r[swap[2]][swap[1]], r[swap[2]][swap[2]]),
-    )
+    return _matmul(_rotation_y(ry), _matmul(_rotation_x(rx), _rotation_z(rz)))
 
 
 def matrix_to_quaternion(m: Matrix3) -> Quaternion:
@@ -122,8 +113,8 @@ def matrix_to_quaternion(m: Matrix3) -> Quaternion:
 
 
 def to_unity_rotation(rotation_deg: Vec3) -> Quaternion:
-    """Unity ``Quaternion`` components ``(x, y, z, w)`` for a manifest rotation."""
-    return matrix_to_quaternion(to_unity_rotation_matrix(rotation_deg))
+    """Unity ``Quaternion`` ``(x, y, z, w)``; equal to ``Quaternion.Euler(rotation_deg)``."""
+    return matrix_to_quaternion(manifest_rotation_matrix(rotation_deg))
 
 
 @dataclass(frozen=True)
@@ -133,7 +124,7 @@ class UnityTransform:
     scale: Vec3
 
 
-def entity_to_unity_transform(entity: SceneEntity) -> UnityTransform:
+def entity_to_unity_transform(entity: ManifestEntity) -> UnityTransform:
     transform = entity.transform
     return UnityTransform(
         position=to_unity_position(transform.position),

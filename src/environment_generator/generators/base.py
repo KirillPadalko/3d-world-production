@@ -3,7 +3,7 @@
 Each generator *slot* has an abstract interface (``TerrainGenerator``,
 ``RoadGenerator`` ...) that fixes its name, its ordering dependencies and the
 asset categories it may emit. Implementations are engine-agnostic: they read
-the effective blueprint and recipe and return :class:`SceneEntity` objects.
+the effective site and recipe and return :class:`SceneEntity` objects.
 The pipeline checks every output against the slot contract.
 """
 
@@ -14,6 +14,8 @@ from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass, field, fields
 from typing import ClassVar
 
+from pydantic.alias_generators import to_camel
+
 from environment_generator.assets.resolver import AssetResolver, AssetSelection
 from environment_generator.core.geometry import normalize_angle_deg
 from environment_generator.core.issues import ValidationIssue
@@ -21,11 +23,11 @@ from environment_generator.core.rng import DeterministicRng, derive_seed, hash_u
 from environment_generator.core.spatial import SpatialIndex
 from environment_generator.core.terrain import HeightSampler
 from environment_generator.models.assets import AssetCategory, AssetNeed, Dimensions
-from environment_generator.models.blueprint import LocationBlueprint
 from environment_generator.models.recipe import GeneratorName, LocationRecipe
 from environment_generator.models.scene import (
     AtmosphereSettings,
     EntityGeometry,
+    GenerationControls,
     ParameterValue,
     Provenance,
     SceneEntity,
@@ -33,6 +35,7 @@ from environment_generator.models.scene import (
     Transform,
     entity_footprints,
 )
+from environment_generator.models.site import SiteDescription
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,8 +64,9 @@ class GenerationContext:
     anything later placements should avoid.
     """
 
-    blueprint: LocationBlueprint
+    site: SiteDescription
     recipe: LocationRecipe
+    controls: GenerationControls
     seed: int
     assets: AssetResolver
     terrain: HeightSampler
@@ -102,7 +106,7 @@ class SceneGenerator(ABC):
         return f"{self.implementation}@{self.version}"
 
     @abstractmethod
-    def estimate(self, blueprint: LocationBlueprint, recipe: LocationRecipe) -> WorkEstimate:
+    def estimate(self, site: SiteDescription, recipe: LocationRecipe) -> WorkEstimate:
         """Describe the work for planning; must be cheap and side-effect free."""
 
     @abstractmethod
@@ -227,8 +231,16 @@ class GeneratorSet:
 
 
 def sorted_parameters(values: Mapping[str, ParameterValue | None]) -> dict[str, ParameterValue]:
-    """Drop ``None`` values and sort keys for stable output."""
-    return {k: v for k, v in sorted(values.items()) if v is not None}
+    """Drop ``None`` values, use camelCase keys and sort them for stable output."""
+    camel = {to_camel(k): v for k, v in values.items() if v is not None}
+    return dict(sorted(camel.items()))
+
+
+def kinds_with_hint(hint: str | None, *kinds: str) -> tuple[str, ...]:
+    """Asset kinds to request: the semantic archetype hint first, then generic kinds."""
+    if hint and hint not in kinds:
+        return (hint, *kinds)
+    return kinds
 
 
 def make_entity(
@@ -244,11 +256,17 @@ def make_entity(
     rule: str,
     source_feature: str | None = None,
     parameters: Mapping[str, ParameterValue | None] | None = None,
+    attributes: Mapping[str, ParameterValue] | None = None,
     tags: Sequence[str] = (),
     geometry: EntityGeometry | None = None,
     dimensions: Dimensions | None = None,
 ) -> SceneEntity:
-    """Assemble a :class:`SceneEntity` with consistent dimensions and provenance."""
+    """Assemble a :class:`SceneEntity` with consistent dimensions and provenance.
+
+    ``attributes`` are blueprint values passed through unchanged; they win over
+    generator ``parameters`` with the same (camelCase) key, so a coarse
+    generator value never hides a more specific blueprint value.
+    """
     archetype = selection.archetype
     if dimensions is None:
         nominal = archetype.dimensions
@@ -257,7 +275,10 @@ def make_entity(
             depth_m=nominal.depth_m * scale[1],
             height_m=nominal.height_m * scale[2],
         )
-    params: dict[str, ParameterValue | None] = dict(parameters or {})
+    params: dict[str, ParameterValue | None] = {
+        to_camel(key): value for key, value in (parameters or {}).items()
+    }
+    params.update(attributes or {})
     if archetype.cover is not None:
         params.setdefault("cover", archetype.cover.value)
     return SceneEntity(

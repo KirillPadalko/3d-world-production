@@ -14,7 +14,7 @@ from environment_generator.core.geometry import (
     polygon_area,
     polygon_centroid,
 )
-from environment_generator.core.terrain import Heightfield, fractal_noise
+from environment_generator.core.terrain import Heightfield, fractal_noise, sample_grid
 from environment_generator.generators.base import (
     GenerationContext,
     GeneratorOutput,
@@ -24,10 +24,10 @@ from environment_generator.generators.base import (
     make_entity,
 )
 from environment_generator.models.assets import AssetCategory, AssetNeed, Dimensions
-from environment_generator.models.blueprint import LocationBlueprint, Relief
 from environment_generator.models.geometry import area_outline
 from environment_generator.models.recipe import LocationRecipe
 from environment_generator.models.scene import EntityPolygon, TerrainData
+from environment_generator.models.site import Relief, SiteDescription
 
 #: Default noise amplitude per relief class when the recipe does not set one.
 RELIEF_AMPLITUDE_M: dict[Relief, float] = {
@@ -70,39 +70,42 @@ class HeightfieldTerrainGenerator(TerrainGenerator):
     """
 
     implementation = "heightfield"
-    version = "1.0.0"
+    version = "1.1.0"
 
-    def estimate(self, blueprint: LocationBlueprint, recipe: LocationRecipe) -> WorkEstimate:
+    def estimate(self, site: SiteDescription, recipe: LocationRecipe) -> WorkEstimate:
         needs = [
             AssetNeed(
                 category=AssetCategory.TERRAIN,
-                kinds=[blueprint.terrain.ground_cover.value],
+                kinds=[site.terrain.ground_cover.value],
                 reason="terrain",
             )
         ]
         sources = ["terrain"]
-        for body in blueprint.water:
+        for body in site.water:
             ref = feature_ref("water", body.id)
             sources.append(ref)
             needs.append(
                 AssetNeed(category=AssetCategory.WATER, kinds=[body.kind.value], reason=ref)
             )
-        return WorkEstimate(tuple(sources), 1 + len(blueprint.water), tuple(needs))
+        return WorkEstimate(tuple(sources), 1 + len(site.water), tuple(needs))
 
     def generate(self, context: GenerationContext) -> GeneratorOutput:
-        blueprint = context.blueprint
+        site = context.site
         config = context.recipe.terrain
-        extent = blueprint.extent
+        extent = site.extent
         cell = config.cell_size_m
         columns = math.ceil(extent.width_m / cell) + 1
         rows = math.ceil(extent.depth_m / cell) + 1
-        relief = blueprint.terrain.relief
+        relief = site.terrain.relief
+        grid = site.terrain.height_grid
         amplitude = (
-            config.noise_amplitude_m
+            0.0  # measured heights are used as they are
+            if grid is not None
+            else config.noise_amplitude_m
             if config.noise_amplitude_m is not None
             else RELIEF_AMPLITUDE_M[relief]
         )
-        control = [(p.position, p.elevation_m) for p in blueprint.terrain.elevation_points]
+        control = [(p.position, p.elevation_m) for p in site.terrain.elevation_points]
         fade_radius = max(config.noise_scale_m * 0.5, cell)
         noise_seed = context.entity_seed("noise")
 
@@ -111,7 +114,11 @@ class HeightfieldTerrainGenerator(TerrainGenerator):
             row: list[float] = []
             for i in range(columns):
                 x, y = i * cell, j * cell
-                base, nearest = _interpolate(control, blueprint.terrain.base_elevation_m, (x, y))
+                if grid is not None:
+                    base = sample_grid(grid.heights, extent.width_m, extent.depth_m, x, y)
+                    nearest = math.inf
+                else:
+                    base, nearest = _interpolate(control, site.terrain.base_elevation_m, (x, y))
                 noise = fractal_noise(
                     noise_seed, x / config.noise_scale_m, y / config.noise_scale_m, config.octaves
                 )
@@ -122,7 +129,7 @@ class HeightfieldTerrainGenerator(TerrainGenerator):
         output = GeneratorOutput()
         pre_carve = Heightfield(cell, columns, rows, tuple(tuple(r) for r in heights))
         water_levels: list[tuple[str, list[Vec2], float]] = []
-        for body in sorted(blueprint.water, key=lambda b: b.id):
+        for body in sorted(site.water, key=lambda b: b.id):
             outline = area_outline(body.geometry)
             level = min(pre_carve.height_at(x, y) for x, y in outline)
             water_levels.append((body.id, outline, level))
@@ -147,11 +154,11 @@ class HeightfieldTerrainGenerator(TerrainGenerator):
             heights=heights,
             min_elevation_m=min(flat),
             max_elevation_m=max(flat),
-            ground_cover=blueprint.terrain.ground_cover,
+            ground_cover=site.terrain.ground_cover,
         )
         output.terrain = terrain
 
-        ground_kind = blueprint.terrain.ground_cover.value
+        ground_kind = site.terrain.ground_cover.value
         ground = context.assets.resolve(
             AssetRequest(AssetCategory.TERRAIN, (ground_kind,), entity_id="terrain")
         )
@@ -162,10 +169,11 @@ class HeightfieldTerrainGenerator(TerrainGenerator):
                 category=AssetCategory.TERRAIN,
                 kind=ground_kind,
                 selection=ground,
-                position=(0.0, 0.0, blueprint.terrain.base_elevation_m),
+                position=(0.0, 0.0, site.terrain.base_elevation_m),
                 rule="heightfield",
                 source_feature="terrain",
                 parameters={
+                    "measured_heights": grid is not None,
                     "relief": relief.value,
                     "cell_size_m": cell,
                     "columns": columns,
@@ -180,7 +188,7 @@ class HeightfieldTerrainGenerator(TerrainGenerator):
             )
         )
 
-        bodies = {b.id: b for b in blueprint.water}
+        bodies = {b.id: b for b in site.water}
         for body_id, outline, level in water_levels:
             body = bodies[body_id]
             entity_id = f"water.{body_id}"

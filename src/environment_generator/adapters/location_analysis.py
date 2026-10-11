@@ -44,5 +44,6 @@ class UnconfiguredLocationAnalyzer(LocationAnalyzer):
     def analyze(self, footage: Sequence[FootageReference]) -> LocationBlueprint:
         raise AdapterUnavailableError(
             "Location analysis is not implemented in this phase. Author a LocationBlueprint by "
-            "hand (see examples/blueprints) or implement LocationAnalyzer; see docs/ADAPTERS.md."
+            "hand (see examples/locations and docs/LOCATION_BLUEPRINT.md) or implement "
+            "LocationAnalyzer; see docs/ADAPTERS.md."
         )

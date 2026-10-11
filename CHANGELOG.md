@@ -4,6 +4,49 @@ All notable changes are documented here. Versions follow
 [Semantic Versioning](https://semver.org/); any change to generated output
 bumps the version (see docs/DEVELOPMENT.md).
 
+## 0.2.0 - 2026-10-11
+
+**LocationBlueprint contract v1.0** (`docs/LOCATION_BLUEPRINT.md`). The
+unreleased 0.1 blueprint, recipe, overrides, registry and manifest formats are
+replaced; there is no migration from them (they were never published).
+
+* New LocationBlueprint v1.0: camelCase JSON, explicit coordinate system
+  (metres, +X east, +Y up, +Z north, yaw clockwise from north), location
+  packages with external heightmaps and masks (relative paths, size, SHA-256),
+  road graph with centripetal Catmull-Rom curves, plots, buildings with
+  condition and abandonment, vegetation zones with species weights, trees,
+  fences with missing sections, infrastructure points and wires, props with
+  parents, landmarks, gameplay annotations (movement, projectile cover and
+  vision separated), atmosphere, generation controls and subsystem seeds,
+  source provenance (media, frames, reports, calibration, observations) and
+  per-entity provenance (`observed`, `inferred`, `manual`, `procedural`),
+  namespaced extensions.
+* Blueprint services (`environment_generator.blueprint`): version checks and
+  a migration registry (future majors rejected, originals never overwritten
+  without `--in-place`, backups), phased validation with structured
+  diagnostics (code, severity, category, path, entity IDs, suggestion),
+  document-wide ID namespace with `previousIds`, external file checks,
+  canonical deterministic serialization.
+* LocationOverrides v1.0: `update` (JSON merge patch), `replaceArchetype`,
+  `delete`, `add`, placement overrides of generated entities; conflict policy
+  `fail` / `report`; the blueprint is never modified; generated entities list
+  the operations that shaped them.
+* LocationRecipe v1.0: no geometry; `appliesTo` on `locationId`, optional
+  seeds and controls falling back to the blueprint, `detailDensity`,
+  `allowedArchetypes`, subsystem seeds.
+* The scene manifest uses the blueprint's frame (Unity's axes) and camelCase;
+  it carries resolved controls, landmarks and gameplay annotations. Unity
+  conversion is now the identity.
+* CLI: `envgen blueprint validate | format | migrate`, `--package-root`.
+* Examples are location packages (`examples/locations/`), including the
+  `dacha-forest-edge` reference fixture with its own recipe and overrides.
+* Built-in registry: dacha archetypes (wooden houses, banya, greenhouse,
+  outhouse, metal garage, sheds, metal-sheet fence, wooden well, signs,
+  containers), plant species kinds and new prop kinds.
+* Generators 1.1.0: measured heightmaps, road importance, blueprint yaw for
+  buildings, species-weighted vegetation, supported wires, detail density,
+  extended atmosphere. Requires pydantic >= 2.11.
+
 ## 0.1.0 - 2026-10-09
 
 First standalone release.

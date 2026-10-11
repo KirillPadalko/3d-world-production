@@ -1,6 +1,17 @@
 # Roadmap
 
-## Phase 0 - standalone MVP (this release, 0.1.0)
+## Phase 0.2 - LocationBlueprint contract v1.0 (this release, 0.2.0)
+
+* Engine-independent, versioned LocationBlueprint contract with typed models,
+  JSON Schema, canonical serialization, structured diagnostics, external
+  heightmaps and masks, provenance, stable IDs with rename aliases,
+  migration framework and the dacha reference fixture.
+* Recipe and overrides as separate contracts; overrides by stable ID with
+  explicit conflict handling.
+* One spatial frame (Y up, Z north, clockwise yaw) for blueprint, overrides
+  and manifest.
+
+## Phase 0 - standalone MVP (0.1.0)
 
 * Public contracts for blueprint, recipe, overrides, asset registry and scene
   manifest, with generated JSON Schemas and drift checks.
@@ -53,6 +64,17 @@
   acceleration for terrain (kept out of the core dependency set).
 * More biomes, seasonal vegetation variants, and recipe presets.
 
+## Next step for the contract
+
+* Generators that use the remaining blueprint data: surface zones and terrain
+  masks for ground materials, slope zones, plot boundaries for yard
+  vegetation, `structuralSimilarity` / `visualVariation` as real controls,
+  abandonment-driven decay of vegetation and props, gameplay annotations
+  checked against the generated layout (cover zones, line of sight,
+  connectivity).
+* A first `LocationAnalyzer` producing v1.0 packages with observed provenance
+  and frame references.
+
 ## Known limitations
 
 * Terrain generation is pure Python. The examples use about 4 000 samples and
@@ -61,8 +83,16 @@
 * Terrain is not flattened under roads or buildings; buildings sit on the
   lowest corner and report `foundation_m`.
 * Water bodies must be polygons; rivers are not yet polylines.
+* Blueprint surface zones, slope zones, terrain masks and garden beds are
+  validated and kept but not yet used by the built-in generators (reported as
+  `NOT_INTERPRETED`). `structuralSimilarity` and `visualVariation` are
+  recorded, not yet applied.
+* Blueprint data is converted to an internal site description; a few values
+  are coarsened for archetype selection (building condition to
+  intact/damaged/ruined, wall materials to six families), while the exact
+  blueprint values are passed through in entity `parameters`.
 * Overlapping explicit (surveyed) features are placed as given and reported
   by validation rather than repaired.
-* Building heights come from the archetype; `floors` selects archetypes and is
-  passed on, but does not scale models.
+* Building heights come from the archetype; the blueprint `heightM` and
+  `floors` select archetypes and are passed on, but do not scale models.
 * Only yaw rotations are generated (no terrain-aligned tilt).

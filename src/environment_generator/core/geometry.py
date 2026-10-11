@@ -75,7 +75,7 @@ def normalize_angle_deg(angle: float) -> float:
         result += 360.0
     if result >= 360.0:  # guards against -tiny + 360 rounding up
         result = 0.0
-    return result
+    return result + 0.0  # turns -0.0 into 0.0
 
 
 def heading_deg(direction: Vec2) -> float:

@@ -23,9 +23,9 @@ from environment_generator.generators.base import (
     make_entity,
 )
 from environment_generator.models.assets import AssetCategory, AssetNeed, Dimensions
-from environment_generator.models.blueprint import LocationBlueprint, Road, RoadKind, RoadSurface
 from environment_generator.models.recipe import LocationRecipe
 from environment_generator.models.scene import EntityPolyline, SceneEntity
+from environment_generator.models.site import Road, RoadKind, RoadSurface, SiteDescription
 
 DEFAULT_WIDTH_M: dict[RoadKind, float] = {
     RoadKind.HIGHWAY: 9.0,
@@ -70,24 +70,24 @@ class PolylineRoadGenerator(RoadGenerator):
     """One entity per road (world-space polyline + width) and one per junction."""
 
     implementation = "polyline_roads"
-    version = "1.0.0"
+    version = "1.1.0"
 
-    def estimate(self, blueprint: LocationBlueprint, recipe: LocationRecipe) -> WorkEstimate:
+    def estimate(self, site: SiteDescription, recipe: LocationRecipe) -> WorkEstimate:
         needs = [
             AssetNeed(
                 category=AssetCategory.ROAD, kinds=[r.kind.value], reason=feature_ref("roads", r.id)
             )
-            for r in blueprint.roads
+            for r in site.roads
         ]
-        if recipe.roads.detect_junctions and len(blueprint.roads) > 1:
+        if recipe.roads.detect_junctions and len(site.roads) > 1:
             needs.append(AssetNeed(category=AssetCategory.ROAD, kinds=["junction"], reason="roads"))
-        sources = tuple(feature_ref("roads", r.id) for r in blueprint.roads)
-        return WorkEstimate(sources, len(blueprint.roads) * 2, tuple(needs))
+        sources = tuple(feature_ref("roads", r.id) for r in site.roads)
+        return WorkEstimate(sources, len(site.roads) * 2, tuple(needs))
 
     def generate(self, context: GenerationContext) -> GeneratorOutput:
         recipe = context.recipe
         output = GeneratorOutput()
-        roads = sorted(context.blueprint.roads, key=lambda r: r.id)
+        roads = sorted(context.site.roads, key=lambda r: r.id)
         for road in roads:
             entity_id = f"road.{road.id}"
             width = road_width(road, recipe)
@@ -116,7 +116,9 @@ class PolylineRoadGenerator(RoadGenerator):
                     "surface": surface.value,
                     "width_m": width,
                     "length_m": polyline_length(road.geometry.points),
+                    "importance": road.effective_importance.value,
                 },
+                attributes=road.attributes,
                 tags=road.tags,
                 geometry=EntityPolyline(type="polyline", points=points3, width_m=width),
                 dimensions=Dimensions(width_m=max_x - min_x, depth_m=max_y - min_y, height_m=0.0),

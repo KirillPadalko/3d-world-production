@@ -55,7 +55,10 @@ def test_schemas_are_valid_2020_12(name: str) -> None:
 @pytest.mark.parametrize(
     ("schema_name", "path"),
     [
-        *[("location-blueprint.schema.json", p) for p in documents("blueprints/*.json")],
+        *[
+            ("location-blueprint.schema.json", p)
+            for p in documents("locations/*/location.blueprint.json")
+        ],
         *[("location-recipe.schema.json", p) for p in documents("recipes/*.json")],
         *[("location-overrides.schema.json", p) for p in documents("overrides/*.json")],
         *[
@@ -70,14 +73,19 @@ def test_documents_validate_against_schema(schema_name: str, path: Path) -> None
     document = json.loads(path.read_text(encoding="utf-8"))
     errors = sorted(validator(schema_name).iter_errors(document), key=str)
     assert not errors, [f"{list(e.absolute_path)}: {e.message}" for e in errors[:5]]
-    PUBLIC_SCHEMAS[schema_name].model_validate(document)
+    PUBLIC_SCHEMAS[schema_name].model_validate(document, by_alias=True, by_name=False)
 
 
 INVALID = {
-    "blueprint-missing-extent.json": "location-blueprint.schema.json",
-    "blueprint-forest-as-point.json": "location-blueprint.schema.json",
+    "blueprint-missing-coordinate-system.json": "location-blueprint.schema.json",
     "blueprint-unknown-field.json": "location-blueprint.schema.json",
     "blueprint-bad-identifier.json": "location-blueprint.schema.json",
+    "blueprint-z-up-axis.json": "location-blueprint.schema.json",
+    "blueprint-absolute-path.json": "location-blueprint.schema.json",
+    "blueprint-parent-path.json": "location-blueprint.schema.json",
+    "blueprint-condition-out-of-range.json": "location-blueprint.schema.json",
+    "blueprint-yaw-out-of-range.json": "location-blueprint.schema.json",
+    "blueprint-snake-case.json": "location-blueprint.schema.json",
     "recipe-out-of-range.json": "location-recipe.schema.json",
     "overrides-unknown-op.json": "location-overrides.schema.json",
     "registry-bad-archetype-id.json": "asset-registry.schema.json",
@@ -92,14 +100,14 @@ def test_invalid_documents_are_rejected_by_schema_and_models(
     assert list(validator(schema_name).iter_errors(document)), "schema accepted an invalid document"
     model: type[BaseModel] = PUBLIC_SCHEMAS[schema_name]
     with pytest.raises(ValidationError):
-        model.model_validate(document)
+        model.model_validate(document, by_alias=True, by_name=False)
 
 
 def test_manifest_produced_now_validates(tmp_path: Path) -> None:
     from environment_generator.pipeline import InputBundle, Pipeline, PipelineOptions
 
     Pipeline().run(
-        InputBundle(blueprint=EXAMPLES / "blueprints" / "minimal.blueprint.json"),
+        InputBundle(blueprint=EXAMPLES / "locations" / "minimal" / "location.blueprint.json"),
         PipelineOptions(output_dir=tmp_path),
     )
     manifest = json.loads((tmp_path / "scene-manifest.json").read_text(encoding="utf-8"))

@@ -26,9 +26,9 @@ def render_report(report: GenerationReport, issue_limit: int = 25) -> str:
     title = "DRY RUN" if report.dry_run else "GENERATION"
     status = "succeeded" if report.success else "FAILED"
     lines = [f"{title} {status} - {report.generator.name} {report.generator.version}"]
-    if report.blueprint_id:
+    if report.location_id:
         lines.append(
-            f"  blueprint={report.blueprint_id} recipe={report.recipe_id} "
+            f"  location={report.location_id} recipe={report.recipe_id} "
             f"overrides={report.overrides_id or '-'} seed={report.seed}"
         )
     lines.append("Stages:")

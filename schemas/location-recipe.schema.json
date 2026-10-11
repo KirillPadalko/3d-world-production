@@ -5,31 +5,41 @@
     "AssetSelectionSpec": {
       "additionalProperties": false,
       "properties": {
-        "required_tags": {
+        "requiredTags": {
           "items": {
             "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
             "type": "string"
           },
           "maxItems": 32,
-          "title": "Required Tags",
+          "title": "Requiredtags",
           "type": "array"
         },
-        "preferred_tags": {
+        "preferredTags": {
           "items": {
             "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
             "type": "string"
           },
           "maxItems": 32,
-          "title": "Preferred Tags",
+          "title": "Preferredtags",
           "type": "array"
         },
-        "excluded_tags": {
+        "excludedTags": {
           "items": {
             "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
             "type": "string"
           },
           "maxItems": 32,
-          "title": "Excluded Tags",
+          "title": "Excludedtags",
+          "type": "array"
+        },
+        "allowedArchetypes": {
+          "description": "Registry archetype ID glob patterns allowed; empty = all.",
+          "items": {
+            "pattern": "^[a-z0-9_.*?\\[\\]-]{1,128}$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Allowedarchetypes",
           "type": "array"
         },
         "fallback": {
@@ -42,14 +52,14 @@
     },
     "AtmosphereRecipe": {
       "additionalProperties": false,
-      "description": "Lighting and weather. ``None`` keeps the blueprint observation.",
+      "description": "Lighting and weather. ``None`` keeps the blueprint's atmosphere and season.",
       "properties": {
         "enabled": {
           "default": true,
           "title": "Enabled",
           "type": "boolean"
         },
-        "time_of_day": {
+        "timeOfDay": {
           "anyOf": [
             {
               "$ref": "#/$defs/TimeOfDay"
@@ -82,14 +92,14 @@
           ],
           "default": null
         },
-        "fog_density_scale": {
+        "fogDensityScale": {
           "default": 1.0,
           "maximum": 10.0,
           "minimum": 0.0,
-          "title": "Fog Density Scale",
+          "title": "Fogdensityscale",
           "type": "number"
         },
-        "wind_speed_mps": {
+        "windSpeedMps": {
           "anyOf": [
             {
               "maximum": 60.0,
@@ -101,27 +111,11 @@
             }
           ],
           "default": null,
-          "title": "Wind Speed Mps"
+          "title": "Windspeedmps"
         }
       },
       "title": "AtmosphereRecipe",
       "type": "object"
-    },
-    "BuildingKind": {
-      "enum": [
-        "house",
-        "apartment_block",
-        "barn",
-        "shed",
-        "garage",
-        "warehouse",
-        "factory",
-        "shop",
-        "office",
-        "church"
-      ],
-      "title": "BuildingKind",
-      "type": "string"
     },
     "BuildingRecipe": {
       "additionalProperties": false,
@@ -131,40 +125,63 @@
           "title": "Enabled",
           "type": "boolean"
         },
-        "orient_to_roads": {
+        "orientToRoads": {
           "default": true,
-          "title": "Orient To Roads",
+          "title": "Orienttoroads",
           "type": "boolean"
         },
-        "road_search_radius_m": {
+        "roadSearchRadiusM": {
           "default": 40.0,
           "maximum": 500.0,
           "minimum": 0.0,
-          "title": "Road Search Radius M",
+          "title": "Roadsearchradiusm",
           "type": "number"
         },
-        "damage_ratio": {
+        "damageRatio": {
           "default": 0.0,
           "description": "Share of intact buildings turned into damaged ones.",
           "maximum": 1.0,
           "minimum": 0.0,
-          "title": "Damage Ratio",
+          "title": "Damageratio",
           "type": "number"
         },
-        "ruin_fraction": {
+        "ruinFraction": {
           "default": 0.25,
           "description": "Share of the damaged buildings (above) that become ruins.",
           "maximum": 1.0,
           "minimum": 0.0,
-          "title": "Ruin Fraction",
+          "title": "Ruinfraction",
           "type": "number"
         },
-        "zone_fill": {
+        "zoneFill": {
           "$ref": "#/$defs/ZoneFillRecipe"
         }
       },
       "title": "BuildingRecipe",
       "type": "object"
+    },
+    "BuildingType": {
+      "enum": [
+        "house",
+        "bathhouse",
+        "garage",
+        "shed",
+        "barn",
+        "greenhouse",
+        "outhouse",
+        "gazebo",
+        "workshop",
+        "shop",
+        "church",
+        "apartment_block",
+        "warehouse",
+        "factory",
+        "office",
+        "other",
+        "unknown"
+      ],
+      "title": "BuildingType",
+      "type": "string"
     },
     "ClutterRecipe": {
       "additionalProperties": false,
@@ -175,21 +192,21 @@
           "title": "Enabled",
           "type": "boolean"
         },
-        "per_building": {
+        "perBuilding": {
           "default": 1.5,
           "maximum": 50.0,
           "minimum": 0.0,
-          "title": "Per Building",
+          "title": "Perbuilding",
           "type": "number"
         },
-        "max_distance_m": {
+        "maxDistanceM": {
           "default": 4.0,
           "maximum": 50.0,
           "minimum": 0.5,
-          "title": "Max Distance M",
+          "title": "Maxdistancem",
           "type": "number"
         },
-        "kind_weights": {
+        "kindWeights": {
           "anyOf": [
             {
               "additionalProperties": {
@@ -197,7 +214,7 @@
                 "type": "number"
               },
               "propertyNames": {
-                "$ref": "#/$defs/PropKind"
+                "$ref": "#/$defs/PropType"
               },
               "type": "object"
             },
@@ -207,7 +224,7 @@
           ],
           "default": null,
           "description": "Replaces the built-in per-building-kind prop tables when set.",
-          "title": "Kind Weights"
+          "title": "Kindweights"
         }
       },
       "title": "ClutterRecipe",
@@ -225,12 +242,12 @@
     "FeatureFilter": {
       "additionalProperties": false,
       "properties": {
-        "min_confidence": {
+        "minConfidence": {
           "default": 0.0,
           "description": "Blueprint features below this confidence are ignored.",
           "maximum": 1.0,
           "minimum": 0.0,
-          "title": "Min Confidence",
+          "title": "Minconfidence",
           "type": "number"
         }
       },
@@ -245,17 +262,17 @@
           "title": "Enabled",
           "type": "boolean"
         },
-        "gap_at_roads": {
+        "gapAtRoads": {
           "default": true,
           "description": "Leave openings where a fence crosses a road.",
-          "title": "Gap At Roads",
+          "title": "Gapatroads",
           "type": "boolean"
         },
-        "height_scale": {
+        "heightScale": {
           "default": 1.0,
           "maximum": 4.0,
           "minimum": 0.25,
-          "title": "Height Scale",
+          "title": "Heightscale",
           "type": "number"
         }
       },
@@ -270,14 +287,14 @@
           "title": "Enabled",
           "type": "boolean"
         },
-        "pole_spacing_m": {
+        "poleSpacingM": {
           "default": 35.0,
           "maximum": 500.0,
           "minimum": 5.0,
-          "title": "Pole Spacing M",
+          "title": "Polespacingm",
           "type": "number"
         },
-        "street_lights": {
+        "streetLights": {
           "$ref": "#/$defs/StreetLightRecipe"
         }
       },
@@ -287,64 +304,45 @@
     "LayoutValidationRecipe": {
       "additionalProperties": false,
       "properties": {
-        "fail_on_error": {
+        "failOnError": {
           "default": true,
-          "title": "Fail On Error",
+          "title": "Failonerror",
           "type": "boolean"
         },
-        "max_entities": {
+        "maxEntities": {
           "default": 50000,
           "maximum": 1000000,
           "minimum": 1,
-          "title": "Max Entities",
+          "title": "Maxentities",
           "type": "integer"
         },
-        "min_building_spacing_m": {
+        "minBuildingSpacingM": {
           "default": 0.5,
           "maximum": 50.0,
           "minimum": 0.0,
-          "title": "Min Building Spacing M",
+          "title": "Minbuildingspacingm",
           "type": "number"
         },
-        "check_road_obstruction": {
+        "checkRoadObstruction": {
           "default": true,
-          "title": "Check Road Obstruction",
+          "title": "Checkroadobstruction",
           "type": "boolean"
         },
-        "check_water_obstruction": {
+        "checkWaterObstruction": {
           "default": true,
-          "title": "Check Water Obstruction",
+          "title": "Checkwaterobstruction",
           "type": "boolean"
         },
-        "ground_tolerance_m": {
+        "groundToleranceM": {
           "default": 2.0,
           "maximum": 100.0,
           "minimum": 0.0,
-          "title": "Ground Tolerance M",
+          "title": "Groundtolerancem",
           "type": "number"
         }
       },
       "title": "LayoutValidationRecipe",
       "type": "object"
-    },
-    "PropKind": {
-      "enum": [
-        "vehicle",
-        "wreck",
-        "crate",
-        "barrel",
-        "pallet",
-        "sandbags",
-        "hay_bale",
-        "bench",
-        "dumpster",
-        "cart",
-        "firewood",
-        "tires",
-        "generic"
-      ],
-      "title": "PropKind",
-      "type": "string"
     },
     "PropRecipe": {
       "additionalProperties": false,
@@ -361,15 +359,41 @@
       "title": "PropRecipe",
       "type": "object"
     },
-    "RoadKind": {
+    "PropType": {
       "enum": [
-        "highway",
-        "street",
-        "rural_road",
-        "dirt_track",
-        "footpath"
+        "barrel",
+        "tires",
+        "pallet",
+        "woodpile",
+        "tools",
+        "bicycle",
+        "wheelbarrow",
+        "debris",
+        "bucket",
+        "bench",
+        "crate",
+        "gas_cylinder",
+        "car",
+        "car_wreck",
+        "boat",
+        "cart",
+        "dumpster",
+        "hay_bale",
+        "sandbags",
+        "other"
       ],
-      "title": "RoadKind",
+      "title": "PropType",
+      "type": "string"
+    },
+    "RoadImportance": {
+      "enum": [
+        "primary",
+        "secondary",
+        "access",
+        "track",
+        "path"
+      ],
+      "title": "RoadImportance",
       "type": "string"
     },
     "RoadRecipe": {
@@ -380,23 +404,23 @@
           "title": "Enabled",
           "type": "boolean"
         },
-        "width_scale": {
+        "widthScale": {
           "default": 1.0,
           "maximum": 4.0,
           "minimum": 0.25,
-          "title": "Width Scale",
+          "title": "Widthscale",
           "type": "number"
         },
-        "sample_spacing_m": {
+        "sampleSpacingM": {
           "default": 4.0,
           "maximum": 100.0,
           "minimum": 0.5,
-          "title": "Sample Spacing M",
+          "title": "Samplespacingm",
           "type": "number"
         },
-        "detect_junctions": {
+        "detectJunctions": {
           "default": true,
-          "title": "Detect Junctions",
+          "title": "Detectjunctions",
           "type": "boolean"
         }
       },
@@ -408,7 +432,8 @@
         "spring",
         "summer",
         "autumn",
-        "winter"
+        "winter",
+        "unknown"
       ],
       "title": "Season",
       "type": "string"
@@ -421,25 +446,26 @@
           "title": "Enabled",
           "type": "boolean"
         },
-        "road_kinds": {
+        "roadImportance": {
+          "description": "Roads of these importance classes get street lights.",
           "items": {
-            "$ref": "#/$defs/RoadKind"
+            "$ref": "#/$defs/RoadImportance"
           },
-          "title": "Road Kinds",
+          "title": "Roadimportance",
           "type": "array"
         },
-        "spacing_m": {
+        "spacingM": {
           "default": 30.0,
           "maximum": 500.0,
           "minimum": 5.0,
-          "title": "Spacing M",
+          "title": "Spacingm",
           "type": "number"
         },
-        "offset_m": {
+        "offsetM": {
           "default": 0.8,
           "maximum": 20.0,
           "minimum": 0.0,
-          "title": "Offset M",
+          "title": "Offsetm",
           "type": "number"
         },
         "placement": {
@@ -478,6 +504,22 @@
       "title": "StyleSpec",
       "type": "object"
     },
+    "Subsystem": {
+      "description": "Generation subsystems that may receive their own seed.",
+      "enum": [
+        "terrain",
+        "roads",
+        "buildings",
+        "fences",
+        "infrastructure",
+        "vegetation",
+        "props",
+        "atmosphere",
+        "assets"
+      ],
+      "title": "Subsystem",
+      "type": "string"
+    },
     "TerrainRecipe": {
       "additionalProperties": false,
       "properties": {
@@ -486,14 +528,14 @@
           "title": "Enabled",
           "type": "boolean"
         },
-        "cell_size_m": {
+        "cellSizeM": {
           "default": 4.0,
           "maximum": 50.0,
           "minimum": 0.5,
-          "title": "Cell Size M",
+          "title": "Cellsizem",
           "type": "number"
         },
-        "noise_amplitude_m": {
+        "noiseAmplitudeM": {
           "anyOf": [
             {
               "maximum": 200.0,
@@ -505,14 +547,14 @@
             }
           ],
           "default": null,
-          "description": "Defaults to a value derived from the blueprint relief.",
-          "title": "Noise Amplitude M"
+          "description": "Defaults to a value derived from the site relief.",
+          "title": "Noiseamplitudem"
         },
-        "noise_scale_m": {
+        "noiseScaleM": {
           "default": 60.0,
           "maximum": 2000.0,
           "minimum": 1.0,
-          "title": "Noise Scale M",
+          "title": "Noisescalem",
           "type": "number"
         },
         "octaves": {
@@ -522,16 +564,16 @@
           "title": "Octaves",
           "type": "integer"
         },
-        "carve_water": {
+        "carveWater": {
           "default": true,
-          "title": "Carve Water",
+          "title": "Carvewater",
           "type": "boolean"
         },
-        "water_depth_m": {
+        "waterDepthM": {
           "default": 1.5,
           "maximum": 20.0,
           "minimum": 0.0,
-          "title": "Water Depth M",
+          "title": "Waterdepthm",
           "type": "number"
         }
       },
@@ -558,54 +600,54 @@
           "title": "Enabled",
           "type": "boolean"
         },
-        "density_scale": {
+        "densityScale": {
           "default": 1.0,
           "maximum": 10.0,
           "minimum": 0.0,
-          "title": "Density Scale",
+          "title": "Densityscale",
           "type": "number"
         },
-        "min_spacing_m": {
+        "minSpacingM": {
           "default": 3.0,
           "maximum": 50.0,
           "minimum": 0.25,
-          "title": "Min Spacing M",
+          "title": "Minspacingm",
           "type": "number"
         },
-        "max_instances_per_feature": {
+        "maxInstancesPerFeature": {
           "default": 1500,
           "maximum": 20000,
           "minimum": 0,
-          "title": "Max Instances Per Feature",
+          "title": "Maxinstancesperfeature",
           "type": "integer"
         },
-        "scale_jitter": {
+        "scaleJitter": {
           "default": 0.15,
           "maximum": 0.9,
           "minimum": 0.0,
-          "title": "Scale Jitter",
+          "title": "Scalejitter",
           "type": "number"
         },
-        "understory_ratio": {
+        "understoryRatio": {
           "default": 0.2,
           "description": "Share of forest/woodland instances that become bushes.",
           "maximum": 1.0,
           "minimum": 0.0,
-          "title": "Understory Ratio",
+          "title": "Understoryratio",
           "type": "number"
         },
-        "road_clearance_m": {
+        "roadClearanceM": {
           "default": 1.0,
           "maximum": 50.0,
           "minimum": 0.0,
-          "title": "Road Clearance M",
+          "title": "Roadclearancem",
           "type": "number"
         },
-        "building_clearance_m": {
+        "buildingClearanceM": {
           "default": 1.5,
           "maximum": 50.0,
           "minimum": 0.0,
-          "title": "Building Clearance M",
+          "title": "Buildingclearancem",
           "type": "number"
         }
       },
@@ -618,6 +660,7 @@
         "partly_cloudy",
         "overcast",
         "fog",
+        "light_rain",
         "rain",
         "storm",
         "snow"
@@ -627,87 +670,65 @@
     },
     "ZoneFillRecipe": {
       "additionalProperties": false,
-      "description": "Procedurally add buildings along roads inside matching zones.",
+      "description": "Procedurally build on ``vacant_lot`` plots, along the roads that border them.",
       "properties": {
         "enabled": {
           "default": false,
           "title": "Enabled",
           "type": "boolean"
         },
-        "zone_kinds": {
-          "items": {
-            "$ref": "#/$defs/ZoneKind"
-          },
-          "title": "Zone Kinds",
-          "type": "array"
-        },
-        "building_weights": {
+        "buildingWeights": {
           "additionalProperties": {
             "exclusiveMinimum": 0.0,
             "type": "number"
           },
           "minProperties": 1,
           "propertyNames": {
-            "$ref": "#/$defs/BuildingKind"
+            "$ref": "#/$defs/BuildingType"
           },
-          "title": "Building Weights",
+          "title": "Buildingweights",
           "type": "object"
         },
-        "lot_spacing_m": {
+        "lotSpacingM": {
           "default": 20.0,
           "maximum": 200.0,
           "minimum": 4.0,
-          "title": "Lot Spacing M",
+          "title": "Lotspacingm",
           "type": "number"
         },
-        "setback_m": {
+        "setbackM": {
           "default": 5.0,
           "maximum": 100.0,
           "minimum": 0.0,
-          "title": "Setback M",
+          "title": "Setbackm",
           "type": "number"
         },
-        "spacing_m": {
+        "spacingM": {
           "default": 3.0,
           "description": "Minimum gap between infill buildings and existing objects.",
           "maximum": 50.0,
           "minimum": 0.0,
-          "title": "Spacing M",
+          "title": "Spacingm",
           "type": "number"
         },
-        "max_per_zone": {
+        "maxPerZone": {
           "default": 40,
           "maximum": 1000,
           "minimum": 0,
-          "title": "Max Per Zone",
+          "title": "Maxperzone",
           "type": "integer"
         }
       },
       "title": "ZoneFillRecipe",
       "type": "object"
-    },
-    "ZoneKind": {
-      "enum": [
-        "residential",
-        "commercial",
-        "industrial",
-        "agricultural",
-        "military",
-        "park",
-        "forest",
-        "open_field",
-        "wasteland"
-      ],
-      "title": "ZoneKind",
-      "type": "string"
     }
   },
   "additionalProperties": false,
   "description": "Stylisation and generation settings (public contract v1.0).",
   "properties": {
-    "schema_version": {
+    "schemaVersion": {
       "const": "1.0",
-      "title": "Schema Version",
+      "title": "Schemaversion",
       "type": "string"
     },
     "id": {
@@ -734,22 +755,96 @@
       "default": null,
       "title": "Description"
     },
-    "applies_to": {
-      "description": "Blueprint id glob patterns this recipe is meant for; empty = any.",
+    "appliesTo": {
+      "description": "locationId glob patterns this recipe is meant for; empty = any.",
       "items": {
         "maxLength": 100,
         "minLength": 1,
         "type": "string"
       },
-      "title": "Applies To",
+      "title": "Appliesto",
       "type": "array"
     },
     "seed": {
-      "default": 0,
-      "maximum": 9223372036854775807,
-      "minimum": 0,
-      "title": "Seed",
-      "type": "integer"
+      "anyOf": [
+        {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Master seed; null = blueprint generation.masterSeed.",
+      "title": "Seed"
+    },
+    "subsystemSeeds": {
+      "additionalProperties": {
+        "maximum": 9223372036854775807,
+        "minimum": 0,
+        "type": "integer"
+      },
+      "description": "Per-subsystem seeds; they win over the blueprint's subsystemSeeds.",
+      "propertyNames": {
+        "$ref": "#/$defs/Subsystem"
+      },
+      "title": "Subsystemseeds",
+      "type": "object"
+    },
+    "structuralSimilarity": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "null = blueprint generation.structuralSimilarity.",
+      "title": "Structuralsimilarity"
+    },
+    "visualVariation": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "null = blueprint generation.visualVariation.",
+      "title": "Visualvariation"
+    },
+    "detailDensity": {
+      "default": 1.0,
+      "description": "Multiplier for procedural detail (clutter, vegetation).",
+      "maximum": 4.0,
+      "minimum": 0.0,
+      "title": "Detaildensity",
+      "type": "number"
+    },
+    "abandonment": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Overall abandonment; null = blueprint atmosphere.abandonment.",
+      "title": "Abandonment"
     },
     "style": {
       "$ref": "#/$defs/StyleSpec"
@@ -813,7 +908,7 @@
     }
   },
   "required": [
-    "schema_version",
+    "schemaVersion",
     "id",
     "name"
   ],

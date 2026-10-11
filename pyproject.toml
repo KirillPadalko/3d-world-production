@@ -20,7 +20,7 @@ classifiers = [
     "Topic :: Multimedia :: Graphics :: 3D Modeling",
     "Typing :: Typed",
 ]
-dependencies = ["pydantic>=2.7,<3"]
+dependencies = ["pydantic>=2.11,<3"]
 
 [project.scripts]
 envgen = "environment_generator.cli.main:main"

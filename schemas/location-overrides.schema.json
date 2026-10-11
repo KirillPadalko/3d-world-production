@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:environment-generator:schema:location-overrides:1.0",
   "$defs": {
-    "AddFeature": {
+    "AddEntity": {
       "additionalProperties": false,
       "properties": {
         "op": {
@@ -11,173 +11,91 @@
           "type": "string"
         },
         "collection": {
-          "$ref": "#/$defs/FeatureCollection"
+          "$ref": "#/$defs/EntityCollection"
         },
-        "feature": {
+        "entity": {
           "additionalProperties": true,
-          "description": "A complete feature of the target collection.",
-          "title": "Feature",
+          "description": "A complete entity of the target collection.",
+          "title": "Entity",
           "type": "object"
         }
       },
       "required": [
         "op",
         "collection",
-        "feature"
+        "entity"
       ],
-      "title": "AddFeature",
+      "title": "AddEntity",
       "type": "object"
     },
-    "FeatureCollection": {
-      "description": "Names of the feature lists of a blueprint (used by overrides).",
+    "ConflictPolicy": {
       "enum": [
-        "zones",
-        "roads",
-        "buildings",
-        "vegetation",
-        "water",
-        "fences",
-        "infrastructure",
-        "props"
+        "fail",
+        "report"
       ],
-      "title": "FeatureCollection",
+      "title": "ConflictPolicy",
       "type": "string"
     },
-    "PatchFeature": {
+    "DeleteEntity": {
       "additionalProperties": false,
-      "description": "Merge-patch (RFC 7396) one feature; the result is validated again.",
       "properties": {
         "op": {
-          "const": "patch",
+          "const": "delete",
           "title": "Op",
           "type": "string"
         },
-        "collection": {
-          "$ref": "#/$defs/FeatureCollection"
-        },
         "id": {
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
           "title": "Id",
           "type": "string"
         },
-        "patch": {
-          "additionalProperties": true,
-          "minProperties": 1,
-          "title": "Patch",
-          "type": "object"
-        }
-      },
-      "required": [
-        "op",
-        "collection",
-        "id",
-        "patch"
-      ],
-      "title": "PatchFeature",
-      "type": "object"
-    },
-    "RemoveEntity": {
-      "additionalProperties": false,
-      "properties": {
-        "op": {
-          "const": "remove",
-          "title": "Op",
-          "type": "string"
-        },
-        "entity_id": {
-          "maxLength": 200,
-          "pattern": "^[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*$",
-          "title": "Entity Id",
-          "type": "string"
-        }
-      },
-      "required": [
-        "op",
-        "entity_id"
-      ],
-      "title": "RemoveEntity",
-      "type": "object"
-    },
-    "RemoveFeature": {
-      "additionalProperties": false,
-      "properties": {
-        "op": {
-          "const": "remove",
-          "title": "Op",
-          "type": "string"
-        },
-        "collection": {
-          "$ref": "#/$defs/FeatureCollection"
-        },
-        "id": {
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
-          "title": "Id",
-          "type": "string"
-        }
-      },
-      "required": [
-        "op",
-        "collection",
-        "id"
-      ],
-      "title": "RemoveFeature",
-      "type": "object"
-    },
-    "SetArchetype": {
-      "additionalProperties": false,
-      "properties": {
-        "op": {
-          "const": "set_archetype",
-          "title": "Op",
-          "type": "string"
-        },
-        "entity_id": {
-          "maxLength": 200,
-          "pattern": "^[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*$",
-          "title": "Entity Id",
-          "type": "string"
-        },
-        "archetype_id": {
-          "maxLength": 128,
-          "pattern": "^[a-z0-9_]+(\\.[a-z0-9_]+)+$",
-          "title": "Archetype Id",
-          "type": "string"
-        },
-        "variant": {
+        "expectedType": {
           "anyOf": [
             {
-              "minimum": 0,
-              "type": "integer"
+              "$ref": "#/$defs/EntityCollection"
             },
             {
               "type": "null"
             }
           ],
-          "default": null,
-          "title": "Variant"
+          "default": null
         }
       },
       "required": [
         "op",
-        "entity_id",
-        "archetype_id"
+        "id"
       ],
-      "title": "SetArchetype",
+      "title": "DeleteEntity",
       "type": "object"
     },
-    "SetTransform": {
+    "EntityCollection": {
+      "description": "Blueprint collections addressable by overrides (JSON key names).",
+      "enum": [
+        "roadNodes",
+        "roadSegments",
+        "plots",
+        "buildings",
+        "vegetationZones",
+        "trees",
+        "fences",
+        "infrastructure",
+        "props",
+        "landmarks",
+        "waterBodies",
+        "surfaceZones"
+      ],
+      "title": "EntityCollection",
+      "type": "string"
+    },
+    "PlacementOverride": {
       "additionalProperties": false,
-      "description": "Replace parts of an entity transform; omitted parts are kept.",
+      "description": "Move, turn or scale a generated entity (manifest frame and IDs).",
       "properties": {
-        "op": {
-          "const": "set_transform",
-          "title": "Op",
-          "type": "string"
-        },
-        "entity_id": {
+        "entityId": {
+          "description": "Manifest entity ID, e.g. building.b-12.",
           "maxLength": 200,
           "pattern": "^[A-Za-z0-9_-]+(\\.[A-Za-z0-9_-]+)*$",
-          "title": "Entity Id",
+          "title": "Entityid",
           "type": "string"
         },
         "position": {
@@ -187,12 +105,18 @@
               "minItems": 3,
               "prefixItems": [
                 {
+                  "maximum": 100000.0,
+                  "minimum": -100000.0,
                   "type": "number"
                 },
                 {
+                  "maximum": 9000.0,
+                  "minimum": -1000.0,
                   "type": "number"
                 },
                 {
+                  "maximum": 100000.0,
+                  "minimum": -100000.0,
                   "type": "number"
                 }
               ],
@@ -205,11 +129,11 @@
           "default": null,
           "title": "Position"
         },
-        "yaw_deg": {
+        "yawDeg": {
           "anyOf": [
             {
-              "maximum": 360.0,
-              "minimum": -360.0,
+              "exclusiveMaximum": 360.0,
+              "minimum": 0.0,
               "type": "number"
             },
             {
@@ -217,7 +141,7 @@
             }
           ],
           "default": null,
-          "title": "Yaw Deg"
+          "title": "Yawdeg"
         },
         "scale": {
           "anyOf": [
@@ -249,19 +173,98 @@
         }
       },
       "required": [
-        "op",
-        "entity_id"
+        "entityId"
       ],
-      "title": "SetTransform",
+      "title": "PlacementOverride",
+      "type": "object"
+    },
+    "ReplaceArchetype": {
+      "additionalProperties": false,
+      "properties": {
+        "op": {
+          "const": "replaceArchetype",
+          "title": "Op",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "expectedType": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EntityCollection"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "archetype": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)*$",
+          "title": "Archetype",
+          "type": "string"
+        }
+      },
+      "required": [
+        "op",
+        "id",
+        "archetype"
+      ],
+      "title": "ReplaceArchetype",
+      "type": "object"
+    },
+    "UpdateEntity": {
+      "additionalProperties": false,
+      "description": "RFC 7396 merge patch of one entity; ``id`` cannot change.",
+      "properties": {
+        "op": {
+          "const": "update",
+          "title": "Op",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "expectedType": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EntityCollection"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Fail if the entity is no longer in this collection."
+        },
+        "patch": {
+          "additionalProperties": true,
+          "minProperties": 1,
+          "title": "Patch",
+          "type": "object"
+        }
+      },
+      "required": [
+        "op",
+        "id",
+        "patch"
+      ],
+      "title": "UpdateEntity",
       "type": "object"
     }
   },
   "additionalProperties": false,
-  "description": "Designer overrides for one blueprint (public contract v1.0).",
+  "description": "Author changes for one location (public contract v1.0).",
   "properties": {
-    "schema_version": {
+    "schemaVersion": {
       "const": "1.0",
-      "title": "Schema Version",
+      "title": "Schemaversion",
       "type": "string"
     },
     "id": {
@@ -269,13 +272,13 @@
       "title": "Id",
       "type": "string"
     },
-    "blueprint_id": {
-      "description": "Overrides only apply to this blueprint.",
-      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
-      "title": "Blueprint Id",
+    "locationId": {
+      "description": "Overrides only apply to this location.",
+      "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+      "title": "Locationid",
       "type": "string"
     },
-    "recipe_id": {
+    "recipeId": {
       "anyOf": [
         {
           "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
@@ -287,7 +290,7 @@
       ],
       "default": null,
       "description": "When set, overrides only apply together with this recipe.",
-      "title": "Recipe Id"
+      "title": "Recipeid"
     },
     "description": {
       "anyOf": [
@@ -302,81 +305,59 @@
       "default": null,
       "title": "Description"
     },
-    "strict": {
-      "default": true,
-      "description": "Fail when an entity operation targets an unknown entity (else warn).",
-      "title": "Strict",
-      "type": "boolean"
-    },
-    "seed": {
+    "author": {
       "anyOf": [
         {
-          "maximum": 9223372036854775807,
-          "minimum": 0,
-          "type": "integer"
+          "maxLength": 200,
+          "type": "string"
         },
         {
           "type": "null"
         }
       ],
       "default": null,
-      "title": "Seed"
+      "title": "Author"
     },
-    "recipe_patch": {
-      "additionalProperties": true,
-      "title": "Recipe Patch",
-      "type": "object"
+    "conflictPolicy": {
+      "$ref": "#/$defs/ConflictPolicy",
+      "default": "fail"
     },
-    "feature_operations": {
+    "entityOperations": {
       "items": {
         "discriminator": {
           "mapping": {
-            "add": "#/$defs/AddFeature",
-            "patch": "#/$defs/PatchFeature",
-            "remove": "#/$defs/RemoveFeature"
+            "add": "#/$defs/AddEntity",
+            "delete": "#/$defs/DeleteEntity",
+            "replaceArchetype": "#/$defs/ReplaceArchetype",
+            "update": "#/$defs/UpdateEntity"
           },
           "propertyName": "op"
         },
         "oneOf": [
           {
-            "$ref": "#/$defs/RemoveFeature"
+            "$ref": "#/$defs/UpdateEntity"
           },
           {
-            "$ref": "#/$defs/PatchFeature"
+            "$ref": "#/$defs/ReplaceArchetype"
           },
           {
-            "$ref": "#/$defs/AddFeature"
+            "$ref": "#/$defs/DeleteEntity"
+          },
+          {
+            "$ref": "#/$defs/AddEntity"
           }
         ]
       },
       "maxItems": 10000,
-      "title": "Feature Operations",
+      "title": "Entityoperations",
       "type": "array"
     },
-    "entity_operations": {
+    "placementOverrides": {
       "items": {
-        "discriminator": {
-          "mapping": {
-            "remove": "#/$defs/RemoveEntity",
-            "set_archetype": "#/$defs/SetArchetype",
-            "set_transform": "#/$defs/SetTransform"
-          },
-          "propertyName": "op"
-        },
-        "oneOf": [
-          {
-            "$ref": "#/$defs/RemoveEntity"
-          },
-          {
-            "$ref": "#/$defs/SetArchetype"
-          },
-          {
-            "$ref": "#/$defs/SetTransform"
-          }
-        ]
+        "$ref": "#/$defs/PlacementOverride"
       },
       "maxItems": 10000,
-      "title": "Entity Operations",
+      "title": "Placementoverrides",
       "type": "array"
     },
     "metadata": {
@@ -405,9 +386,9 @@
     }
   },
   "required": [
-    "schema_version",
+    "schemaVersion",
     "id",
-    "blueprint_id"
+    "locationId"
   ],
   "title": "LocationOverrides",
   "type": "object"

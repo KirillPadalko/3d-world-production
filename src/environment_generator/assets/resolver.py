@@ -101,7 +101,9 @@ def is_placeholder_id(archetype_id: str) -> bool:
 class PaletteAssetResolver(AssetResolver):
     """Scores palette archetypes against a request and picks deterministically.
 
-    1. Candidates: archetypes of the category supporting the first requested
+    1. Candidates: when the first requested kind is the ID of an archetype of
+       the category (an explicit registry ID used as an archetype hint), that
+       archetype alone; otherwise archetypes supporting the first requested
        kind that has any; later kinds are fallbacks.
     2. Fit score: penalties for footprint/height mismatch and for violating soft
        constraints (floors, roof, condition, surface).
@@ -133,6 +135,10 @@ class PaletteAssetResolver(AssetResolver):
         if not request.kinds:
             raise ValueError("an asset request needs at least one kind")
         pool = self._by_category.get(request.category, [])
+        exact = self._by_id.get(request.kinds[0])
+        if exact is not None and exact.category is request.category:
+            kind = next((k for k in request.kinds[1:] if k in exact.kinds), exact.kinds[0])
+            return self._pick([exact], kind, request)
         for kind in request.kinds:
             candidates = [a for a in pool if kind in a.kinds]
             if candidates:

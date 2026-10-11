@@ -1,28 +1,28 @@
 {
-  "report_version": "1.0",
+  "reportVersion": "1.0",
   "generator": {
     "name": "environment-generator",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
   "success": true,
-  "dry_run": false,
+  "dryRun": false,
   "error": null,
-  "blueprint_id": "rural-crossroads",
-  "recipe_id": "stylized-rural",
-  "overrides_id": "designer-pass-01",
+  "locationId": "rural-crossroads",
+  "recipeId": "stylized-rural",
+  "overridesId": "designer-pass-01",
   "seed": 1337,
-  "input_fingerprint": "sha256:f070a52128cc0b38940eabb234336366d597f707ac13d896512ce711ffa6d99a",
-  "manifest_content_hash": "sha256:a79a76ba07a2d79aba1f375327335d53431e1266e1384f89f6f6b8c5b76ef4e2",
+  "inputFingerprint": "sha256:56298093206cbe319587ef999d49dbea2f66fc0aae5ebd25b4b390df11f51271",
+  "manifestContentHash": "sha256:9dbf6a1415f059853fbffbd712cffb2e702857ce8c55606aac08ee4d3992118d",
   "stages": [
     {
       "name": "load_inputs",
       "status": "succeeded",
-      "duration_ms": null,
+      "durationMs": null,
       "summary": {
-        "blueprint_id": "rural-crossroads",
+        "location_id": "rural-crossroads",
+        "schema_version": "1.0",
         "recipe_id": "stylized-rural",
-        "features": 47,
-        "archetypes": 84,
+        "archetypes": 118,
         "overrides_id": "designer-pass-01"
       },
       "issues": []
@@ -30,22 +30,23 @@
     {
       "name": "resolve_inputs",
       "status": "succeeded",
-      "duration_ms": null,
+      "durationMs": null,
       "summary": {
         "seed": 1337,
-        "applied_operations": 5,
-        "pending_entity_operations": 3,
-        "dropped_features": 0
+        "applied_operations": 6,
+        "placement_overrides": 1,
+        "dropped_features": 0,
+        "site_features": 73
       },
       "issues": []
     },
     {
       "name": "resolve_assets",
       "status": "succeeded",
-      "duration_ms": null,
+      "durationMs": null,
       "summary": {
         "registry_id": "builtin-stylized",
-        "archetypes": 79,
+        "archetypes": 113,
         "excluded_archetypes": 5,
         "unmet_needs": 0
       },
@@ -54,27 +55,27 @@
     {
       "name": "plan_generation",
       "status": "succeeded",
-      "duration_ms": null,
+      "durationMs": null,
       "summary": {
         "tasks": 8,
         "order": "terrain > roads > buildings > fences > infrastructure > vegetation > props > atmosphere",
-        "estimated_entities": 598
+        "estimated_entities": 627
       },
       "issues": []
     },
     {
       "name": "generate_scene",
       "status": "succeeded",
-      "duration_ms": null,
+      "durationMs": null,
       "summary": {
-        "entities": 574,
+        "entities": 609,
         "entities.terrain": 2,
-        "entities.roads": 9,
-        "entities.buildings": 12,
+        "entities.roads": 14,
+        "entities.buildings": 14,
         "entities.fences": 179,
         "entities.infrastructure": 23,
-        "entities.vegetation": 326,
-        "entities.props": 24,
+        "entities.vegetation": 349,
+        "entities.props": 28,
         "entities.atmosphere": 0
       },
       "issues": [
@@ -82,18 +83,21 @@
           "severity": "info",
           "code": "FENCE_ROAD_GAP",
           "message": "Left 2 panel opening(s) where the fence crosses a road.",
+          "category": null,
           "location": "fences/f-yard",
-          "entity_ids": []
+          "path": null,
+          "entityIds": [],
+          "suggestion": null
         }
       ]
     },
     {
       "name": "validate_layout",
       "status": "succeeded",
-      "duration_ms": null,
+      "durationMs": null,
       "summary": {
         "rules": 7,
-        "checked_entities": 574,
+        "checked_entities": 609,
         "errors": 0,
         "warnings": 0
       },
@@ -102,10 +106,10 @@
     {
       "name": "export_manifest",
       "status": "succeeded",
-      "duration_ms": null,
+      "durationMs": null,
       "summary": {
-        "content_hash": "sha256:a79a76ba07a2d79aba1f375327335d53431e1266e1384f89f6f6b8c5b76ef4e2",
-        "entities": 574,
+        "content_hash": "sha256:9dbf6a1415f059853fbffbd712cffb2e702857ce8c55606aac08ee4d3992118d",
+        "entities": 609,
         "path": "scene-manifest.json"
       },
       "issues": []
@@ -113,24 +117,24 @@
     {
       "name": "build_report",
       "status": "succeeded",
-      "duration_ms": null,
+      "durationMs": null,
       "summary": {},
       "issues": []
     }
   ],
   "statistics": {
-    "entities": 574,
+    "entities": 609,
     "placeholders": 0,
-    "category.building": 12,
+    "category.building": 14,
     "category.fence": 179,
     "category.infrastructure": 23,
-    "category.prop": 24,
-    "category.road": 9,
+    "category.prop": 28,
+    "category.road": 14,
     "category.terrain": 1,
-    "category.vegetation": 325,
+    "category.vegetation": 349,
     "category.water": 1
   },
-  "issue_counts": {
+  "issueCounts": {
     "error": 0,
     "warning": 0,
     "info": 1

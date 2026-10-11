@@ -2,6 +2,24 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:environment-generator:schema:scene-manifest:1.0",
   "$defs": {
+    "Annotations": {
+      "additionalProperties": false,
+      "description": "Blueprint landmarks and gameplay annotations, passed through unchanged.",
+      "properties": {
+        "landmarks": {
+          "items": {
+            "$ref": "#/$defs/Landmark"
+          },
+          "title": "Landmarks",
+          "type": "array"
+        },
+        "gameplay": {
+          "$ref": "#/$defs/Gameplay"
+        }
+      },
+      "title": "Annotations",
+      "type": "object"
+    },
     "AssetCategory": {
       "enum": [
         "terrain",
@@ -20,7 +38,7 @@
       "additionalProperties": false,
       "description": "Engine-agnostic lighting and weather description.",
       "properties": {
-        "time_of_day": {
+        "timeOfDay": {
           "$ref": "#/$defs/TimeOfDay"
         },
         "weather": {
@@ -29,16 +47,16 @@
         "season": {
           "$ref": "#/$defs/Season"
         },
-        "key_light_azimuth_deg": {
+        "keyLightAzimuthDeg": {
           "description": "Compass bearing of the key light, clockwise from local +Y (north).",
-          "title": "Key Light Azimuth Deg",
+          "title": "Keylightazimuthdeg",
           "type": "number"
         },
-        "key_light_elevation_deg": {
-          "title": "Key Light Elevation Deg",
+        "keyLightElevationDeg": {
+          "title": "Keylightelevationdeg",
           "type": "number"
         },
-        "key_light_direction": {
+        "keyLightDirection": {
           "description": "Unit vector pointing from the key light towards the scene.",
           "maxItems": 3,
           "minItems": 3,
@@ -53,10 +71,10 @@
               "type": "number"
             }
           ],
-          "title": "Key Light Direction",
+          "title": "Keylightdirection",
           "type": "array"
         },
-        "key_light_color": {
+        "keyLightColor": {
           "maxItems": 3,
           "minItems": 3,
           "prefixItems": [
@@ -76,15 +94,15 @@
               "type": "number"
             }
           ],
-          "title": "Key Light Color",
+          "title": "Keylightcolor",
           "type": "array"
         },
-        "key_light_intensity": {
+        "keyLightIntensity": {
           "minimum": 0.0,
-          "title": "Key Light Intensity",
+          "title": "Keylightintensity",
           "type": "number"
         },
-        "ambient_color": {
+        "ambientColor": {
           "maxItems": 3,
           "minItems": 3,
           "prefixItems": [
@@ -104,15 +122,15 @@
               "type": "number"
             }
           ],
-          "title": "Ambient Color",
+          "title": "Ambientcolor",
           "type": "array"
         },
-        "ambient_intensity": {
+        "ambientIntensity": {
           "minimum": 0.0,
-          "title": "Ambient Intensity",
+          "title": "Ambientintensity",
           "type": "number"
         },
-        "fog_color": {
+        "fogColor": {
           "maxItems": 3,
           "minItems": 3,
           "prefixItems": [
@@ -132,18 +150,18 @@
               "type": "number"
             }
           ],
-          "title": "Fog Color",
+          "title": "Fogcolor",
           "type": "array"
         },
-        "fog_density": {
+        "fogDensity": {
           "minimum": 0.0,
-          "title": "Fog Density",
+          "title": "Fogdensity",
           "type": "number"
         },
-        "cloud_cover": {
+        "cloudCover": {
           "maximum": 1.0,
           "minimum": 0.0,
-          "title": "Cloud Cover",
+          "title": "Cloudcover",
           "type": "number"
         },
         "precipitation": {
@@ -155,19 +173,19 @@
           "title": "Precipitation",
           "type": "string"
         },
-        "precipitation_intensity": {
+        "precipitationIntensity": {
           "maximum": 1.0,
           "minimum": 0.0,
-          "title": "Precipitation Intensity",
+          "title": "Precipitationintensity",
           "type": "number"
         },
-        "wind_speed_mps": {
+        "windSpeedMps": {
           "minimum": 0.0,
-          "title": "Wind Speed Mps",
+          "title": "Windspeedmps",
           "type": "number"
         },
-        "wind_direction_deg": {
-          "title": "Wind Direction Deg",
+        "windDirectionDeg": {
+          "title": "Winddirectiondeg",
           "type": "number"
         },
         "foliage": {
@@ -180,8 +198,8 @@
           "title": "Foliage",
           "type": "string"
         },
-        "style_theme": {
-          "title": "Style Theme",
+        "styleTheme": {
+          "title": "Styletheme",
           "type": "string"
         },
         "weathering": {
@@ -189,112 +207,449 @@
           "minimum": 0.0,
           "title": "Weathering",
           "type": "number"
+        },
+        "groundWetness": {
+          "default": 0.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Groundwetness",
+          "type": "number"
+        },
+        "saturation": {
+          "default": 1.0,
+          "maximum": 2.0,
+          "minimum": 0.0,
+          "title": "Saturation",
+          "type": "number"
+        },
+        "contrast": {
+          "default": 1.0,
+          "maximum": 2.0,
+          "minimum": 0.0,
+          "title": "Contrast",
+          "type": "number"
+        },
+        "abandonment": {
+          "default": 0.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Abandonment",
+          "type": "number"
+        },
+        "vegetationCondition": {
+          "default": 1.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Vegetationcondition",
+          "type": "number"
+        },
+        "palette": {
+          "items": {
+            "$ref": "#/$defs/PaletteColor"
+          },
+          "title": "Palette",
+          "type": "array"
         }
       },
       "required": [
-        "time_of_day",
+        "timeOfDay",
         "weather",
         "season",
-        "key_light_azimuth_deg",
-        "key_light_elevation_deg",
-        "key_light_direction",
-        "key_light_color",
-        "key_light_intensity",
-        "ambient_color",
-        "ambient_intensity",
-        "fog_color",
-        "fog_density",
-        "cloud_cover",
+        "keyLightAzimuthDeg",
+        "keyLightElevationDeg",
+        "keyLightDirection",
+        "keyLightColor",
+        "keyLightIntensity",
+        "ambientColor",
+        "ambientIntensity",
+        "fogColor",
+        "fogDensity",
+        "cloudCover",
         "precipitation",
-        "precipitation_intensity",
-        "wind_speed_mps",
-        "wind_direction_deg",
+        "precipitationIntensity",
+        "windSpeedMps",
+        "windDirectionDeg",
         "foliage",
-        "style_theme",
+        "styleTheme",
         "weathering"
       ],
       "title": "AtmosphereSettings",
       "type": "object"
     },
-    "CoordinateSystem": {
+    "CombatZone": {
       "additionalProperties": false,
       "properties": {
-        "units": {
-          "const": "meters",
-          "default": "meters",
-          "title": "Units",
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/environment_generator__models__blueprint__common__Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "polygon": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              },
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "maxItems": 10000,
+          "minItems": 3,
+          "title": "Polygon",
+          "type": "array"
+        },
+        "intensity": {
+          "default": "medium",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "title": "Intensity",
+          "type": "string"
+        },
+        "engagementRange": {
+          "default": "mixed",
+          "enum": [
+            "close",
+            "medium",
+            "long",
+            "mixed"
+          ],
+          "title": "Engagementrange",
+          "type": "string"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "id",
+        "polygon"
+      ],
+      "title": "CombatZone",
+      "type": "object"
+    },
+    "Connectivity": {
+      "additionalProperties": false,
+      "description": "Validation preferences for downstream navigation checks.",
+      "properties": {
+        "requireRoadNetworkConnected": {
+          "default": true,
+          "title": "Requireroadnetworkconnected",
+          "type": "boolean"
+        },
+        "requireEntrancesReachable": {
+          "default": true,
+          "title": "Requireentrancesreachable",
+          "type": "boolean"
+        },
+        "entranceIds": {
+          "description": "Road nodes or plots that must be reachable.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Entranceids",
+          "type": "array"
+        }
+      },
+      "title": "Connectivity",
+      "type": "object"
+    },
+    "CoordinateSystem": {
+      "additionalProperties": false,
+      "description": "The manifest's spatial convention (identical to LocationBlueprint v1.0).",
+      "properties": {
+        "unit": {
+          "const": "meter",
+          "default": "meter",
+          "title": "Unit",
+          "type": "string"
+        },
+        "upAxis": {
+          "const": "+y",
+          "default": "+y",
+          "title": "Upaxis",
+          "type": "string"
+        },
+        "eastAxis": {
+          "const": "+x",
+          "default": "+x",
+          "title": "Eastaxis",
+          "type": "string"
+        },
+        "northAxis": {
+          "const": "+z",
+          "default": "+z",
+          "title": "Northaxis",
           "type": "string"
         },
         "handedness": {
-          "const": "right",
-          "default": "right",
+          "const": "left",
+          "default": "left",
           "title": "Handedness",
           "type": "string"
         },
-        "up_axis": {
+        "yawConvention": {
+          "const": "degrees_clockwise_from_north",
+          "default": "degrees_clockwise_from_north",
+          "title": "Yawconvention",
+          "type": "string"
+        },
+        "rotationOrder": {
+          "const": "zxy",
+          "default": "zxy",
+          "title": "Rotationorder",
+          "type": "string"
+        },
+        "forwardAxis": {
           "const": "+z",
           "default": "+z",
-          "title": "Up Axis",
-          "type": "string"
-        },
-        "x_axis": {
-          "const": "east",
-          "default": "east",
-          "title": "X Axis",
-          "type": "string"
-        },
-        "y_axis": {
-          "const": "north",
-          "default": "north",
-          "title": "Y Axis",
+          "title": "Forwardaxis",
           "type": "string"
         },
         "origin": {
-          "const": "extent_south_west_corner",
-          "default": "extent_south_west_corner",
+          "const": "southwest_corner",
+          "default": "southwest_corner",
           "title": "Origin",
-          "type": "string"
-        },
-        "rotation": {
-          "const": "euler_xyz_extrinsic_degrees_ccw",
-          "default": "euler_xyz_extrinsic_degrees_ccw",
-          "title": "Rotation",
-          "type": "string"
-        },
-        "forward_axis": {
-          "const": "+y",
-          "default": "+y",
-          "title": "Forward Axis",
           "type": "string"
         }
       },
       "title": "CoordinateSystem",
       "type": "object"
     },
+    "CoverLevel": {
+      "enum": [
+        "none",
+        "partial",
+        "full"
+      ],
+      "title": "CoverLevel",
+      "type": "string"
+    },
+    "CoverZone": {
+      "additionalProperties": false,
+      "description": "Where cover is intended; movement, projectiles and vision are separate.",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/environment_generator__models__blueprint__common__Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "polygon": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              },
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "maxItems": 10000,
+          "minItems": 3,
+          "title": "Polygon",
+          "type": "array"
+        },
+        "movement": {
+          "$ref": "#/$defs/MovementEffect",
+          "default": "none"
+        },
+        "projectileCover": {
+          "$ref": "#/$defs/CoverLevel",
+          "default": "partial"
+        },
+        "vision": {
+          "$ref": "#/$defs/CoverLevel",
+          "default": "partial"
+        },
+        "linkedEntityIds": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Linkedentityids",
+          "type": "array"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "id",
+        "polygon"
+      ],
+      "title": "CoverZone",
+      "type": "object"
+    },
     "Dimensions": {
       "additionalProperties": false,
-      "description": "Axis-aligned size in the object's local frame (X width, Y depth, Z height).",
+      "description": "Size of an object: width (side to side), depth (front to back), height (up).",
       "properties": {
-        "width_m": {
+        "widthM": {
           "minimum": 0.0,
-          "title": "Width M",
+          "title": "Widthm",
           "type": "number"
         },
-        "depth_m": {
+        "depthM": {
           "minimum": 0.0,
-          "title": "Depth M",
+          "title": "Depthm",
           "type": "number"
         },
-        "height_m": {
+        "heightM": {
           "minimum": 0.0,
-          "title": "Height M",
+          "title": "Heightm",
           "type": "number"
         }
       },
       "required": [
-        "width_m",
-        "depth_m",
-        "height_m"
+        "widthM",
+        "depthM",
+        "heightM"
       ],
       "title": "Dimensions",
       "type": "object"
@@ -367,7 +722,7 @@
           "title": "Points",
           "type": "array"
         },
-        "width_m": {
+        "widthM": {
           "anyOf": [
             {
               "exclusiveMinimum": 0.0,
@@ -379,7 +734,7 @@
           ],
           "default": null,
           "description": "Ground footprint width; omitted for overhead lines.",
-          "title": "Width M"
+          "title": "Widthm"
         }
       },
       "required": [
@@ -393,24 +748,127 @@
       "additionalProperties": false,
       "description": "Size of the playable area; the origin is its south-west corner.",
       "properties": {
-        "width_m": {
+        "widthM": {
           "exclusiveMinimum": 0.0,
           "maximum": 5000.0,
-          "title": "Width M",
+          "title": "Widthm",
           "type": "number"
         },
-        "depth_m": {
+        "depthM": {
           "exclusiveMinimum": 0.0,
           "maximum": 5000.0,
-          "title": "Depth M",
+          "title": "Depthm",
           "type": "number"
         }
       },
       "required": [
-        "width_m",
-        "depth_m"
+        "widthM",
+        "depthM"
       ],
       "title": "Extent",
+      "type": "object"
+    },
+    "Gameplay": {
+      "additionalProperties": false,
+      "description": "Gameplay constraints and annotations, resolved by engine-specific tools.",
+      "properties": {
+        "navigationAreas": {
+          "items": {
+            "$ref": "#/$defs/NavigationArea"
+          },
+          "maxItems": 5000,
+          "title": "Navigationareas",
+          "type": "array"
+        },
+        "coverZones": {
+          "items": {
+            "$ref": "#/$defs/CoverZone"
+          },
+          "maxItems": 5000,
+          "title": "Coverzones",
+          "type": "array"
+        },
+        "combatZones": {
+          "items": {
+            "$ref": "#/$defs/CombatZone"
+          },
+          "maxItems": 1000,
+          "title": "Combatzones",
+          "type": "array"
+        },
+        "spawnClearances": {
+          "items": {
+            "$ref": "#/$defs/SpawnClearance"
+          },
+          "maxItems": 1000,
+          "title": "Spawnclearances",
+          "type": "array"
+        },
+        "connectivity": {
+          "$ref": "#/$defs/Connectivity"
+        },
+        "lineOfSight": {
+          "items": {
+            "$ref": "#/$defs/LineOfSight"
+          },
+          "maxItems": 5000,
+          "title": "Lineofsight",
+          "type": "array"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "title": "Gameplay",
+      "type": "object"
+    },
+    "GenerationControls": {
+      "additionalProperties": false,
+      "description": "Effective generation controls after recipe/blueprint precedence.",
+      "properties": {
+        "structuralSimilarity": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Structuralsimilarity",
+          "type": "number"
+        },
+        "visualVariation": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Visualvariation",
+          "type": "number"
+        },
+        "detailDensity": {
+          "maximum": 4.0,
+          "minimum": 0.0,
+          "title": "Detaildensity",
+          "type": "number"
+        },
+        "abandonment": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Abandonment",
+          "type": "number"
+        }
+      },
+      "required": [
+        "structuralSimilarity",
+        "visualVariation",
+        "detailDensity",
+        "abandonment"
+      ],
+      "title": "GenerationControls",
       "type": "object"
     },
     "GeneratorInfo": {
@@ -461,123 +919,21 @@
       "title": "GroundCover",
       "type": "string"
     },
-    "ManifestSource": {
+    "JsonValue": {},
+    "Landmark": {
       "additionalProperties": false,
+      "description": "A navigation-relevant feature. It never creates a rendered object itself.",
       "properties": {
-        "blueprint_id": {
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
-          "title": "Blueprint Id",
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
           "type": "string"
         },
-        "blueprint_name": {
-          "title": "Blueprint Name",
-          "type": "string"
-        },
-        "recipe_id": {
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
-          "title": "Recipe Id",
-          "type": "string"
-        },
-        "overrides_id": {
+        "label": {
           "anyOf": [
             {
-              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "title": "Overrides Id"
-        },
-        "registry_id": {
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
-          "title": "Registry Id",
-          "type": "string"
-        },
-        "seed": {
-          "title": "Seed",
-          "type": "integer"
-        },
-        "generator_seeds": {
-          "additionalProperties": {
-            "type": "integer"
-          },
-          "description": "Seed of each generator task (derived from `seed`, see the plan).",
-          "title": "Generator Seeds",
-          "type": "object"
-        },
-        "input_fingerprint": {
-          "title": "Input Fingerprint",
-          "type": "string"
-        }
-      },
-      "required": [
-        "blueprint_id",
-        "blueprint_name",
-        "recipe_id",
-        "overrides_id",
-        "registry_id",
-        "seed",
-        "generator_seeds",
-        "input_fingerprint"
-      ],
-      "title": "ManifestSource",
-      "type": "object"
-    },
-    "ManifestStatistics": {
-      "additionalProperties": false,
-      "properties": {
-        "entity_count": {
-          "title": "Entity Count",
-          "type": "integer"
-        },
-        "by_category": {
-          "additionalProperties": {
-            "type": "integer"
-          },
-          "title": "By Category",
-          "type": "object"
-        },
-        "by_generator": {
-          "additionalProperties": {
-            "type": "integer"
-          },
-          "title": "By Generator",
-          "type": "object"
-        },
-        "placeholder_count": {
-          "title": "Placeholder Count",
-          "type": "integer"
-        }
-      },
-      "required": [
-        "entity_count",
-        "by_category",
-        "by_generator",
-        "placeholder_count"
-      ],
-      "title": "ManifestStatistics",
-      "type": "object"
-    },
-    "Provenance": {
-      "additionalProperties": false,
-      "description": "Why an entity exists: which generator, rule, input feature and overrides.",
-      "properties": {
-        "generator": {
-          "$ref": "#/$defs/GeneratorName"
-        },
-        "implementation": {
-          "title": "Implementation",
-          "type": "string"
-        },
-        "rule": {
-          "title": "Rule",
-          "type": "string"
-        },
-        "source_feature": {
-          "anyOf": [
-            {
+              "maxLength": 200,
+              "minLength": 1,
               "type": "string"
             },
             {
@@ -585,27 +941,290 @@
             }
           ],
           "default": null,
-          "description": "Blueprint feature reference, e.g. 'buildings/b-1'.",
-          "title": "Source Feature"
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
         },
-        "overrides": {
+        "tags": {
           "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
             "type": "string"
           },
-          "title": "Overrides",
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/environment_generator__models__blueprint__common__Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "landmarkType": {
+          "$ref": "#/$defs/LandmarkType"
+        },
+        "position": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 9000.0,
+              "minimum": -1000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            }
+          ],
+          "title": "Position",
+          "type": "array"
+        },
+        "importance": {
+          "default": 0.5,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Importance",
+          "type": "number"
+        },
+        "visibility": {
+          "$ref": "#/$defs/Visibility",
+          "default": "medium"
+        },
+        "visibilityRadiusM": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 10000.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Visibilityradiusm"
+        },
+        "linkedEntityId": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Building, tree, road node or infrastructure entity this landmark marks.",
+          "title": "Linkedentityid"
+        },
+        "gameplayRoles": {
+          "description": "e.g. navigation, objective, rally_point.",
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]{0,47}$",
+            "type": "string"
+          },
+          "title": "Gameplayroles",
           "type": "array"
         }
       },
       "required": [
-        "generator",
-        "implementation",
-        "rule"
+        "id",
+        "landmarkType",
+        "position"
       ],
-      "title": "Provenance",
+      "title": "Landmark",
       "type": "object"
     },
-    "SceneEntity": {
+    "LandmarkType": {
+      "enum": [
+        "water_tower",
+        "church",
+        "shop",
+        "large_tree",
+        "crossroads",
+        "well",
+        "gate",
+        "ruin",
+        "sign",
+        "bus_stop",
+        "building",
+        "other"
+      ],
+      "title": "LandmarkType",
+      "type": "string"
+    },
+    "LineOfSight": {
       "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/environment_generator__models__blueprint__common__Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "fromPosition": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 9000.0,
+              "minimum": -1000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            }
+          ],
+          "title": "Fromposition",
+          "type": "array"
+        },
+        "toPosition": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 9000.0,
+              "minimum": -1000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            }
+          ],
+          "title": "Toposition",
+          "type": "array"
+        },
+        "expected": {
+          "enum": [
+            "clear",
+            "partial",
+            "blocked"
+          ],
+          "title": "Expected",
+          "type": "string"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "id",
+        "fromPosition",
+        "toPosition",
+        "expected"
+      ],
+      "title": "LineOfSight",
+      "type": "object"
+    },
+    "ManifestEntity": {
+      "additionalProperties": false,
+      "description": "A generated entity in the location frame; geometry points are ``[x, y, z]``.",
       "properties": {
         "id": {
           "maxLength": 200,
@@ -620,14 +1239,14 @@
           "title": "Kind",
           "type": "string"
         },
-        "archetype_id": {
+        "archetypeId": {
           "maxLength": 128,
           "pattern": "^[a-z0-9_]+(\\.[a-z0-9_]+)+$",
-          "title": "Archetype Id",
+          "title": "Archetypeid",
           "type": "string"
         },
-        "asset_ref": {
-          "title": "Asset Ref",
+        "assetRef": {
+          "title": "Assetref",
           "type": "string"
         },
         "variant": {
@@ -642,7 +1261,7 @@
           "type": "boolean"
         },
         "transform": {
-          "$ref": "#/$defs/Transform"
+          "$ref": "#/$defs/ManifestTransform"
         },
         "dimensions": {
           "$ref": "#/$defs/Dimensions",
@@ -708,31 +1327,483 @@
           "type": "array"
         },
         "provenance": {
-          "$ref": "#/$defs/Provenance"
+          "$ref": "#/$defs/environment_generator__models__scene__Provenance"
         }
       },
       "required": [
         "id",
         "category",
         "kind",
-        "archetype_id",
-        "asset_ref",
+        "archetypeId",
+        "assetRef",
         "transform",
         "dimensions",
         "provenance"
       ],
-      "title": "SceneEntity",
+      "title": "ManifestEntity",
       "type": "object"
+    },
+    "ManifestSource": {
+      "additionalProperties": false,
+      "properties": {
+        "locationId": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "title": "Locationid",
+          "type": "string"
+        },
+        "locationName": {
+          "title": "Locationname",
+          "type": "string"
+        },
+        "recipeId": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "title": "Recipeid",
+          "type": "string"
+        },
+        "overridesId": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Overridesid"
+        },
+        "registryId": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "title": "Registryid",
+          "type": "string"
+        },
+        "seed": {
+          "title": "Seed",
+          "type": "integer"
+        },
+        "generatorSeeds": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "description": "Seed of each generator task (derived from `seed`, see the plan).",
+          "title": "Generatorseeds",
+          "type": "object"
+        },
+        "controls": {
+          "$ref": "#/$defs/GenerationControls"
+        },
+        "inputFingerprint": {
+          "title": "Inputfingerprint",
+          "type": "string"
+        }
+      },
+      "required": [
+        "locationId",
+        "locationName",
+        "recipeId",
+        "overridesId",
+        "registryId",
+        "seed",
+        "generatorSeeds",
+        "controls",
+        "inputFingerprint"
+      ],
+      "title": "ManifestSource",
+      "type": "object"
+    },
+    "ManifestStatistics": {
+      "additionalProperties": false,
+      "properties": {
+        "entityCount": {
+          "title": "Entitycount",
+          "type": "integer"
+        },
+        "byCategory": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Bycategory",
+          "type": "object"
+        },
+        "byGenerator": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Bygenerator",
+          "type": "object"
+        },
+        "placeholderCount": {
+          "title": "Placeholdercount",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "entityCount",
+        "byCategory",
+        "byGenerator",
+        "placeholderCount"
+      ],
+      "title": "ManifestStatistics",
+      "type": "object"
+    },
+    "ManifestTransform": {
+      "additionalProperties": false,
+      "description": "Transform in the location frame (same as LocationBlueprint and Unity).",
+      "properties": {
+        "position": {
+          "description": "[x, y, z]: east, up, north in metres.",
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Position",
+          "type": "array"
+        },
+        "rotationDeg": {
+          "default": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "description": "Euler degrees about X, Y, Z applied in Z, X, Y order; Y is the yaw (clockwise from north seen from above).",
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Rotationdeg",
+          "type": "array"
+        },
+        "scale": {
+          "default": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "description": "Along local X (width), Y (height), Z (depth).",
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Scale",
+          "type": "array"
+        }
+      },
+      "required": [
+        "position"
+      ],
+      "title": "ManifestTransform",
+      "type": "object"
+    },
+    "MovementEffect": {
+      "enum": [
+        "none",
+        "slow",
+        "block"
+      ],
+      "title": "MovementEffect",
+      "type": "string"
+    },
+    "NavigationArea": {
+      "additionalProperties": false,
+      "description": "Desired walkable or blocked space, as a polygon and/or entity references.",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/environment_generator__models__blueprint__common__Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "areaType": {
+          "enum": [
+            "walkable",
+            "blocked"
+          ],
+          "title": "Areatype",
+          "type": "string"
+        },
+        "polygon": {
+          "anyOf": [
+            {
+              "items": {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "maximum": 100000.0,
+                    "minimum": -100000.0,
+                    "type": "number"
+                  },
+                  {
+                    "maximum": 100000.0,
+                    "minimum": -100000.0,
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              "maxItems": 10000,
+              "minItems": 3,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Polygon"
+        },
+        "entityIds": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Entityids",
+          "type": "array"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "id",
+        "areaType"
+      ],
+      "title": "NavigationArea",
+      "type": "object"
+    },
+    "PaletteColor": {
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "description": "e.g. foliage, ground, sky, accent.",
+          "pattern": "^[a-z][a-z0-9_]{0,47}$",
+          "title": "Role",
+          "type": "string"
+        },
+        "color": {
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "title": "Color",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "color"
+      ],
+      "title": "PaletteColor",
+      "type": "object"
+    },
+    "ProvenanceCategory": {
+      "description": "How a value came to be.",
+      "enum": [
+        "observed",
+        "inferred",
+        "manual",
+        "procedural"
+      ],
+      "title": "ProvenanceCategory",
+      "type": "string"
     },
     "Season": {
       "enum": [
         "spring",
         "summer",
         "autumn",
-        "winter"
+        "winter",
+        "unknown"
       ],
       "title": "Season",
       "type": "string"
+    },
+    "SpawnClearance": {
+      "additionalProperties": false,
+      "description": "A circle that must stay free of blocking objects (e.g. a squad spawn).",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/environment_generator__models__blueprint__common__Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "position": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            }
+          ],
+          "title": "Position",
+          "type": "array"
+        },
+        "radiusM": {
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000.0,
+          "title": "Radiusm",
+          "type": "number"
+        },
+        "role": {
+          "default": "spawn",
+          "pattern": "^[a-z][a-z0-9_]{0,47}$",
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "position",
+        "radiusM"
+      ],
+      "title": "SpawnClearance",
+      "type": "object"
     },
     "TerrainData": {
       "additionalProperties": false,
@@ -756,9 +1827,9 @@
           "title": "Origin",
           "type": "array"
         },
-        "cell_size_m": {
+        "cellSizeM": {
           "exclusiveMinimum": 0.0,
-          "title": "Cell Size M",
+          "title": "Cellsizem",
           "type": "number"
         },
         "columns": {
@@ -781,26 +1852,26 @@
           "title": "Heights",
           "type": "array"
         },
-        "min_elevation_m": {
-          "title": "Min Elevation M",
+        "minElevationM": {
+          "title": "Minelevationm",
           "type": "number"
         },
-        "max_elevation_m": {
-          "title": "Max Elevation M",
+        "maxElevationM": {
+          "title": "Maxelevationm",
           "type": "number"
         },
-        "ground_cover": {
+        "groundCover": {
           "$ref": "#/$defs/GroundCover"
         }
       },
       "required": [
-        "cell_size_m",
+        "cellSizeM",
         "columns",
         "rows",
         "heights",
-        "min_elevation_m",
-        "max_elevation_m",
-        "ground_cover"
+        "minElevationM",
+        "maxElevationM",
+        "groundCover"
       ],
       "title": "TerrainData",
       "type": "object"
@@ -817,76 +1888,14 @@
       "title": "TimeOfDay",
       "type": "string"
     },
-    "Transform": {
-      "additionalProperties": false,
-      "properties": {
-        "position": {
-          "maxItems": 3,
-          "minItems": 3,
-          "prefixItems": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            }
-          ],
-          "title": "Position",
-          "type": "array"
-        },
-        "rotation_deg": {
-          "default": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "maxItems": 3,
-          "minItems": 3,
-          "prefixItems": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            }
-          ],
-          "title": "Rotation Deg",
-          "type": "array"
-        },
-        "scale": {
-          "default": [
-            1.0,
-            1.0,
-            1.0
-          ],
-          "maxItems": 3,
-          "minItems": 3,
-          "prefixItems": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            }
-          ],
-          "title": "Scale",
-          "type": "array"
-        }
-      },
-      "required": [
-        "position"
+    "Visibility": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
       ],
-      "title": "Transform",
-      "type": "object"
+      "title": "Visibility",
+      "type": "string"
     },
     "Weather": {
       "enum": [
@@ -894,27 +1903,161 @@
         "partly_cloudy",
         "overcast",
         "fog",
+        "light_rain",
         "rain",
         "storm",
         "snow"
       ],
       "title": "Weather",
       "type": "string"
+    },
+    "environment_generator__models__blueprint__common__Provenance": {
+      "additionalProperties": false,
+      "description": "Where an entity's data came from and how much it can be trusted.\n\nOptional everywhere: an entity without provenance is a manual authoring\ndecision with no measurement claim.",
+      "properties": {
+        "category": {
+          "$ref": "#/$defs/ProvenanceCategory"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "0 = guess, 1 = certain. Expected for observed and inferred values.",
+          "title": "Confidence"
+        },
+        "method": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]{0,47}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "e.g. photogrammetry, visual_estimate, survey, gps.",
+          "title": "Method"
+        },
+        "positionAccuracyM": {
+          "anyOf": [
+            {
+              "maximum": 10000.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Estimated horizontal position error (1 sigma), metres.",
+          "title": "Positionaccuracym"
+        },
+        "frameIds": {
+          "description": "source.frames this entity was seen in.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Frameids",
+          "type": "array"
+        },
+        "observationIds": {
+          "description": "source.observations supporting this entity.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Observationids",
+          "type": "array"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "category"
+      ],
+      "title": "Provenance",
+      "type": "object"
+    },
+    "environment_generator__models__scene__Provenance": {
+      "additionalProperties": false,
+      "description": "Why an entity exists: which generator, rule, input feature and overrides.",
+      "properties": {
+        "generator": {
+          "$ref": "#/$defs/GeneratorName"
+        },
+        "implementation": {
+          "title": "Implementation",
+          "type": "string"
+        },
+        "rule": {
+          "title": "Rule",
+          "type": "string"
+        },
+        "sourceFeature": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Blueprint feature reference, e.g. 'buildings/b-1'.",
+          "title": "Sourcefeature"
+        },
+        "overrides": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Overrides",
+          "type": "array"
+        }
+      },
+      "required": [
+        "generator",
+        "implementation",
+        "rule"
+      ],
+      "title": "Provenance",
+      "type": "object"
     }
   },
   "additionalProperties": false,
   "description": "Portable result of a generation run (public output contract v1.0).",
   "properties": {
-    "manifest_version": {
+    "manifestVersion": {
       "const": "1.0",
       "default": "1.0",
-      "title": "Manifest Version",
+      "title": "Manifestversion",
       "type": "string"
     },
     "generator": {
       "$ref": "#/$defs/GeneratorInfo"
     },
-    "coordinate_system": {
+    "coordinateSystem": {
       "$ref": "#/$defs/CoordinateSystem"
     },
     "source": {
@@ -945,17 +2088,20 @@
     },
     "entities": {
       "items": {
-        "$ref": "#/$defs/SceneEntity"
+        "$ref": "#/$defs/ManifestEntity"
       },
       "title": "Entities",
       "type": "array"
     },
+    "annotations": {
+      "$ref": "#/$defs/Annotations"
+    },
     "statistics": {
       "$ref": "#/$defs/ManifestStatistics"
     },
-    "content_hash": {
+    "contentHash": {
       "description": "sha256 of the canonical JSON of this manifest without this field.",
-      "title": "Content Hash",
+      "title": "Contenthash",
       "type": "string"
     }
   },
@@ -967,7 +2113,7 @@
     "atmosphere",
     "entities",
     "statistics",
-    "content_hash"
+    "contentHash"
   ],
   "title": "SceneManifest",
   "type": "object"

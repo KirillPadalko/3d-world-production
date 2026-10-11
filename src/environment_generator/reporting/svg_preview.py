@@ -2,7 +2,9 @@
 
 A dependency-free, read-only visualisation for humans and reviewers. It only
 consumes the public manifest, so it can render output from any generator
-implementation (or a manifest edited by hand).
+implementation (or a manifest edited by hand). Manifest coordinates are in
+the location frame: the map shows X (east) to the right and Z (north) up;
+yaw turns clockwise from north.
 """
 
 from __future__ import annotations
@@ -11,12 +13,13 @@ import math
 from collections.abc import Sequence
 from xml.sax.saxutils import escape, quoteattr
 
+from environment_generator.core.frames import location_yaw_to_generator
 from environment_generator.core.geometry import rectangle_corners
 from environment_generator.models.assets import AssetCategory
 from environment_generator.models.scene import (
     EntityPolygon,
     EntityPolyline,
-    SceneEntity,
+    ManifestEntity,
     SceneManifest,
 )
 
@@ -174,13 +177,13 @@ def _terrain(canvas: _Canvas, manifest: SceneManifest) -> None:
             )
 
 
-def _box(canvas: _Canvas, entity: SceneEntity, fill: str, stroke: str) -> None:
+def _box(canvas: _Canvas, entity: ManifestEntity, fill: str, stroke: str) -> None:
     position = entity.transform.position
     corners = rectangle_corners(
-        (position[0], position[1]),
+        (position[0], position[2]),
         max(entity.dimensions.width_m, 0.3),
         max(entity.dimensions.depth_m, 0.3),
-        entity.transform.yaw_deg,
+        location_yaw_to_generator(entity.transform.yaw_deg),
     )
     extra: dict[str, float | int | str] = {}
     if entity.placeholder:
@@ -199,11 +202,11 @@ def _box(canvas: _Canvas, entity: SceneEntity, fill: str, stroke: str) -> None:
     )
 
 
-def _front_tick(canvas: _Canvas, entity: SceneEntity) -> None:
-    """Short line on the front (local +Y) edge to show orientation."""
-    x, y, _ = entity.transform.position
+def _front_tick(canvas: _Canvas, entity: ManifestEntity) -> None:
+    """Short line on the front (local +Z) edge to show orientation."""
+    x, _, y = entity.transform.position
     yaw = math.radians(entity.transform.yaw_deg)
-    fx, fy = -math.sin(yaw), math.cos(yaw)
+    fx, fy = math.sin(yaw), math.cos(yaw)
     reach = entity.dimensions.depth_m / 2.0
     canvas.add(
         element(
@@ -218,10 +221,10 @@ def _front_tick(canvas: _Canvas, entity: SceneEntity) -> None:
     )
 
 
-def _water(canvas: _Canvas, entities: list[SceneEntity]) -> None:
+def _water(canvas: _Canvas, entities: list[ManifestEntity]) -> None:
     for entity in entities:
         if isinstance(entity.geometry, EntityPolygon):
-            points = [(p[0], p[1]) for p in entity.geometry.points]
+            points = [(p[0], p[2]) for p in entity.geometry.points]
             canvas.add(
                 element(
                     "polygon",
@@ -235,11 +238,11 @@ def _water(canvas: _Canvas, entities: list[SceneEntity]) -> None:
             )
 
 
-def _roads(canvas: _Canvas, entities: list[SceneEntity]) -> None:
+def _roads(canvas: _Canvas, entities: list[ManifestEntity]) -> None:
     for entity in entities:
         color = ROAD_COLORS.get(str(entity.parameters.get("surface", "asphalt")), "#55585c")
         if isinstance(entity.geometry, EntityPolyline) and entity.geometry.width_m:
-            points = [(p[0], p[1]) for p in entity.geometry.points]
+            points = [(p[0], p[2]) for p in entity.geometry.points]
             canvas.add(
                 element(
                     "polyline",
@@ -253,17 +256,18 @@ def _roads(canvas: _Canvas, entities: list[SceneEntity]) -> None:
                 )
             )
         elif entity.kind == "junction":
-            x, y, _ = entity.transform.position
+            x, _, y = entity.transform.position
             radius = entity.dimensions.width_m / 2.0 * canvas.scale
             canvas.add(element("circle", cx=canvas.x(x), cy=canvas.y(y), r=radius, fill=color))
 
 
-def _fences(canvas: _Canvas, entities: list[SceneEntity]) -> None:
+def _fences(canvas: _Canvas, entities: list[ManifestEntity]) -> None:
     for entity in entities:
-        x, y, _ = entity.transform.position
+        x, _, y = entity.transform.position
         yaw = math.radians(entity.transform.yaw_deg)
         half = entity.dimensions.width_m / 2.0
-        dx, dy = math.cos(yaw) * half, math.sin(yaw) * half
+        # Local +X (the fence run) points east rotated clockwise by the yaw.
+        dx, dy = math.cos(yaw) * half, -math.sin(yaw) * half
         color = FENCE_COLORS.get(entity.kind, "#6b4f33")
         canvas.add(
             element(
@@ -279,13 +283,13 @@ def _fences(canvas: _Canvas, entities: list[SceneEntity]) -> None:
         )
 
 
-def _infrastructure(canvas: _Canvas, entities: list[SceneEntity]) -> list[SceneEntity]:
-    lines: list[SceneEntity] = []
+def _infrastructure(canvas: _Canvas, entities: list[ManifestEntity]) -> list[ManifestEntity]:
+    lines: list[ManifestEntity] = []
     for entity in entities:
         if isinstance(entity.geometry, EntityPolyline):
             lines.append(entity)
         elif max(entity.dimensions.width_m, entity.dimensions.depth_m) < 1.0:
-            x, y, _ = entity.transform.position
+            x, _, y = entity.transform.position
             canvas.add(
                 element(
                     "circle",
@@ -303,9 +307,9 @@ def _infrastructure(canvas: _Canvas, entities: list[SceneEntity]) -> list[SceneE
     return lines
 
 
-def _vegetation(canvas: _Canvas, entities: list[SceneEntity]) -> None:
+def _vegetation(canvas: _Canvas, entities: list[ManifestEntity]) -> None:
     for entity in entities:
-        x, y, _ = entity.transform.position
+        x, _, y = entity.transform.position
         canopy = min(entity.dimensions.width_m, entity.dimensions.depth_m) / 2.0
         canvas.add(
             element(
@@ -324,10 +328,10 @@ def _vegetation(canvas: _Canvas, entities: list[SceneEntity]) -> None:
         )
 
 
-def _overhead_lines(canvas: _Canvas, entities: list[SceneEntity]) -> None:
+def _overhead_lines(canvas: _Canvas, entities: list[ManifestEntity]) -> None:
     for entity in entities:
         assert isinstance(entity.geometry, EntityPolyline)
-        points = [(p[0], p[1]) for p in entity.geometry.points]
+        points = [(p[0], p[2]) for p in entity.geometry.points]
         width = (entity.geometry.width_m or 0.15) * canvas.scale
         canvas.add(
             element(
@@ -343,7 +347,7 @@ def _overhead_lines(canvas: _Canvas, entities: list[SceneEntity]) -> None:
 
 
 def _entities(canvas: _Canvas, manifest: SceneManifest) -> None:
-    groups: dict[AssetCategory, list[SceneEntity]] = {c: [] for c in AssetCategory}
+    groups: dict[AssetCategory, list[ManifestEntity]] = {c: [] for c in AssetCategory}
     for entity in manifest.entities:
         groups[entity.category].append(entity)
     _water(canvas, groups[AssetCategory.WATER])
@@ -409,7 +413,7 @@ def render_svg(manifest: SceneManifest) -> str:
     total_h = max(canvas.map_h + HEADER_PX + MARGIN_PX * 2 + 30, 420.0)
     source = manifest.source
     overrides = f" + {source.overrides_id}" if source.overrides_id else ""
-    title = f"{source.blueprint_name} - recipe {source.recipe_id}{overrides} - seed {source.seed}"
+    title = f"{source.location_name} - recipe {source.recipe_id}{overrides} - seed {source.seed}"
     subtitle = (
         f"{manifest.generator.name} {manifest.generator.version} - {manifest.content_hash[:23]}..."
     )

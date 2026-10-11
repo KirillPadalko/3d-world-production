@@ -25,17 +25,18 @@ from environment_generator.generators.base import (
     InfrastructureGenerator,
     WorkEstimate,
     feature_ref,
+    kinds_with_hint,
     make_entity,
     numeric_parameter,
 )
 from environment_generator.models.assets import AssetCategory, AssetNeed, Dimensions
-from environment_generator.models.blueprint import (
-    InfrastructureLine,
-    InfrastructurePoint,
-    LocationBlueprint,
-)
 from environment_generator.models.recipe import LocationRecipe
 from environment_generator.models.scene import EntityPolyline, SceneEntity
+from environment_generator.models.site import (
+    InfrastructureLine,
+    InfrastructurePoint,
+    SiteDescription,
+)
 
 #: Kinds requested for the poles and the conductor of each line type.
 LINE_POLE_KINDS: dict[str, tuple[str, ...]] = {
@@ -66,21 +67,23 @@ CABLE_ATTACH_FRACTION = 0.92
 
 class StandardInfrastructureGenerator(InfrastructureGenerator):
     implementation = "standard_infrastructure"
-    version = "1.0.0"
+    version = "1.1.0"
 
-    def estimate(self, blueprint: LocationBlueprint, recipe: LocationRecipe) -> WorkEstimate:
+    def estimate(self, site: SiteDescription, recipe: LocationRecipe) -> WorkEstimate:
         sources: list[str] = []
         needs: list[AssetNeed] = []
         count = 0
         spacing = recipe.infrastructure.pole_spacing_m
-        for feature in blueprint.infrastructure:
+        for feature in site.infrastructure:
             ref = feature_ref("infrastructure", feature.id)
             sources.append(ref)
             if isinstance(feature, InfrastructurePoint):
                 count += 1
                 needs.append(
                     AssetNeed(
-                        category=AssetCategory.INFRASTRUCTURE, kinds=[feature.kind], reason=ref
+                        category=AssetCategory.INFRASTRUCTURE,
+                        kinds=list(kinds_with_hint(feature.archetype, feature.kind)),
+                        reason=ref,
                     )
                 )
             else:
@@ -98,14 +101,16 @@ class StandardInfrastructureGenerator(InfrastructureGenerator):
                         )
                     )
                 else:
-                    count += 2 + int(length // (feature.pole_spacing_m or spacing))
-                    needs.append(
-                        AssetNeed(
-                            category=AssetCategory.INFRASTRUCTURE,
-                            kinds=list(LINE_POLE_KINDS[feature.kind]),
-                            reason=ref,
+                    if feature.place_poles:
+                        count += 1 + int(length // (feature.pole_spacing_m or spacing))
+                        needs.append(
+                            AssetNeed(
+                                category=AssetCategory.INFRASTRUCTURE,
+                                kinds=list(LINE_POLE_KINDS[feature.kind]),
+                                reason=ref,
+                            )
                         )
-                    )
+                    count += 1
                     needs.append(
                         AssetNeed(
                             category=AssetCategory.INFRASTRUCTURE,
@@ -115,8 +120,8 @@ class StandardInfrastructureGenerator(InfrastructureGenerator):
                     )
         lights = recipe.infrastructure.street_lights
         if lights.enabled:
-            kinds = set(lights.road_kinds)
-            lit = [r for r in blueprint.roads if r.kind in kinds]
+            importance = set(lights.road_importance)
+            lit = [r for r in site.roads if r.effective_importance in importance]
             if lit:
                 needs.append(
                     AssetNeed(
@@ -136,7 +141,7 @@ class StandardInfrastructureGenerator(InfrastructureGenerator):
 
     def generate(self, context: GenerationContext) -> GeneratorOutput:
         output = GeneratorOutput()
-        features = sorted(context.blueprint.infrastructure, key=lambda f: f.id)
+        features = sorted(context.site.infrastructure, key=lambda f: f.id)
         for feature in features:
             if isinstance(feature, InfrastructurePoint):
                 self._point(context, feature, output)
@@ -144,6 +149,8 @@ class StandardInfrastructureGenerator(InfrastructureGenerator):
             if isinstance(feature, InfrastructureLine):
                 if feature.kind == "pipeline":
                     self._pipeline(context, feature, output)
+                elif not feature.place_poles:
+                    self._supported_line(context, feature, output)
                 else:
                     self._pole_line(context, feature, output)
         if context.recipe.infrastructure.street_lights.enabled:
@@ -158,7 +165,11 @@ class StandardInfrastructureGenerator(InfrastructureGenerator):
         entity_id = f"infrastructure.{feature.id}"
         x, y = feature.geometry.position
         selection = context.assets.resolve(
-            AssetRequest(AssetCategory.INFRASTRUCTURE, (feature.kind,), entity_id=entity_id)
+            AssetRequest(
+                AssetCategory.INFRASTRUCTURE,
+                kinds_with_hint(feature.archetype, feature.kind),
+                entity_id=entity_id,
+            )
         )
         entity = make_entity(
             self,
@@ -170,6 +181,7 @@ class StandardInfrastructureGenerator(InfrastructureGenerator):
             yaw_deg=feature.geometry.rotation_deg,
             rule="explicit_point",
             source_feature=feature_ref("infrastructure", feature.id),
+            attributes=feature.attributes,
             tags=feature.tags,
         )
         output.entities.append(entity)
@@ -268,6 +280,40 @@ class StandardInfrastructureGenerator(InfrastructureGenerator):
                 )
             )
 
+    def _supported_line(
+        self, context: GenerationContext, feature: InfrastructureLine, output: GeneratorOutput
+    ) -> None:
+        """A cable between existing supports (surveyed poles); no poles are generated."""
+        attach = feature.attach_height_m or 7.5
+        points = [
+            (x, y, context.terrain.height_at(x, y) + attach) for x, y in feature.geometry.points
+        ]
+        cable_id = f"infrastructure.{feature.id}"
+        selection = context.assets.resolve(
+            AssetRequest(
+                AssetCategory.INFRASTRUCTURE,
+                kinds_with_hint(feature.archetype, *LINE_CABLE_KINDS[feature.kind]),
+                entity_id=cable_id,
+            )
+        )
+        entity = self._line_entity(context, feature, cable_id, "cable", selection, points, None)
+        supports = [f"infrastructure.{s}" for s in feature.support_ids]
+        output.entities.append(
+            entity.model_copy(
+                update={
+                    "parameters": {
+                        **entity.parameters,
+                        **{
+                            k: v
+                            for k, v in feature.attributes.items()
+                            if k not in entity.parameters
+                        },
+                        "supportEntityIds": supports,
+                    }
+                }
+            )
+        )
+
     def _place_pole(
         self,
         context: GenerationContext,
@@ -334,18 +380,18 @@ class StandardInfrastructureGenerator(InfrastructureGenerator):
 
     def _street_lights(self, context: GenerationContext, output: GeneratorOutput) -> None:
         config = context.recipe.infrastructure.street_lights
-        kinds = {k.value for k in config.road_kinds}
+        importance = {k.value for k in config.road_importance}
         road_entities = {
             e.provenance.source_feature: e
             for e in context.entities_of(AssetCategory.ROAD)
-            if e.kind in kinds
+            if e.parameters.get("importance") in importance
         }
-        extent = context.blueprint.extent
-        for road in sorted(context.blueprint.roads, key=lambda r: r.id):
+        extent = context.site.extent
+        for road in sorted(context.site.roads, key=lambda r: r.id):
             road_entity = road_entities.get(feature_ref("roads", road.id))
             if road_entity is None:
                 continue
-            half_width = numeric_parameter(road_entity, "width_m") / 2.0
+            half_width = numeric_parameter(road_entity, "widthM") / 2.0
             samples = sample_polyline(
                 road.geometry.points, config.spacing_m, config.spacing_m / 2.0
             )

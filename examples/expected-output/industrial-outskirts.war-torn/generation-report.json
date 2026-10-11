@@ -1,50 +1,51 @@
 {
-  "report_version": "1.0",
+  "reportVersion": "1.0",
   "generator": {
     "name": "environment-generator",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
   "success": true,
-  "dry_run": false,
+  "dryRun": false,
   "error": null,
-  "blueprint_id": "industrial-outskirts",
-  "recipe_id": "war-torn",
-  "overrides_id": null,
+  "locationId": "industrial-outskirts",
+  "recipeId": "war-torn",
+  "overridesId": null,
   "seed": 42,
-  "input_fingerprint": "sha256:17728d5c506917656a6cca0183a75ae9734a9799c93c65c0422c448544ffb74f",
-  "manifest_content_hash": "sha256:b65ecd1b1ba284294efc19b32ca6cc97d5a52b7cb1f1a50f1f6f1dba66f57c75",
+  "inputFingerprint": "sha256:f3a7e4e8e9fb417b95150eb2393a3a92d37b8eb8a357ad90978b6179de3cce8a",
+  "manifestContentHash": "sha256:e02f029f32e8aa02fb66eb5be8bf6b70176952253382bcc6d1de023222c76a13",
   "stages": [
     {
       "name": "load_inputs",
       "status": "succeeded",
-      "duration_ms": null,
+      "durationMs": null,
       "summary": {
-        "blueprint_id": "industrial-outskirts",
+        "location_id": "industrial-outskirts",
+        "schema_version": "1.0",
         "recipe_id": "war-torn",
-        "features": 24,
-        "archetypes": 84
+        "archetypes": 118
       },
       "issues": []
     },
     {
       "name": "resolve_inputs",
       "status": "succeeded",
-      "duration_ms": null,
+      "durationMs": null,
       "summary": {
         "seed": 42,
         "applied_operations": 0,
-        "pending_entity_operations": 0,
-        "dropped_features": 0
+        "placement_overrides": 0,
+        "dropped_features": 0,
+        "site_features": 39
       },
       "issues": []
     },
     {
       "name": "resolve_assets",
       "status": "succeeded",
-      "duration_ms": null,
+      "durationMs": null,
       "summary": {
         "registry_id": "builtin-stylized",
-        "archetypes": 78,
+        "archetypes": 112,
         "excluded_archetypes": 6,
         "unmet_needs": 0
       },
@@ -53,26 +54,26 @@
     {
       "name": "plan_generation",
       "status": "succeeded",
-      "duration_ms": null,
+      "durationMs": null,
       "summary": {
         "tasks": 8,
         "order": "terrain > roads > buildings > fences > infrastructure > vegetation > props > atmosphere",
-        "estimated_entities": 303
+        "estimated_entities": 308
       },
       "issues": []
     },
     {
       "name": "generate_scene",
       "status": "succeeded",
-      "duration_ms": null,
+      "durationMs": null,
       "summary": {
-        "entities": 251,
+        "entities": 263,
         "entities.terrain": 1,
-        "entities.roads": 5,
+        "entities.roads": 8,
         "entities.buildings": 6,
-        "entities.fences": 141,
-        "entities.infrastructure": 8,
-        "entities.vegetation": 73,
+        "entities.fences": 142,
+        "entities.infrastructure": 7,
+        "entities.vegetation": 82,
         "entities.props": 17,
         "entities.atmosphere": 0
       },
@@ -81,25 +82,31 @@
           "severity": "warning",
           "code": "BUILDING_SCALE_DEVIATION",
           "message": "Archetype building.ruin.apartment_shell scaled by 0.58, 0.83, 1.00 to fit the footprint.",
+          "category": null,
           "location": "buildings/b-office",
-          "entity_ids": ["building.b-office"]
+          "path": null,
+          "entityIds": ["building.b-office"],
+          "suggestion": null
         },
         {
           "severity": "info",
           "code": "FENCE_ROAD_GAP",
           "message": "Left 1 panel opening(s) where the fence crosses a road.",
+          "category": null,
           "location": "fences/f-compound",
-          "entity_ids": []
+          "path": null,
+          "entityIds": [],
+          "suggestion": null
         }
       ]
     },
     {
       "name": "validate_layout",
       "status": "succeeded",
-      "duration_ms": null,
+      "durationMs": null,
       "summary": {
         "rules": 7,
-        "checked_entities": 251,
+        "checked_entities": 263,
         "errors": 0,
         "warnings": 0
       },
@@ -108,10 +115,10 @@
     {
       "name": "export_manifest",
       "status": "succeeded",
-      "duration_ms": null,
+      "durationMs": null,
       "summary": {
-        "content_hash": "sha256:b65ecd1b1ba284294efc19b32ca6cc97d5a52b7cb1f1a50f1f6f1dba66f57c75",
-        "entities": 251,
+        "content_hash": "sha256:e02f029f32e8aa02fb66eb5be8bf6b70176952253382bcc6d1de023222c76a13",
+        "entities": 263,
         "path": "scene-manifest.json"
       },
       "issues": []
@@ -119,23 +126,23 @@
     {
       "name": "build_report",
       "status": "succeeded",
-      "duration_ms": null,
+      "durationMs": null,
       "summary": {},
       "issues": []
     }
   ],
   "statistics": {
-    "entities": 251,
+    "entities": 263,
     "placeholders": 0,
     "category.building": 6,
-    "category.fence": 141,
-    "category.infrastructure": 8,
+    "category.fence": 142,
+    "category.infrastructure": 7,
     "category.prop": 17,
-    "category.road": 5,
+    "category.road": 8,
     "category.terrain": 1,
-    "category.vegetation": 73
+    "category.vegetation": 82
   },
-  "issue_counts": {
+  "issueCounts": {
     "error": 0,
     "warning": 1,
     "info": 1

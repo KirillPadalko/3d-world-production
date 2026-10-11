@@ -13,7 +13,13 @@ from pathlib import Path
 from environment_generator import GENERATOR_NAME, __version__
 from environment_generator.adapters import available_adapters
 from environment_generator.assets.registry import load_builtin_registry
-from environment_generator.core.errors import EnvironmentGeneratorError
+from environment_generator.blueprint import (
+    dumps_blueprint,
+    migrate_file,
+    raise_for,
+    validate_source,
+)
+from environment_generator.core.errors import EnvironmentGeneratorError, ExportError
 from environment_generator.core.hashing import pretty_json
 from environment_generator.core.issues import has_errors
 from environment_generator.exporters.json_manifest import load_manifest, verify_manifest
@@ -54,6 +60,11 @@ def _add_input_arguments(
         "--recipe", "-r", type=Path, help="LocationRecipe JSON file (default recipe if omitted)"
     )
     parser.add_argument("--overrides", "-o", type=Path, help="LocationOverrides JSON file")
+    parser.add_argument(
+        "--package-root",
+        type=Path,
+        help="folder that blueprint file references are relative to (default: its folder)",
+    )
     parser.add_argument(
         "--registry",
         type=Path,
@@ -96,6 +107,44 @@ def build_parser() -> argparse.ArgumentParser:
     generate.add_argument("--preview", action="store_true", help="also write preview.svg")
     generate.add_argument(
         "--no-timings", action="store_true", help="omit stage durations (byte-stable reports)"
+    )
+
+    blueprint = commands.add_parser("blueprint", help="validate, format or migrate blueprints")
+    blueprint_commands = blueprint.add_subparsers(
+        dest="blueprint_command", required=True, metavar="ACTION"
+    )
+    check = blueprint_commands.add_parser(
+        "validate", help="validate one blueprint (version, schema, semantics, references, files)"
+    )
+    check.add_argument("file", type=Path)
+    check.add_argument("--json", action="store_true", help="print the validation report as JSON")
+    check.add_argument("--package-root", type=Path, help="default: the blueprint's folder")
+    check.add_argument(
+        "--no-external", action="store_true", help="do not open referenced external files"
+    )
+    fmt = blueprint_commands.add_parser(
+        "format", help="print a valid blueprint in canonical, deterministic form"
+    )
+    fmt.add_argument("file", type=Path)
+    fmt_target = fmt.add_mutually_exclusive_group()
+    fmt_target.add_argument("--output", type=Path, help="write here instead of stdout")
+    fmt_target.add_argument(
+        "--check", action="store_true", help="exit 3 if the file is not canonically formatted"
+    )
+    fmt.add_argument("--force", action="store_true", help="allow replacing an existing --output")
+    migrate = blueprint_commands.add_parser(
+        "migrate", help="upgrade a blueprint to the current schema version"
+    )
+    migrate.add_argument("file", type=Path)
+    migrate_target = migrate.add_mutually_exclusive_group(required=True)
+    migrate_target.add_argument("--output", type=Path, help="write the migrated copy here")
+    migrate_target.add_argument(
+        "--in-place",
+        action="store_true",
+        help="replace the file (a .v<old>.bak backup is written first)",
+    )
+    migrate.add_argument(
+        "--force", action="store_true", help="allow replacing an existing --output"
     )
 
     preview = commands.add_parser("preview", help="render a manifest as a top-down SVG")
@@ -150,6 +199,7 @@ def _bundle(args: argparse.Namespace) -> InputBundle:
         overrides=args.overrides,
         registry=args.registry,
         seed_override=getattr(args, "seed", None),
+        package_root=args.package_root,
     )
 
 
@@ -173,7 +223,9 @@ def _cmd_plan(args: argparse.Namespace) -> int:
     assert result.plan is not None
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(pretty_json(result.plan.model_dump(mode="json")), encoding="utf-8")
+        args.output.write_text(
+            pretty_json(result.plan.model_dump(mode="json"), decimals=None), encoding="utf-8"
+        )
         print(f"Plan written to {args.output}")
     return EXIT_OK
 
@@ -198,6 +250,56 @@ def _cmd_generate(args: argparse.Namespace) -> int:
         result = pipeline.run(_bundle(args), options)
     print(render_report(result.report))
     return result.error.exit_code if result.error is not None else EXIT_OK
+
+
+def _cmd_blueprint(args: argparse.Namespace) -> int:
+    if args.blueprint_command == "validate":
+        result = validate_source(
+            args.file, package_root=args.package_root, check_external=not args.no_external
+        )
+        report = result.report(document=str(args.file))
+        if args.json:
+            print(pretty_json(report.model_dump(mode="json"), decimals=None), end="")
+        else:
+            counts = report.counts
+            state = "valid" if report.valid else "INVALID"
+            print(
+                f"{args.file}: {state} (schema {report.schema_version or '?'}; "
+                f"{counts.get('error', 0)} error(s), {counts.get('warning', 0)} warning(s), "
+                f"{counts.get('info', 0)} info)"
+            )
+            for line in render_issues(report.diagnostics, limit=200):
+                print(line)
+        return EXIT_OK if report.valid else 3
+    if args.blueprint_command == "format":
+        blueprint = raise_for(validate_source(args.file))
+        text = dumps_blueprint(blueprint)
+        if args.check:
+            if args.file.read_text(encoding="utf-8") != text:
+                print(f"{args.file}: not canonically formatted (run `envgen blueprint format`)")
+                return 3
+            print(f"{args.file}: canonical")
+            return EXIT_OK
+        if args.output is None:
+            print(text, end="")
+            return EXIT_OK
+        if args.output.resolve() == args.file.resolve() and not args.force:
+            raise ExportError("Refusing to replace the input file; pass --force to rewrite it")
+        if args.output.exists() and not args.force:
+            raise ExportError(f"'{args.output}' exists; pass --force to replace it")
+        args.output.write_text(text, encoding="utf-8")
+        print(f"Formatted blueprint written to {args.output}")
+        return EXIT_OK
+    migration, written = migrate_file(
+        args.file, output=args.output, in_place=args.in_place, overwrite=args.force
+    )
+    steps = " > ".join(migration.steps) or "none"
+    print(f"{args.file}: {migration.source_version} -> {migration.target_version} (steps: {steps})")
+    if written is None:
+        print("Already current; nothing written.")
+    else:
+        print(f"Migrated blueprint written to {written}")
+    return EXIT_OK
 
 
 def _cmd_preview(args: argparse.Namespace) -> int:
@@ -260,6 +362,7 @@ COMMANDS = {
     "validate": _cmd_validate,
     "plan": _cmd_plan,
     "generate": _cmd_generate,
+    "blueprint": _cmd_blueprint,
     "preview": _cmd_preview,
     "verify": _cmd_verify,
     "schema": _cmd_schema,

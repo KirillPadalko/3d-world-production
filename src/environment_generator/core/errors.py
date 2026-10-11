@@ -68,6 +68,24 @@ class OverrideError(InputError):
     code = "OVERRIDE_ERROR"
 
 
+class UnsupportedVersionError(InputError):
+    """A document declares a schema version this implementation cannot read."""
+
+    code = "UNSUPPORTED_SCHEMA_VERSION"
+
+
+class MigrationError(InputError):
+    """A document could not be migrated to the current schema version."""
+
+    code = "MIGRATION_ERROR"
+
+
+class ExternalDataError(InputError):
+    """A referenced external file is missing, unsafe or malformed."""
+
+    code = "EXTERNAL_DATA_ERROR"
+
+
 class AssetResolutionError(EnvironmentGeneratorError):
     """No suitable asset archetype exists and the recipe forbids placeholders."""
 

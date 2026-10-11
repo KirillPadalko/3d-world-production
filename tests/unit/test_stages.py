@@ -16,6 +16,7 @@ from environment_generator.core.errors import (
     OverrideError,
     PlanningError,
     SemanticValidationError,
+    UnsupportedVersionError,
 )
 from environment_generator.exporters import JsonManifestExporter
 from environment_generator.generators import default_generators
@@ -41,13 +42,12 @@ from environment_generator.pipeline.stages import (
 )
 from environment_generator.planning.planner import GenerationPlanner
 from environment_generator.validation.layout import RuleBasedLayoutValidator
+from tests.blueprints import building, location_data
 from tests.conftest import (
     MINIMAL_BLUEPRINT,
     RURAL_BLUEPRINT,
     RURAL_OVERRIDES,
     RURAL_RECIPE,
-    blueprint_data,
-    rect_building,
 )
 
 PLANNER = GenerationPlanner(default_generators())
@@ -69,20 +69,30 @@ def test_load_defaults_and_fingerprints() -> None:
     assert loaded.recipe.id == "default"
     assert loaded.registry.id == "builtin-stylized"
     assert loaded.overrides is None and loaded.fingerprints.overrides is None
-    assert outcome.summary["blueprint_id"] == "minimal"
+    assert outcome.summary["location_id"] == "minimal"
+    assert loaded.package_root == str(MINIMAL_BLUEPRINT.parent)
     again = LoadInputsStage().run(InputBundle(blueprint=MINIMAL_BLUEPRINT)).output
     assert again.fingerprints == loaded.fingerprints
     seeded = LoadInputsStage().run(InputBundle(blueprint=MINIMAL_BLUEPRINT, seed_override=3)).output
     assert seeded.fingerprints.combined != loaded.fingerprints.combined
 
 
-def test_load_reports_all_contract_errors_at_once(tmp_path: Path) -> None:
-    bad_recipe = {"schema_version": "1.0", "id": "r", "name": "R", "seed": -1}
+def test_load_reports_all_contract_errors_at_once() -> None:
+    bad_recipe = {"schemaVersion": "1.0", "id": "r", "name": "R", "seed": -1}
+    data = location_data()
+    del data["coordinateSystem"]["bounds"]
     with pytest.raises(ContractValidationError) as excinfo:
-        LoadInputsStage().run(InputBundle(blueprint=blueprint_data(extent={}), recipe=bad_recipe))
-    locations = {issue.location for issue in excinfo.value.issues}
-    assert any(loc and loc.startswith("blueprint:extent") for loc in locations)
-    assert "recipe:seed" in locations
+        LoadInputsStage().run(InputBundle(blueprint=data, recipe=bad_recipe))
+    found = {(issue.location, issue.path) for issue in excinfo.value.issues}
+    assert ("recipe", "seed") in found
+    assert any(path == "coordinateSystem.bounds" for _, path in found)
+
+
+def test_load_rejects_unsupported_versions() -> None:
+    with pytest.raises(UnsupportedVersionError) as excinfo:
+        LoadInputsStage().run(InputBundle(blueprint=location_data(schemaVersion="2.0")))
+    assert excinfo.value.exit_code == 3
+    assert [i.code for i in excinfo.value.issues] == ["BLUEPRINT_VERSION_UNSUPPORTED"]
 
 
 def test_load_file_errors(tmp_path: Path) -> None:
@@ -99,11 +109,11 @@ def test_load_file_errors(tmp_path: Path) -> None:
 
 
 def test_load_semantic_errors() -> None:
-    data = blueprint_data(buildings=[rect_building("b", [1000, 1000], [5, 5])])
+    data = location_data(buildings=[building("b", 1000, 1000), building("b", 10, 10)])
     with pytest.raises(SemanticValidationError) as excinfo:
         LoadInputsStage().run(InputBundle(blueprint=data))
     assert excinfo.value.exit_code == 3
-    assert "BLUEPRINT_FEATURE_OUTSIDE_EXTENT" in {i.code for i in excinfo.value.issues}
+    assert {"ENTITY_OUTSIDE_BOUNDS", "DUPLICATE_ID"} <= {i.code for i in excinfo.value.issues}
 
 
 # ----------------------------------------------------------------------------- 2 resolve
@@ -115,22 +125,17 @@ def test_resolve_applies_overrides_and_seed_precedence() -> None:
     resolved = ResolveInputsStage().run(loaded).output
     assert resolved.overrides_id == "designer-pass-01"
     assert "b-shed-1" not in {b.id for b in resolved.blueprint.buildings}
-    assert resolved.recipe.atmosphere.time_of_day is not None
-    assert resolved.seed == 1337  # no override seed
-    assert len(resolved.entity_operations) == 3
-    assert resolved.applied_operations[0] == "recipe_patch"
+    assert "b-shed-1" in {b.id for b in loaded.blueprint.buildings}  # input untouched
+    assert resolved.seed == 1337  # recipe seed beats blueprint masterSeed
+    assert len(resolved.placement_overrides) == 1
+    assert resolved.applied_operations[0] == "delete buildings/b-shed-1"
 
-    with_seed = loaded.model_copy(
-        update={
-            "overrides": loaded.overrides.model_copy(update={"seed": 5})
-            if loaded.overrides
-            else None
-        }
+    cli_seed = loaded.model_copy(update={"seed_override": 9})
+    assert ResolveInputsStage().run(cli_seed).output.seed == 9
+    no_recipe_seed = loaded.model_copy(
+        update={"recipe": loaded.recipe.model_copy(update={"seed": None})}
     )
-    assert ResolveInputsStage().run(with_seed).output.seed == 5
-    cli_seed = with_seed.model_copy(update={"seed_override": 9})
-    resolved_cli = ResolveInputsStage().run(cli_seed).output
-    assert resolved_cli.seed == 9 and resolved_cli.recipe.seed == 9
+    assert ResolveInputsStage().run(no_recipe_seed).output.seed == 0  # blueprint masterSeed
 
 
 def test_resolve_drops_low_confidence_and_rejects_bad_overrides() -> None:
@@ -145,27 +150,43 @@ def test_resolve_drops_low_confidence_and_rejects_bad_overrides() -> None:
         }
     )
     outcome = ResolveInputsStage().run(stricter)
-    assert "roads/p-forest" in outcome.output.dropped_features
-    assert [i.code for i in outcome.issues] == ["FEATURES_BELOW_CONFIDENCE"]
+    assert "roadSegments/p-forest" in outcome.output.dropped_features
+    assert "FEATURES_BELOW_CONFIDENCE" in [i.code for i in outcome.issues]
 
     bad = {
-        "schema_version": "1.0",
+        "schemaVersion": "1.0",
         "id": "bad",
-        "blueprint_id": "rural-crossroads",
-        "feature_operations": [{"op": "remove", "collection": "roads", "id": "nope"}],
+        "locationId": "rural-crossroads",
+        "entityOperations": [{"op": "delete", "id": "nope"}],
     }
     loaded_bad = LoadInputsStage().run(InputBundle(blueprint=RURAL_BLUEPRINT, overrides=bad)).output
     with pytest.raises(OverrideError):
         ResolveInputsStage().run(loaded_bad)
 
 
+def test_resolve_records_controls() -> None:
+    data = location_data(
+        generation={"structuralSimilarity": 0.7, "visualVariation": 0.2},
+        atmosphere={"abandonment": 0.4},
+    )
+    recipe = {"schemaVersion": "1.0", "id": "r", "name": "R", "visualVariation": 0.9}
+    loaded = LoadInputsStage().run(InputBundle(blueprint=data, recipe=recipe)).output
+    outcome = ResolveInputsStage().run(loaded)
+    controls = outcome.output.controls
+    assert (controls.structural_similarity, controls.visual_variation) == (0.7, 0.9)
+    assert (controls.detail_density, controls.abandonment) == (1.0, 0.4)
+    assert "GENERATION_CONTROL_RECORDED" in [i.code for i in outcome.issues]
+
+
 # ----------------------------------------------------------------------------- 3 assets
 
 
 def test_asset_stage_fallback_policy() -> None:
-    data = blueprint_data(buildings=[rect_building("b", [50, 40], [8, 6], kind="church")])
+    data = location_data(
+        buildings=[building("b", 50, 40, building_type="church", archetype="church")]
+    )
     registry = {
-        "schema_version": "1.0",
+        "schemaVersion": "1.0",
         "id": "tiny",
         "name": "Tiny",
         "archetypes": [
@@ -173,8 +194,8 @@ def test_asset_stage_fallback_policy() -> None:
                 "id": "building.house.box",
                 "category": "building",
                 "kinds": ["house"],
-                "dimensions": {"width_m": 8, "depth_m": 6, "height_m": 5},
-                "asset_ref": "x",
+                "dimensions": {"widthM": 8, "depthM": 6, "heightM": 5},
+                "assetRef": "x",
             }
         ],
     }
@@ -185,7 +206,7 @@ def test_asset_stage_fallback_policy() -> None:
     assert all(i.code == "ASSET_KIND_UNAVAILABLE" for i in outcome.issues)
 
     strict_recipe = {
-        "schema_version": "1.0",
+        "schemaVersion": "1.0",
         "id": "s",
         "name": "S",
         "assets": {"fallback": "error"},

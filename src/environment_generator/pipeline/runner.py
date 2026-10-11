@@ -199,7 +199,7 @@ class Pipeline:
                 if options.output_dir is not None:
                     result.written["plan"] = self._write(
                         options.output_dir / PLAN_FILENAME,
-                        pretty_json(result.plan.model_dump(mode="json")),
+                        pretty_json(result.plan.model_dump(mode="json"), decimals=None),
                     )
             else:
                 self._generate(result, recorder, options)
@@ -246,7 +246,8 @@ class Pipeline:
         if options.output_dir is not None:
             if options.write_plan:
                 result.written["plan"] = self._write(
-                    options.output_dir / PLAN_FILENAME, pretty_json(plan.model_dump(mode="json"))
+                    options.output_dir / PLAN_FILENAME,
+                    pretty_json(plan.model_dump(mode="json"), decimals=None),
                 )
             if options.write_preview:
                 result.written["preview"] = self._write(

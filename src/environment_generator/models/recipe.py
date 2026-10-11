@@ -1,9 +1,13 @@
-"""LocationRecipe: how a blueprint is turned into a stylised game environment.
+"""LocationRecipe: how a LocationBlueprint is turned into a game environment.
 
-A recipe is reusable across blueprints. It selects the visual style (through
-asset tags), the master seed, and per-generator settings. Every field has a
-sensible default, so ``{"schema_version": "1.0", "id": "x", "name": "X"}`` is a
-complete recipe.
+A recipe never contains observations about a place; it describes how to
+interpret and transform any blueprint: visual style, generation controls,
+asset selection, seeds and per-generator options. It is reusable across
+locations. Every field has a default, so
+``{"schemaVersion": "1.0", "id": "x", "name": "X"}`` is a complete recipe.
+
+Values left ``null`` fall back to the blueprint's ``generation`` section, then
+to built-in defaults (see docs/LOCATION_BLUEPRINT.md, "Recipe and overrides").
 """
 
 from __future__ import annotations
@@ -24,15 +28,10 @@ from environment_generator.models.base import (
     Tag,
     UnitInterval,
 )
-from environment_generator.models.blueprint import (
-    BuildingKind,
-    PropKind,
-    RoadKind,
-    Season,
-    TimeOfDay,
-    Weather,
-    ZoneKind,
-)
+from environment_generator.models.blueprint.atmosphere import TimeOfDay, Weather
+from environment_generator.models.blueprint.document import Season, Subsystem
+from environment_generator.models.blueprint.roads import RoadImportance
+from environment_generator.models.blueprint.structures import BuildingType, PropType
 
 
 class GeneratorName(StrEnum):
@@ -67,6 +66,11 @@ class AssetSelectionSpec(ContractModel):
     required_tags: list[Tag] = Field(default_factory=list, max_length=32)
     preferred_tags: list[Tag] = Field(default_factory=list, max_length=32)
     excluded_tags: list[Tag] = Field(default_factory=list, max_length=32)
+    allowed_archetypes: list[Annotated[str, Field(pattern=r"^[a-z0-9_.*?\[\]-]{1,128}$")]] = Field(
+        default_factory=list,
+        max_length=256,
+        description="Registry archetype ID glob patterns allowed; empty = all.",
+    )
     fallback: FallbackPolicy = FallbackPolicy.PLACEHOLDER
 
 
@@ -80,7 +84,7 @@ class TerrainRecipe(ContractModel):
     enabled: bool = True
     cell_size_m: Annotated[float, Field(ge=0.5, le=50.0)] = 4.0
     noise_amplitude_m: Annotated[float, Field(ge=0.0, le=200.0)] | None = Field(
-        default=None, description="Defaults to a value derived from the blueprint relief."
+        default=None, description="Defaults to a value derived from the site relief."
     )
     noise_scale_m: Annotated[float, Field(ge=1.0, le=2000.0)] = 60.0
     octaves: Annotated[int, Field(ge=1, le=8)] = 3
@@ -95,16 +99,15 @@ class RoadRecipe(ContractModel):
     detect_junctions: bool = True
 
 
-def _default_fill_weights() -> dict[BuildingKind, float]:
-    return {BuildingKind.HOUSE: 4.0, BuildingKind.SHED: 1.0, BuildingKind.GARAGE: 1.0}
+def _default_fill_weights() -> dict[BuildingType, float]:
+    return {BuildingType.HOUSE: 4.0, BuildingType.SHED: 1.0, BuildingType.GARAGE: 1.0}
 
 
 class ZoneFillRecipe(ContractModel):
-    """Procedurally add buildings along roads inside matching zones."""
+    """Procedurally build on ``vacant_lot`` plots, along the roads that border them."""
 
     enabled: bool = False
-    zone_kinds: list[ZoneKind] = Field(default_factory=lambda: [ZoneKind.RESIDENTIAL])
-    building_weights: dict[BuildingKind, PositiveFloat] = Field(
+    building_weights: dict[BuildingType, PositiveFloat] = Field(
         default_factory=_default_fill_weights, min_length=1
     )
     lot_spacing_m: Annotated[float, Field(ge=4.0, le=200.0)] = 20.0
@@ -151,7 +154,10 @@ class FenceRecipe(ContractModel):
 
 class StreetLightRecipe(ContractModel):
     enabled: bool = True
-    road_kinds: list[RoadKind] = Field(default_factory=lambda: [RoadKind.STREET])
+    road_importance: list[RoadImportance] = Field(
+        default_factory=lambda: [RoadImportance.SECONDARY],
+        description="Roads of these importance classes get street lights.",
+    )
     spacing_m: Annotated[float, Field(ge=5.0, le=500.0)] = 30.0
     offset_m: Annotated[float, Field(ge=0.0, le=20.0)] = 0.8
     placement: Literal["alternate", "left", "right", "both"] = "alternate"
@@ -169,7 +175,7 @@ class ClutterRecipe(ContractModel):
     enabled: bool = True
     per_building: Annotated[float, Field(ge=0.0, le=50.0)] = 1.5
     max_distance_m: Annotated[float, Field(ge=0.5, le=50.0)] = 4.0
-    kind_weights: dict[PropKind, PositiveFloat] | None = Field(
+    kind_weights: dict[PropType, PositiveFloat] | None = Field(
         default=None,
         description="Replaces the built-in per-building-kind prop tables when set.",
     )
@@ -181,7 +187,7 @@ class PropRecipe(ContractModel):
 
 
 class AtmosphereRecipe(ContractModel):
-    """Lighting and weather. ``None`` keeps the blueprint observation."""
+    """Lighting and weather. ``None`` keeps the blueprint's atmosphere and season."""
 
     enabled: bool = True
     time_of_day: TimeOfDay | None = None
@@ -209,9 +215,27 @@ class LocationRecipe(ContractModel):
     description: Description | None = None
     applies_to: list[Annotated[str, Field(min_length=1, max_length=100)]] = Field(
         default_factory=list,
-        description="Blueprint id glob patterns this recipe is meant for; empty = any.",
+        description="locationId glob patterns this recipe is meant for; empty = any.",
     )
-    seed: Seed = 0
+    seed: Seed | None = Field(
+        default=None, description="Master seed; null = blueprint generation.masterSeed."
+    )
+    subsystem_seeds: dict[Subsystem, Seed] = Field(
+        default_factory=dict,
+        description="Per-subsystem seeds; they win over the blueprint's subsystemSeeds.",
+    )
+    structural_similarity: UnitInterval | None = Field(
+        default=None, description="null = blueprint generation.structuralSimilarity."
+    )
+    visual_variation: UnitInterval | None = Field(
+        default=None, description="null = blueprint generation.visualVariation."
+    )
+    detail_density: Annotated[float, Field(ge=0.0, le=4.0)] = Field(
+        default=1.0, description="Multiplier for procedural detail (clutter, vegetation)."
+    )
+    abandonment: UnitInterval | None = Field(
+        default=None, description="Overall abandonment; null = blueprint atmosphere.abandonment."
+    )
     style: StyleSpec = Field(default_factory=StyleSpec)
     assets: AssetSelectionSpec = Field(default_factory=AssetSelectionSpec)
     filters: FeatureFilter = Field(default_factory=FeatureFilter)

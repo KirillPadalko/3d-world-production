@@ -22,17 +22,19 @@ from environment_generator.generators.base import (
     GeneratorOutput,
     WorkEstimate,
     feature_ref,
+    kinds_with_hint,
     make_entity,
 )
 from environment_generator.models.assets import AssetCategory, AssetNeed
-from environment_generator.models.blueprint import Fence, FenceKind, LocationBlueprint
 from environment_generator.models.recipe import LocationRecipe
+from environment_generator.models.site import Fence, FenceKind, SiteDescription
 
 DEFAULT_HEIGHT_M: dict[FenceKind, float] = {
     FenceKind.WOODEN: 1.2,
     FenceKind.PICKET: 1.0,
     FenceKind.CHAIN_LINK: 2.0,
     FenceKind.WIRE: 1.2,
+    FenceKind.METAL_SHEET: 1.8,
     FenceKind.STONE_WALL: 1.2,
     FenceKind.BRICK_WALL: 2.0,
     FenceKind.CONCRETE_WALL: 2.5,
@@ -77,26 +79,26 @@ class PanelFenceGenerator(FenceGenerator):
     """
 
     implementation = "panel_fences"
-    version = "1.0.0"
+    version = "1.1.0"
 
-    def estimate(self, blueprint: LocationBlueprint, recipe: LocationRecipe) -> WorkEstimate:
-        sources = tuple(feature_ref("fences", f.id) for f in blueprint.fences)
+    def estimate(self, site: SiteDescription, recipe: LocationRecipe) -> WorkEstimate:
+        sources = tuple(feature_ref("fences", f.id) for f in site.fences)
         count = sum(
-            math.ceil(polyline_length(fence_points(f)) / _NOMINAL_PANEL_M) for f in blueprint.fences
+            math.ceil(polyline_length(fence_points(f)) / _NOMINAL_PANEL_M) for f in site.fences
         )
         needs = tuple(
             AssetNeed(
                 category=AssetCategory.FENCE,
-                kinds=[f.kind.value],
+                kinds=list(kinds_with_hint(f.archetype, f.kind.value)),
                 reason=feature_ref("fences", f.id),
             )
-            for f in blueprint.fences
+            for f in site.fences
         )
         return WorkEstimate(sources, count, needs)
 
     def generate(self, context: GenerationContext) -> GeneratorOutput:
         output = GeneratorOutput()
-        for fence in sorted(context.blueprint.fences, key=lambda f: f.id):
+        for fence in sorted(context.site.fences, key=lambda f: f.id):
             self._fence(context, fence, output)
         return output
 
@@ -109,7 +111,7 @@ class PanelFenceGenerator(FenceGenerator):
         base = context.assets.resolve(
             AssetRequest(
                 AssetCategory.FENCE,
-                (fence.kind.value,),
+                kinds_with_hint(fence.archetype, fence.kind.value),
                 entity_id=f"fence.{fence.id}",
                 height=height,
             )
@@ -167,6 +169,7 @@ class PanelFenceGenerator(FenceGenerator):
                         rule="panel",
                         source_feature=ref,
                         parameters={"fence_id": fence.id, "height_m": height, "length_m": length},
+                        attributes=fence.attributes,
                         tags=fence.tags,
                     )
                     output.entities.append(entity)

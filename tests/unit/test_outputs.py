@@ -35,14 +35,16 @@ def test_manifest_hash_is_verifiable(minimal_result) -> None:  # type: ignore[no
     assert not verify_manifest(tampered)
     data = manifest.model_dump(mode="json")
     assert manifest_content_hash(data) == manifest.content_hash
-    data["content_hash"] = "sha256:other"
+    data["contentHash"] = "sha256:other"
     assert manifest_content_hash(data) == manifest.content_hash  # field itself is excluded
 
 
 def test_manifest_contents(minimal_result) -> None:  # type: ignore[no-untyped-def]
     manifest = minimal_result.manifest
-    assert manifest.coordinate_system.up_axis == "+z"
-    assert manifest.source.blueprint_id == "minimal"
+    assert manifest.coordinate_system.up_axis == "+y"
+    assert manifest.coordinate_system.north_axis == "+z"
+    assert manifest.source.location_id == "minimal"
+    assert manifest.source.controls.detail_density == 1.0
     assert manifest.statistics.entity_count == len(manifest.entities)
     assert sum(manifest.statistics.by_category.values()) == len(manifest.entities)
     ids = [e.id for e in manifest.entities]
@@ -103,9 +105,31 @@ def test_report_json_lists_all_stages(tmp_path: Path) -> None:
         "export_manifest",
         "build_report",
     ]
-    assert all(s["duration_ms"] is None for s in report["stages"])
+    assert all(s["durationMs"] is None for s in report["stages"])
     assert report["outputs"] == {
         "manifest": "scene-manifest.json",
         "report": "generation-report.json",
     }
     assert result.report.success
+
+
+def test_manifest_uses_the_location_frame(minimal_result) -> None:  # type: ignore[no-untyped-def]
+    """Scene (generator frame, Z up) -> manifest (location frame, Y up, clockwise yaw)."""
+    scene_entities = {e.id: e for e in minimal_result.scene.entities}
+    for entity in minimal_result.manifest.entities:
+        internal = scene_entities[entity.id]
+        x, north, up = internal.transform.position
+        assert entity.transform.position == (x, up, north)
+        assert entity.transform.rotation_deg[0] == entity.transform.rotation_deg[2] == 0.0
+        assert entity.transform.yaw_deg == (-internal.transform.yaw_deg) % 360.0
+        sx, sy, sz = internal.transform.scale
+        assert entity.transform.scale == (sx, sz, sy)
+    # The minimal house sits north of the road and faces it: yaw 180 = facing south.
+    house = next(e for e in minimal_result.manifest.entities if e.id == "building.b-1")
+    assert house.transform.position[0] == 30.0 and house.transform.position[2] == 30.0
+    assert house.transform.yaw_deg == 180.0
+    road = next(e for e in minimal_result.manifest.entities if e.id == "road.r-1")
+    assert road.geometry is not None
+    assert {p[2] for p in road.geometry.points} == {20.0}  # z = north in the location frame
+    light = minimal_result.manifest.atmosphere.key_light_direction
+    assert light[1] < 0  # the key light points downwards (-Y)

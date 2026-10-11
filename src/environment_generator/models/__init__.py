@@ -3,7 +3,8 @@
 Public input contracts (exported as JSON Schema under ``schemas/``):
 :class:`LocationBlueprint`, :class:`LocationRecipe`, :class:`LocationOverrides`
 and :class:`AssetRegistryDocument`. Public output contract:
-:class:`SceneManifest`.
+:class:`SceneManifest`. :class:`SiteDescription` is the generator's internal
+input derived from a blueprint.
 """
 
 from environment_generator.models.assets import (
@@ -15,7 +16,7 @@ from environment_generator.models.assets import (
     Dimensions,
 )
 from environment_generator.models.base import CONTRACT_VERSION, ContractModel
-from environment_generator.models.blueprint import FeatureCollection, LocationBlueprint
+from environment_generator.models.blueprint import LocationBlueprint
 from environment_generator.models.overrides import LocationOverrides
 from environment_generator.models.pipeline import (
     GenerationPlan,
@@ -33,6 +34,8 @@ from environment_generator.models.report import (
 )
 from environment_generator.models.scene import (
     AtmosphereSettings,
+    GenerationControls,
+    ManifestEntity,
     Provenance,
     Scene,
     SceneEntity,
@@ -40,6 +43,7 @@ from environment_generator.models.scene import (
     TerrainData,
     Transform,
 )
+from environment_generator.models.site import SiteDescription
 
 __all__ = [
     "CONTRACT_VERSION",
@@ -51,7 +55,7 @@ __all__ = [
     "AtmosphereSettings",
     "ContractModel",
     "Dimensions",
-    "FeatureCollection",
+    "GenerationControls",
     "GenerationPlan",
     "GenerationReport",
     "GenerationTask",
@@ -62,11 +66,13 @@ __all__ = [
     "LocationBlueprint",
     "LocationOverrides",
     "LocationRecipe",
+    "ManifestEntity",
     "Provenance",
     "ResolvedInputs",
     "Scene",
     "SceneEntity",
     "SceneManifest",
+    "SiteDescription",
     "StageReport",
     "StageStatus",
     "TerrainData",

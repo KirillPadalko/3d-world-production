@@ -1,6 +1,11 @@
 {
-  "schema_version": "1.0",
+  "schemaVersion": "1.0",
   "id": "bad-ops",
-  "blueprint_id": "rural-crossroads",
-  "entity_operations": [{ "op": "explode", "entity_id": "building.b-1" }]
+  "locationId": "rural-crossroads",
+  "entityOperations": [
+    {
+      "op": "explode",
+      "id": "b-1"
+    }
+  ]
 }

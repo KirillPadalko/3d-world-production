@@ -1,102 +1,123 @@
-"""LocationOverrides: explicit, targeted edits on top of a blueprint and recipe.
+"""LocationOverrides: explicit author changes, referenced by stable ID.
 
-Overrides capture designer decisions that must survive regeneration:
+Two kinds of operations, applied in document order:
 
-* ``seed`` and ``recipe_patch`` adjust the recipe (RFC 7396 merge patch);
-* ``feature_operations`` add, remove or patch blueprint features *before*
-  generation;
-* ``entity_operations`` remove or adjust generated entities by their stable ID
-  *after* generation.
+* ``entityOperations`` change the **blueprint** before generation: ``update``
+  (JSON merge patch of an entity), ``replaceArchetype``, ``delete`` and
+  ``add``. The source blueprint is never mutated; a new effective blueprint is
+  produced.
+* ``placementOverrides`` change **generated** entities (by manifest entity ID)
+  after generation: position, yaw and scale.
 
-Operations are applied in document order.
+Conflicts (missing target, unexpected type, duplicate ID, invalid result)
+are never discarded silently: with ``conflictPolicy: "fail"`` (default) the
+run stops; with ``"report"`` the operation is skipped and reported as a
+warning in the generation report.
 """
 
 from __future__ import annotations
 
+from enum import StrEnum
 from typing import Annotated, Any, Literal
 
-from pydantic import Field
+from pydantic import Field, StringConstraints
 
 from environment_generator.models.base import (
-    Angle,
-    ArchetypeId,
     ContractModel,
     Description,
     EntityId,
     Identifier,
     Metadata,
-    Point3,
     PositiveFloat,
-    Seed,
 )
-from environment_generator.models.blueprint import FeatureCollection
+from environment_generator.models.blueprint.common import (
+    ArchetypeName,
+    Position3,
+    YawDeg,
+)
+from environment_generator.models.blueprint.common import (
+    EntityId as BlueprintEntityId,
+)
 
 
-class RemoveFeature(ContractModel):
-    op: Literal["remove"]
-    collection: FeatureCollection
-    id: Identifier
+class EntityCollection(StrEnum):
+    """Blueprint collections addressable by overrides (JSON key names)."""
+
+    ROAD_NODES = "roadNodes"
+    ROAD_SEGMENTS = "roadSegments"
+    PLOTS = "plots"
+    BUILDINGS = "buildings"
+    VEGETATION_ZONES = "vegetationZones"
+    TREES = "trees"
+    FENCES = "fences"
+    INFRASTRUCTURE = "infrastructure"
+    PROPS = "props"
+    LANDMARKS = "landmarks"
+    WATER_BODIES = "waterBodies"
+    SURFACE_ZONES = "surfaceZones"
 
 
-class PatchFeature(ContractModel):
-    """Merge-patch (RFC 7396) one feature; the result is validated again."""
+class ConflictPolicy(StrEnum):
+    FAIL = "fail"
+    REPORT = "report"
 
-    op: Literal["patch"]
-    collection: FeatureCollection
-    id: Identifier
+
+class UpdateEntity(ContractModel):
+    """RFC 7396 merge patch of one entity; ``id`` cannot change."""
+
+    op: Literal["update"]
+    id: BlueprintEntityId
+    expected_type: EntityCollection | None = Field(
+        default=None, description="Fail if the entity is no longer in this collection."
+    )
     patch: dict[str, Any] = Field(min_length=1)
 
 
-class AddFeature(ContractModel):
+class ReplaceArchetype(ContractModel):
+    op: Literal["replaceArchetype"]
+    id: BlueprintEntityId
+    expected_type: EntityCollection | None = None
+    archetype: ArchetypeName
+
+
+class DeleteEntity(ContractModel):
+    op: Literal["delete"]
+    id: BlueprintEntityId
+    expected_type: EntityCollection | None = None
+
+
+class AddEntity(ContractModel):
     op: Literal["add"]
-    collection: FeatureCollection
-    feature: dict[str, Any] = Field(description="A complete feature of the target collection.")
+    collection: EntityCollection
+    entity: dict[str, Any] = Field(description="A complete entity of the target collection.")
 
 
-FeatureOperation = Annotated[RemoveFeature | PatchFeature | AddFeature, Field(discriminator="op")]
+EntityOperation = Annotated[
+    UpdateEntity | ReplaceArchetype | DeleteEntity | AddEntity, Field(discriminator="op")
+]
 
 
-class RemoveEntity(ContractModel):
-    op: Literal["remove"]
-    entity_id: EntityId
+class PlacementOverride(ContractModel):
+    """Move, turn or scale a generated entity (manifest frame and IDs)."""
 
-
-class SetArchetype(ContractModel):
-    op: Literal["set_archetype"]
-    entity_id: EntityId
-    archetype_id: ArchetypeId
-    variant: Annotated[int, Field(ge=0)] | None = None
-
-
-class SetTransform(ContractModel):
-    """Replace parts of an entity transform; omitted parts are kept."""
-
-    op: Literal["set_transform"]
-    entity_id: EntityId
-    position: Point3 | None = None
-    yaw_deg: Angle | None = None
+    entity_id: EntityId = Field(description="Manifest entity ID, e.g. building.b-12.")
+    position: Position3 | None = None
+    yaw_deg: YawDeg | None = None
     scale: tuple[PositiveFloat, PositiveFloat, PositiveFloat] | None = None
 
 
-EntityOperation = Annotated[RemoveEntity | SetArchetype | SetTransform, Field(discriminator="op")]
-
-
 class LocationOverrides(ContractModel):
-    """Designer overrides for one blueprint (public contract v1.0)."""
+    """Author changes for one location (public contract v1.0)."""
 
     schema_version: Literal["1.0"]
     id: Identifier
-    blueprint_id: Identifier = Field(description="Overrides only apply to this blueprint.")
+    location_id: BlueprintEntityId = Field(description="Overrides only apply to this location.")
     recipe_id: Identifier | None = Field(
         default=None, description="When set, overrides only apply together with this recipe."
     )
     description: Description | None = None
-    strict: bool = Field(
-        default=True,
-        description="Fail when an entity operation targets an unknown entity (else warn).",
-    )
-    seed: Seed | None = None
-    recipe_patch: dict[str, Any] = Field(default_factory=dict)
-    feature_operations: list[FeatureOperation] = Field(default_factory=list, max_length=10_000)
+    author: Annotated[str, StringConstraints(max_length=200)] | None = None
+    conflict_policy: ConflictPolicy = ConflictPolicy.FAIL
     entity_operations: list[EntityOperation] = Field(default_factory=list, max_length=10_000)
+    placement_overrides: list[PlacementOverride] = Field(default_factory=list, max_length=10_000)
     metadata: Metadata = Field(default_factory=dict)

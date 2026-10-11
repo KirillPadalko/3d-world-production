@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "1.0",
+  "id": "dacha-overgrown",
+  "name": "Dacha, late season, overgrown",
+  "description": "Interpretation for dacha settlements: wooden dacha archetypes only, weathered materials, garden clutter, no street lights. Seeds, similarity and abandonment come from the blueprint.",
+  "appliesTo": ["dacha-*"],
+  "detailDensity": 1.2,
+  "style": { "theme": "dacha_overgrown", "weathering": 0.6 },
+  "assets": {
+    "requiredTags": ["stylized"],
+    "preferredTags": ["dacha", "rural", "wood"],
+    "allowedArchetypes": [
+      "terrain.*",
+      "water.*",
+      "road.*",
+      "building.dacha.*",
+      "building.garage.metal",
+      "building.shed.*",
+      "building.ruin.house_shell",
+      "fence.*",
+      "infrastructure.*",
+      "vegetation.*",
+      "prop.*"
+    ],
+    "fallback": "placeholder"
+  },
+  "terrain": { "cellSizeM": 2.0 },
+  "buildings": { "orientToRoads": true },
+  "vegetation": { "densityScale": 1.0, "minSpacingM": 3.0, "scaleJitter": 0.2 },
+  "infrastructure": { "streetLights": { "enabled": false } },
+  "props": {
+    "clutter": {
+      "perBuilding": 2.0,
+      "maxDistanceM": 4,
+      "kindWeights": { "woodpile": 3, "bucket": 2, "tools": 2, "barrel": 1, "wheelbarrow": 1, "gas_cylinder": 1 }
+    }
+  },
+  "validation": { "failOnError": true }
+}

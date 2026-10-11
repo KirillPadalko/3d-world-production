@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import fnmatch
 import json
 from collections.abc import Iterable
 from functools import lru_cache
@@ -16,8 +17,8 @@ from environment_generator.models.assets import (
     AssetPalette,
     AssetRegistryDocument,
 )
-from environment_generator.models.blueprint import Biome
 from environment_generator.models.recipe import LocationRecipe
+from environment_generator.models.site import Biome
 
 BUILTIN_REGISTRY_FILE = "builtin-registry.json"
 
@@ -39,11 +40,16 @@ def builtin_registry_data() -> dict[str, object]:
 
 
 def load_builtin_registry() -> AssetRegistryDocument:
-    return AssetRegistryDocument.model_validate(builtin_registry_data())
+    return AssetRegistryDocument.model_validate(
+        builtin_registry_data(), by_alias=True, by_name=False
+    )
 
 
 def archetype_matches_recipe(archetype: Archetype, recipe: LocationRecipe, biome: Biome) -> bool:
-    """Hard filters: required/excluded tags from the recipe and biome support."""
+    """Hard filters: allowed IDs, required/excluded tags and biome support."""
+    allowed = recipe.assets.allowed_archetypes
+    if allowed and not any(fnmatch.fnmatchcase(archetype.id, pattern) for pattern in allowed):
+        return False
     tags = set(archetype.tags)
     if not set(recipe.assets.required_tags) <= tags:
         return False
@@ -54,7 +60,8 @@ def archetype_matches_recipe(archetype: Archetype, recipe: LocationRecipe, biome
 
 def _need_satisfied(need: AssetNeed, archetypes: Iterable[Archetype]) -> bool:
     return any(
-        a.category is need.category and any(kind in a.kinds for kind in need.kinds)
+        a.category is need.category
+        and (a.id == need.kinds[0] or any(kind in a.kinds for kind in need.kinds))
         for a in archetypes
     )
 

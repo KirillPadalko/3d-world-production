@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "1.0",
+  "locationId": "minimal",
+  "name": "Minimal example",
+  "description": "Converted from the v0.1 example format; see CHANGELOG.",
+  "metadata": {
+    "createdAt": "2026-10-09T20:56:04Z",
+    "createdBy": {
+      "name": "hand-authored"
+    },
+    "authors": ["environment-generator examples"],
+    "tags": ["example"],
+    "biome": "temperate"
+  },
+  "coordinateSystem": {
+    "unit": "meter",
+    "upAxis": "+y",
+    "eastAxis": "+x",
+    "northAxis": "+z",
+    "handedness": "left",
+    "yawConvention": "degrees_clockwise_from_north",
+    "origin": "southwest_corner",
+    "bounds": {
+      "widthM": 60.0,
+      "depthM": 40.0
+    }
+  },
+  "terrain": {
+    "elevation": {
+      "minM": -1.5,
+      "maxM": 1.5
+    }
+  },
+  "roads": {
+    "nodes": [
+      {
+        "id": "n-01",
+        "position": [0.0, 20.0],
+        "nodeType": "boundary"
+      },
+      {
+        "id": "n-02",
+        "position": [60.0, 20.0],
+        "nodeType": "boundary"
+      }
+    ],
+    "segments": [
+      {
+        "id": "r-1",
+        "sourceNodeId": "n-01",
+        "targetNodeId": "n-02",
+        "widthM": 6.5,
+        "surface": "asphalt",
+        "importance": "secondary"
+      }
+    ]
+  },
+  "buildings": [
+    {
+      "id": "b-1",
+      "archetype": "house",
+      "buildingType": "house",
+      "transform": {
+        "position": [30.0, 0.0, 30.0],
+        "yawDeg": 180.0
+      },
+      "dimensions": {
+        "widthM": 9.0,
+        "depthM": 7.0,
+        "heightM": 4.5
+      },
+      "floors": 1,
+      "roofType": "gable"
+    }
+  ],
+  "trees": [
+    {
+      "id": "t-1",
+      "transform": {
+        "position": [12.0, 0.0, 8.0]
+      }
+    }
+  ]
+}

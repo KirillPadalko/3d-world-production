@@ -1,36 +1,35 @@
 {
-  "schema_version": "1.0",
+  "schemaVersion": "1.0",
   "id": "stylized-rural",
   "name": "Stylized rural (default look)",
-  "description": "Clean, readable look for isometric tactical maps: village infill along streets, light clutter, street lights on village streets.",
+  "description": "Clean, readable look for isometric tactical maps: infill on vacant lots, light clutter, street lights on secondary roads.",
   "seed": 1337,
   "style": { "theme": "stylized_rural", "weathering": 0.2 },
   "assets": {
-    "required_tags": ["stylized"],
-    "preferred_tags": ["rural"],
+    "requiredTags": ["stylized"],
+    "preferredTags": ["rural"],
     "fallback": "placeholder"
   },
-  "filters": { "min_confidence": 0.5 },
-  "terrain": { "cell_size_m": 4.0, "noise_scale_m": 70, "octaves": 3 },
-  "roads": { "sample_spacing_m": 4.0 },
+  "filters": { "minConfidence": 0.5 },
+  "terrain": { "cellSizeM": 4.0, "noiseScaleM": 70, "octaves": 3 },
+  "roads": { "sampleSpacingM": 4.0 },
   "buildings": {
-    "orient_to_roads": true,
-    "zone_fill": {
+    "orientToRoads": true,
+    "zoneFill": {
       "enabled": true,
-      "zone_kinds": ["residential"],
-      "building_weights": { "house": 5, "shed": 1, "garage": 1 },
-      "lot_spacing_m": 17,
-      "setback_m": 4,
-      "spacing_m": 3,
-      "max_per_zone": 12
+      "buildingWeights": { "house": 5, "shed": 1, "garage": 1 },
+      "lotSpacingM": 17,
+      "setbackM": 4,
+      "spacingM": 3,
+      "maxPerZone": 12
     }
   },
-  "vegetation": { "density_scale": 1.0, "min_spacing_m": 3.5, "scale_jitter": 0.18 },
+  "vegetation": { "densityScale": 1.0, "minSpacingM": 3.5, "scaleJitter": 0.18 },
   "infrastructure": {
-    "pole_spacing_m": 32,
-    "street_lights": { "road_kinds": ["street"], "spacing_m": 26, "placement": "alternate" }
+    "poleSpacingM": 32,
+    "streetLights": { "roadImportance": ["secondary"], "spacingM": 26, "placement": "alternate" }
   },
-  "props": { "clutter": { "per_building": 1.5, "max_distance_m": 3.5 } },
-  "atmosphere": { "fog_density_scale": 1.0 },
-  "validation": { "fail_on_error": true, "max_entities": 20000 }
+  "props": { "clutter": { "perBuilding": 1.5, "maxDistanceM": 3.5 } },
+  "atmosphere": { "fogDensityScale": 1.0 },
+  "validation": { "failOnError": true, "maxEntities": 20000 }
 }

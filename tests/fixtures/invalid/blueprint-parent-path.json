@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0",
+  "locationId": "dotdot-path",
+  "name": "Path escaping the package",
+  "metadata": {
+    "createdAt": "2026-01-01T00:00:00Z"
+  },
+  "coordinateSystem": {
+    "unit": "meter",
+    "upAxis": "+y",
+    "eastAxis": "+x",
+    "northAxis": "+z",
+    "handedness": "left",
+    "yawConvention": "degrees_clockwise_from_north",
+    "origin": "southwest_corner",
+    "bounds": {
+      "widthM": 50,
+      "depthM": 50
+    }
+  },
+  "terrain": {
+    "heightmap": {
+      "file": {
+        "path": "terrain/../../secret.r16"
+      },
+      "encoding": "raw_u16_le",
+      "columns": 2,
+      "rows": 2,
+      "rowOrder": "south_to_north",
+      "heightScaleM": 0.01
+    }
+  }
+}

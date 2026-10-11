@@ -1,38 +1,45 @@
 {
-  "schema_version": "1.0",
+  "schemaVersion": "1.0",
   "id": "designer-pass-01",
-  "blueprint_id": "rural-crossroads",
-  "description": "Level designer pass for an evening mission: drop the farm shed, ruin the barn, add a checkpoint, swap the shop model and clear a firing lane.",
-  "strict": true,
-  "recipe_patch": {
-    "atmosphere": { "time_of_day": "dusk", "weather": "overcast" },
-    "vegetation": { "density_scale": 0.8 }
-  },
-  "feature_operations": [
-    { "op": "remove", "collection": "buildings", "id": "b-shed-1" },
-    { "op": "patch", "collection": "buildings", "id": "b-barn", "patch": { "condition": "ruined" } },
+  "locationId": "rural-crossroads",
+  "description": "Level designer pass for a mission: drop the farm shed, ruin the barn, add a checkpoint, use a modern model for the shop, remove an oak and move the parked car.",
+  "author": "level design",
+  "conflictPolicy": "fail",
+  "entityOperations": [
+    { "op": "delete", "id": "b-shed-1", "expectedType": "buildings" },
+    {
+      "op": "update",
+      "id": "b-barn",
+      "expectedType": "buildings",
+      "patch": { "condition": 0.1, "abandonment": 0.9, "roofType": "collapsed" }
+    },
+    {
+      "op": "replaceArchetype",
+      "id": "b-shop",
+      "expectedType": "buildings",
+      "archetype": "building.house.flat_modern"
+    },
+    { "op": "delete", "id": "t-oak-2", "expectedType": "trees" },
     {
       "op": "add",
       "collection": "props",
-      "feature": {
+      "entity": {
         "id": "p-checkpoint-1",
-        "kind": "sandbags",
-        "geometry": { "type": "point", "position": [136, 101], "rotation_deg": 90 }
+        "propType": "sandbags",
+        "transform": { "position": [136.0, 2.0, 101.0], "yawDeg": 270.0 }
       }
     },
     {
       "op": "add",
       "collection": "props",
-      "feature": {
+      "entity": {
         "id": "p-checkpoint-2",
-        "kind": "sandbags",
-        "geometry": { "type": "point", "position": [123, 99], "rotation_deg": 15 }
+        "propType": "sandbags",
+        "transform": { "position": [123.0, 2.0, 99.0], "yawDeg": 345.0 }
       }
     }
   ],
-  "entity_operations": [
-    { "op": "set_archetype", "entity_id": "building.b-shop", "archetype_id": "building.house.flat_modern" },
-    { "op": "remove", "entity_id": "vegetation.t-oak-2" },
-    { "op": "set_transform", "entity_id": "prop.p-car-1", "position": [120.5, 119.0, 2.0], "yaw_deg": 0 }
+  "placementOverrides": [
+    { "entityId": "prop.p-car-1", "position": [120.5, 2.0, 119.0], "yawDeg": 0.0 }
   ]
 }

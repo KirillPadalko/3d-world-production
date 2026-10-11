@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "location_id": "snake",
+  "name": "Snake",
+  "metadata": {
+    "created_at": "2026-01-01T00:00:00Z"
+  },
+  "coordinate_system": {
+    "unit": "meter",
+    "upAxis": "+y",
+    "eastAxis": "+x",
+    "northAxis": "+z",
+    "handedness": "left",
+    "yawConvention": "degrees_clockwise_from_north",
+    "origin": "southwest_corner",
+    "bounds": {
+      "widthM": 50,
+      "depthM": 50
+    }
+  }
+}

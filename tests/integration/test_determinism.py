@@ -55,7 +55,7 @@ def test_local_edits_keep_unrelated_entities_stable() -> None:
     blueprint = load_json(RURAL_BLUEPRINT)
     base = {e.id: e for e in manifest(blueprint=blueprint, recipe=RURAL_RECIPE).entities}
     blueprint["props"].append(
-        {"id": "p-extra", "kind": "barrel", "geometry": {"type": "point", "position": [240, 20]}}
+        {"id": "p-extra", "propType": "barrel", "transform": {"position": [240, 0, 20]}}
     )
     edited = {e.id: e for e in manifest(blueprint=blueprint, recipe=RURAL_RECIPE).entities}
     changed = {i for i in base if i in edited and base[i] != edited[i]}

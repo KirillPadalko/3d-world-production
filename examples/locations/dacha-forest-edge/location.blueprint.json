@@ -1,0 +1,1601 @@
+{
+  "schemaVersion": "1.0",
+  "locationId": "dacha-forest-edge",
+  "name": "Dacha settlement at the forest edge",
+  "description": "Synthetic, hand-authored fixture: a small Russian dacha settlement on a gravel road with a lane to a mixed forest. Not derived from any footage.",
+  "status": "review",
+  "metadata": {
+    "createdAt": "2026-10-01T09:00:00Z",
+    "updatedAt": "2026-10-09T12:00:00Z",
+    "createdBy": {
+      "name": "hand-authored fixture"
+    },
+    "generatorVersion": "0.2.0",
+    "authors": ["Environment Generator maintainers"],
+    "tags": ["fixture", "dacha", "forest-edge"],
+    "biome": "temperate",
+    "season": "autumn",
+    "region": "Central Russia (illustrative)"
+  },
+  "coordinateSystem": {
+    "unit": "meter",
+    "upAxis": "+y",
+    "eastAxis": "+x",
+    "northAxis": "+z",
+    "handedness": "left",
+    "yawConvention": "degrees_clockwise_from_north",
+    "origin": "southwest_corner",
+    "bounds": {
+      "widthM": 160.0,
+      "depthM": 120.0
+    }
+  },
+  "generation": {
+    "masterSeed": 20261001,
+    "structuralSimilarity": 0.9,
+    "visualVariation": 0.4,
+    "subsystemSeeds": {
+      "vegetation": 77
+    }
+  },
+  "source": {
+    "type": "synthetic",
+    "description": "Authored by hand for tests and documentation. No media, frames, analysis reports or observations exist, so none are referenced.",
+    "calibration": {
+      "method": "none",
+      "notes": "Synthetic layout; distances are design values."
+    }
+  },
+  "terrain": {
+    "elevation": {
+      "minM": 140.5,
+      "maxM": 146.4
+    },
+    "heightmap": {
+      "file": {
+        "path": "terrain/heightmap.r16",
+        "mediaType": "application/octet-stream",
+        "sha256": "ab3ec3ab3e17a612542eaf013331a5aeab385d5caf07c9858a0e3b688291e475",
+        "sizeBytes": 8450
+      },
+      "encoding": "raw_u16_le",
+      "columns": 65,
+      "rows": 65,
+      "rowOrder": "south_to_north",
+      "heightScaleM": 0.001,
+      "heightOffsetM": 140.0
+    },
+    "masks": [
+      {
+        "file": {
+          "path": "terrain/wetness.u8",
+          "mediaType": "application/octet-stream",
+          "sha256": "dec70a2dd9e0e62fb20192496531ecbfe4dbbfd5ecee64394437c07fb1e0360e",
+          "sizeBytes": 1089
+        },
+        "encoding": "raw_u8",
+        "columns": 33,
+        "rows": 33,
+        "rowOrder": "south_to_north",
+        "id": "mask-wetness",
+        "meaning": "ground_wetness"
+      }
+    ],
+    "surfaceZones": [
+      {
+        "id": "sz-forest-floor",
+        "surface": "leaf_litter",
+        "polygon": [
+          [0.0, 94.0],
+          [30.0, 92.0],
+          [60.0, 95.0],
+          [75.0, 91.0],
+          [90.0, 93.0],
+          [120.0, 90.0],
+          [160.0, 92.0],
+          [160.0, 120.0],
+          [0.0, 120.0]
+        ]
+      },
+      {
+        "id": "sz-pond-mud",
+        "surface": "mud",
+        "polygon": [
+          [10.0, 97.0],
+          [20.0, 91.0],
+          [30.0, 96.0],
+          [29.0, 106.0],
+          [20.0, 110.0],
+          [11.0, 105.0]
+        ]
+      },
+      {
+        "id": "sz-yard-04",
+        "surface": "dirt",
+        "polygon": [
+          [118.0, 52.0],
+          [134.0, 52.0],
+          [134.0, 60.0],
+          [118.0, 60.0]
+        ]
+      }
+    ],
+    "slopeZones": [
+      {
+        "id": "slz-north-rise",
+        "slopeClass": "gentle",
+        "polygon": [
+          [0.0, 60.0],
+          [160.0, 60.0],
+          [160.0, 120.0],
+          [0.0, 120.0]
+        ],
+        "averageSlopeDeg": 3.5,
+        "aspectDeg": 180.0
+      }
+    ],
+    "waterBodies": [
+      {
+        "id": "wb-pond",
+        "label": "Forest pond",
+        "provenance": {
+          "category": "manual"
+        },
+        "waterType": "pond",
+        "polygon": [
+          [14.0, 98.0],
+          [20.0, 94.5],
+          [26.0, 98.0],
+          [25.5, 104.0],
+          [20.0, 106.5],
+          [14.5, 103.5]
+        ],
+        "surfaceElevationM": 144.32,
+        "depthM": 1.4
+      }
+    ],
+    "notes": "Heightmap: 65 x 65 samples, corner-aligned over the bounds (2.5 m x 1.875 m)."
+  },
+  "roads": {
+    "nodes": [
+      {
+        "id": "n-west",
+        "position": [0.0, 38.0],
+        "nodeType": "boundary"
+      },
+      {
+        "id": "n-junction",
+        "label": "Lane junction",
+        "position": [80.0, 41.0],
+        "nodeType": "junction"
+      },
+      {
+        "id": "n-east",
+        "position": [160.0, 44.0],
+        "nodeType": "boundary"
+      },
+      {
+        "id": "n-forest-gate",
+        "label": "Forest gate",
+        "position": [79.0, 86.0],
+        "nodeType": "entrance"
+      },
+      {
+        "id": "n-north",
+        "position": [84.0, 120.0],
+        "nodeType": "boundary"
+      }
+    ],
+    "segments": [
+      {
+        "id": "s-main-west",
+        "label": "Main road (west)",
+        "provenance": {
+          "category": "manual"
+        },
+        "sourceNodeId": "n-west",
+        "targetNodeId": "n-junction",
+        "curve": {
+          "type": "catmull_rom",
+          "controlPoints": [
+            [40.0, 39.2]
+          ]
+        },
+        "widthM": 5.5,
+        "surface": "gravel",
+        "importance": "primary",
+        "condition": 0.7,
+        "vegetationIntrusion": 0.1
+      },
+      {
+        "id": "s-main-east",
+        "label": "Main road (east)",
+        "provenance": {
+          "category": "manual"
+        },
+        "sourceNodeId": "n-junction",
+        "targetNodeId": "n-east",
+        "curve": {
+          "type": "catmull_rom",
+          "controlPoints": [
+            [120.0, 42.8]
+          ]
+        },
+        "widthM": 5.5,
+        "surface": "gravel",
+        "importance": "primary",
+        "condition": 0.6,
+        "vegetationIntrusion": 0.15
+      },
+      {
+        "id": "s-lane",
+        "label": "Lane to the forest",
+        "provenance": {
+          "category": "manual"
+        },
+        "sourceNodeId": "n-junction",
+        "targetNodeId": "n-forest-gate",
+        "curve": {
+          "controlPoints": [
+            [79.5, 64.0]
+          ]
+        },
+        "widthM": 3.5,
+        "surface": "dirt",
+        "importance": "secondary",
+        "condition": 0.5,
+        "vegetationIntrusion": 0.35
+      },
+      {
+        "id": "s-forest-path",
+        "label": "Forest path",
+        "provenance": {
+          "category": "manual"
+        },
+        "sourceNodeId": "n-forest-gate",
+        "targetNodeId": "n-north",
+        "curve": {
+          "type": "catmull_rom",
+          "controlPoints": [
+            [76.0, 100.0],
+            [82.0, 110.0]
+          ]
+        },
+        "widthM": 1.5,
+        "surface": "dirt",
+        "importance": "path",
+        "condition": 0.5,
+        "vegetationIntrusion": 0.6
+      }
+    ]
+  },
+  "plots": [
+    {
+      "id": "plot-01",
+      "label": "Plot 1 (Ivanov)",
+      "plotType": "dacha_plot",
+      "polygon": [
+        [20.0, 48.0],
+        [48.0, 48.0],
+        [48.0, 78.0],
+        [20.0, 78.0]
+      ],
+      "condition": 0.8,
+      "abandonment": 0.1
+    },
+    {
+      "id": "plot-02",
+      "label": "Plot 2",
+      "plotType": "dacha_plot",
+      "polygon": [
+        [50.0, 48.0],
+        [76.0, 48.0],
+        [76.0, 78.0],
+        [50.0, 78.0]
+      ],
+      "condition": 0.6,
+      "abandonment": 0.3
+    },
+    {
+      "id": "plot-03",
+      "label": "Plot 3",
+      "plotType": "dacha_plot",
+      "polygon": [
+        [84.0, 48.0],
+        [110.0, 48.0],
+        [110.0, 78.0],
+        [84.0, 78.0]
+      ],
+      "condition": 0.9,
+      "abandonment": 0.0
+    },
+    {
+      "id": "plot-04",
+      "label": "Plot 4 (abandoned)",
+      "plotType": "dacha_plot",
+      "polygon": [
+        [112.0, 49.0],
+        [138.0, 49.0],
+        [138.0, 79.0],
+        [112.0, 79.0]
+      ],
+      "condition": 0.2,
+      "abandonment": 0.9
+    },
+    {
+      "id": "plot-05",
+      "label": "Plot 5",
+      "plotType": "dacha_plot",
+      "polygon": [
+        [24.0, 4.0],
+        [58.0, 4.0],
+        [58.0, 31.0],
+        [24.0, 31.0]
+      ],
+      "condition": 0.7,
+      "abandonment": 0.2
+    },
+    {
+      "id": "plot-06",
+      "label": "Plot 6",
+      "plotType": "dacha_plot",
+      "polygon": [
+        [96.0, 6.0],
+        [130.0, 6.0],
+        [130.0, 34.0],
+        [96.0, 34.0]
+      ],
+      "condition": 0.75,
+      "abandonment": 0.15
+    },
+    {
+      "id": "plot-07",
+      "label": "Vacant lot",
+      "plotType": "vacant_lot",
+      "polygon": [
+        [62.0, 5.0],
+        [92.0, 5.0],
+        [92.0, 32.0],
+        [62.0, 32.0]
+      ]
+    },
+    {
+      "id": "plot-common",
+      "label": "Common area",
+      "plotType": "common_area",
+      "polygon": [
+        [141.0, 49.0],
+        [159.0, 49.0],
+        [159.0, 77.0],
+        [141.0, 77.0]
+      ],
+      "condition": 0.5,
+      "abandonment": 0.4
+    }
+  ],
+  "buildings": [
+    {
+      "id": "b-house-01",
+      "label": "Log house",
+      "provenance": {
+        "category": "manual"
+      },
+      "archetype": "wooden_house_medium",
+      "buildingType": "house",
+      "transform": {
+        "position": [34.0, 142.2, 64.0],
+        "yawDeg": 180.0
+      },
+      "dimensions": {
+        "widthM": 7.5,
+        "depthM": 6.5,
+        "heightM": 6.5
+      },
+      "floors": 1,
+      "condition": 0.85,
+      "abandonment": 0.1,
+      "roofType": "gable",
+      "wallMaterial": "wood_log",
+      "openings": {
+        "windows": "intact",
+        "doors": "closed"
+      },
+      "plotId": "plot-01"
+    },
+    {
+      "id": "b-house-02",
+      "label": "Small board house",
+      "provenance": {
+        "category": "manual"
+      },
+      "archetype": "wooden_house_small",
+      "buildingType": "house",
+      "transform": {
+        "position": [62.0, 142.34, 63.0],
+        "yawDeg": 180.0
+      },
+      "dimensions": {
+        "widthM": 6.0,
+        "depthM": 5.0,
+        "heightM": 5.5
+      },
+      "floors": 1,
+      "condition": 0.7,
+      "abandonment": 0.3,
+      "roofType": "gable",
+      "wallMaterial": "wood_board",
+      "openings": {
+        "windows": "mixed",
+        "doors": "closed"
+      },
+      "plotId": "plot-02"
+    },
+    {
+      "id": "b-banya-02",
+      "label": "Bathhouse",
+      "provenance": {
+        "category": "manual"
+      },
+      "archetype": "banya_small",
+      "buildingType": "bathhouse",
+      "transform": {
+        "position": [71.0, 143.32, 73.0],
+        "yawDeg": 270.0
+      },
+      "dimensions": {
+        "widthM": 3.5,
+        "depthM": 3.0,
+        "heightM": 3.0
+      },
+      "floors": 1,
+      "condition": 0.75,
+      "abandonment": 0.3,
+      "roofType": "shed",
+      "wallMaterial": "wood_log",
+      "openings": {
+        "windows": "intact",
+        "doors": "closed"
+      },
+      "plotId": "plot-02"
+    },
+    {
+      "id": "b-house-03",
+      "label": "Two-storey house",
+      "provenance": {
+        "category": "manual"
+      },
+      "archetype": "wooden_house_two_storey",
+      "buildingType": "house",
+      "transform": {
+        "position": [97.0, 142.83, 62.0],
+        "yawDeg": 180.0
+      },
+      "dimensions": {
+        "widthM": 8.0,
+        "depthM": 7.0,
+        "heightM": 8.5
+      },
+      "footprint": [
+        [93.0, 58.5],
+        [101.0, 58.5],
+        [101.0, 65.5],
+        [93.0, 65.5]
+      ],
+      "floors": 2,
+      "roofType": "gable",
+      "wallMaterial": "wood_board",
+      "openings": {
+        "windows": "intact",
+        "doors": "closed"
+      },
+      "plotId": "plot-03"
+    },
+    {
+      "id": "b-shed-03",
+      "label": "Tool shed",
+      "provenance": {
+        "category": "manual"
+      },
+      "archetype": "wooden_shed",
+      "buildingType": "shed",
+      "transform": {
+        "position": [105.5, 143.56, 73.5],
+        "yawDeg": 270.0
+      },
+      "dimensions": {
+        "widthM": 3.0,
+        "depthM": 2.5,
+        "heightM": 2.6
+      },
+      "floors": 1,
+      "roofType": "shed",
+      "wallMaterial": "wood_board",
+      "openings": {
+        "windows": "intact",
+        "doors": "closed"
+      },
+      "plotId": "plot-03"
+    },
+    {
+      "id": "b-house-04",
+      "label": "Abandoned house",
+      "tags": ["abandoned"],
+      "provenance": {
+        "category": "manual"
+      },
+      "archetype": "wooden_house_small",
+      "buildingType": "house",
+      "transform": {
+        "position": [125.0, 142.91, 64.0],
+        "yawDeg": 180.0
+      },
+      "dimensions": {
+        "widthM": 6.5,
+        "depthM": 5.5,
+        "heightM": 5.5
+      },
+      "floors": 1,
+      "condition": 0.35,
+      "abandonment": 0.85,
+      "roofType": "gable",
+      "wallMaterial": "wood_log",
+      "openings": {
+        "windows": "broken",
+        "doors": "missing"
+      },
+      "plotId": "plot-04"
+    },
+    {
+      "id": "b-greenhouse-04",
+      "label": "Collapsed greenhouse",
+      "tags": ["abandoned"],
+      "provenance": {
+        "category": "manual"
+      },
+      "archetype": "greenhouse_frame",
+      "buildingType": "greenhouse",
+      "transform": {
+        "position": [132.0, 142.2, 55.0],
+        "yawDeg": 90.0
+      },
+      "dimensions": {
+        "widthM": 3.0,
+        "depthM": 6.0,
+        "heightM": 2.4
+      },
+      "floors": 1,
+      "condition": 0.15,
+      "abandonment": 0.95,
+      "roofType": "collapsed",
+      "wallMaterial": "glass",
+      "openings": {
+        "windows": "missing",
+        "doors": "missing"
+      },
+      "plotId": "plot-04"
+    },
+    {
+      "id": "b-house-05",
+      "label": "Brick-based house",
+      "provenance": {
+        "category": "manual"
+      },
+      "archetype": "wooden_house_medium",
+      "buildingType": "house",
+      "transform": {
+        "position": [44.0, 141.16, 21.0]
+      },
+      "dimensions": {
+        "widthM": 7.0,
+        "depthM": 6.0,
+        "heightM": 6.0
+      },
+      "floors": 1,
+      "condition": 0.8,
+      "abandonment": 0.15,
+      "roofType": "gable",
+      "wallMaterial": "wood_log",
+      "openings": {
+        "windows": "intact",
+        "doors": "closed"
+      },
+      "plotId": "plot-05"
+    },
+    {
+      "id": "b-outhouse-05",
+      "label": "Outhouse",
+      "provenance": {
+        "category": "manual"
+      },
+      "archetype": "outhouse",
+      "buildingType": "outhouse",
+      "transform": {
+        "position": [54.5, 141.31, 8.0]
+      },
+      "dimensions": {
+        "widthM": 1.2,
+        "depthM": 1.3,
+        "heightM": 2.2
+      },
+      "floors": 1,
+      "roofType": "shed",
+      "wallMaterial": "wood_board",
+      "openings": {
+        "windows": "intact",
+        "doors": "closed"
+      },
+      "plotId": "plot-05"
+    },
+    {
+      "id": "b-garage-06",
+      "label": "Metal garage",
+      "provenance": {
+        "category": "manual"
+      },
+      "archetype": "metal_garage",
+      "buildingType": "garage",
+      "transform": {
+        "position": [101.0, 141.02, 27.5]
+      },
+      "dimensions": {
+        "widthM": 3.6,
+        "depthM": 6.0,
+        "heightM": 2.6
+      },
+      "floors": 1,
+      "condition": 0.6,
+      "abandonment": 0.2,
+      "roofType": "flat",
+      "wallMaterial": "metal_sheet",
+      "openings": {
+        "windows": "intact",
+        "doors": "closed"
+      },
+      "plotId": "plot-06"
+    },
+    {
+      "id": "b-house-06",
+      "label": "Plastered house",
+      "provenance": {
+        "category": "manual"
+      },
+      "archetype": "wooden_house_small",
+      "buildingType": "house",
+      "transform": {
+        "position": [119.0, 140.83, 20.0]
+      },
+      "dimensions": {
+        "widthM": 6.0,
+        "depthM": 6.0,
+        "heightM": 5.8
+      },
+      "floors": 1,
+      "roofType": "gable",
+      "wallMaterial": "plaster",
+      "openings": {
+        "windows": "intact",
+        "doors": "closed"
+      },
+      "plotId": "plot-06"
+    }
+  ],
+  "vegetationZones": [
+    {
+      "id": "vz-forest-north",
+      "label": "Mixed forest",
+      "provenance": {
+        "category": "manual"
+      },
+      "zoneType": "forest_dense",
+      "polygon": [
+        [0.0, 94.0],
+        [30.0, 92.0],
+        [60.0, 95.0],
+        [75.0, 91.0],
+        [90.0, 93.0],
+        [120.0, 90.0],
+        [160.0, 92.0],
+        [160.0, 120.0],
+        [0.0, 120.0]
+      ],
+      "density": 0.85,
+      "species": [
+        {
+          "species": "birch",
+          "weight": 45.0
+        },
+        {
+          "species": "pine",
+          "weight": 30.0
+        },
+        {
+          "species": "spruce",
+          "weight": 15.0
+        },
+        {
+          "species": "aspen",
+          "weight": 10.0
+        }
+      ],
+      "understoryDensity": 0.5,
+      "grassDensity": 0.2,
+      "heightRange": {
+        "minM": 12.0,
+        "maxM": 24.0
+      }
+    },
+    {
+      "id": "vz-forest-edge",
+      "label": "Forest edge",
+      "provenance": {
+        "category": "manual"
+      },
+      "zoneType": "forest_light",
+      "polygon": [
+        [0.0, 80.0],
+        [160.0, 80.0],
+        [160.0, 92.0],
+        [120.0, 90.0],
+        [90.0, 93.0],
+        [75.0, 91.0],
+        [60.0, 95.0],
+        [30.0, 92.0],
+        [0.0, 94.0]
+      ],
+      "density": 0.4,
+      "species": [
+        {
+          "species": "birch",
+          "weight": 6.0
+        },
+        {
+          "species": "aspen",
+          "weight": 2.0
+        },
+        {
+          "species": "alder",
+          "weight": 2.0
+        }
+      ],
+      "understoryDensity": 0.6,
+      "grassDensity": 0.7,
+      "heightRange": {
+        "minM": 4.0,
+        "maxM": 15.0
+      }
+    },
+    {
+      "id": "vz-overgrown-04",
+      "label": "Overgrown yard",
+      "provenance": {
+        "category": "manual",
+        "notes": "Species partly unidentified on purpose (fixture for 'unknown')."
+      },
+      "zoneType": "overgrown_yard",
+      "polygon": [
+        [113.0, 50.0],
+        [137.0, 50.0],
+        [137.0, 78.0],
+        [113.0, 78.0]
+      ],
+      "density": 0.7,
+      "species": [
+        {
+          "species": "lilac",
+          "weight": 3.0
+        },
+        {
+          "species": "raspberry",
+          "weight": 3.0
+        },
+        {
+          "species": "apple",
+          "weight": 2.0
+        },
+        {
+          "species": "unknown",
+          "weight": 2.0
+        }
+      ],
+      "understoryDensity": 0.9,
+      "grassDensity": 0.9,
+      "heightRange": {
+        "minM": 0.5,
+        "maxM": 6.0
+      }
+    },
+    {
+      "id": "vz-orchard-05",
+      "label": "Apple trees",
+      "provenance": {
+        "category": "manual"
+      },
+      "zoneType": "orchard",
+      "polygon": [
+        [26.0, 5.0],
+        [40.0, 5.0],
+        [40.0, 15.0],
+        [26.0, 15.0]
+      ],
+      "density": 0.5,
+      "species": [
+        {
+          "species": "apple",
+          "weight": 8.0
+        },
+        {
+          "species": "unknown",
+          "weight": 2.0
+        }
+      ],
+      "grassDensity": 0.6
+    },
+    {
+      "id": "vz-garden-02",
+      "label": "Vegetable beds",
+      "provenance": {
+        "category": "manual"
+      },
+      "zoneType": "garden_beds",
+      "polygon": [
+        [52.0, 50.0],
+        [60.0, 50.0],
+        [60.0, 57.0],
+        [52.0, 57.0]
+      ],
+      "density": 0.6
+    },
+    {
+      "id": "vz-pond-wet",
+      "label": "Wet ground by the pond",
+      "provenance": {
+        "category": "manual"
+      },
+      "zoneType": "wet_area",
+      "polygon": [
+        [8.0, 96.0],
+        [20.0, 88.5],
+        [33.0, 95.0],
+        [31.0, 108.0],
+        [20.0, 113.0],
+        [9.0, 107.0]
+      ],
+      "density": 0.5,
+      "species": [
+        {
+          "species": "willow",
+          "weight": 6.0
+        },
+        {
+          "species": "reed",
+          "weight": 4.0
+        }
+      ],
+      "understoryDensity": 0.4,
+      "grassDensity": 0.8
+    },
+    {
+      "id": "vz-roadside-west",
+      "label": "Nettles by the road",
+      "provenance": {
+        "category": "manual"
+      },
+      "zoneType": "road_edge",
+      "polygon": [
+        [0.0, 45.0],
+        [18.0, 45.0],
+        [18.0, 79.0],
+        [0.0, 79.0]
+      ],
+      "density": 0.4,
+      "species": [
+        {
+          "species": "nettle",
+          "weight": 1.0
+        },
+        {
+          "species": "unknown",
+          "weight": 1.0
+        }
+      ],
+      "grassDensity": 0.8
+    },
+    {
+      "id": "vz-meadow-south",
+      "label": "Meadow",
+      "provenance": {
+        "category": "manual"
+      },
+      "zoneType": "meadow",
+      "polygon": [
+        [0.0, 0.0],
+        [22.0, 0.0],
+        [22.0, 33.0],
+        [0.0, 33.0]
+      ],
+      "density": 0.3,
+      "grassDensity": 0.85
+    }
+  ],
+  "trees": [
+    {
+      "id": "t-old-oak",
+      "label": "Old oak",
+      "provenance": {
+        "category": "manual"
+      },
+      "species": "oak",
+      "transform": {
+        "position": [72.0, 144.56, 88.0]
+      },
+      "heightM": 19.0,
+      "crownDiameterM": 16.0,
+      "condition": 0.9
+    },
+    {
+      "id": "t-apple-01",
+      "provenance": {
+        "category": "manual"
+      },
+      "species": "apple",
+      "transform": {
+        "position": [27.0, 141.48, 55.0],
+        "yawDeg": 40.0
+      },
+      "heightM": 5.0,
+      "crownDiameterM": 5.0,
+      "condition": 0.7
+    },
+    {
+      "id": "t-dead-birch",
+      "label": "Dead birch",
+      "provenance": {
+        "category": "manual"
+      },
+      "species": "birch",
+      "transform": {
+        "position": [120.0, 144.14, 84.0],
+        "yawDeg": 15.0
+      },
+      "heightM": 14.0,
+      "condition": 0.1
+    },
+    {
+      "id": "t-unknown-07",
+      "provenance": {
+        "category": "manual",
+        "notes": "Species deliberately left unknown."
+      },
+      "transform": {
+        "position": [70.0, 141.0, 25.0]
+      },
+      "heightM": 7.0
+    }
+  ],
+  "fences": [
+    {
+      "id": "f-plot-01",
+      "provenance": {
+        "category": "manual"
+      },
+      "fenceType": "wooden_board",
+      "path": [
+        [20.0, 48.0],
+        [48.0, 48.0],
+        [48.0, 78.0],
+        [20.0, 78.0]
+      ],
+      "closed": true,
+      "heightM": 1.6,
+      "condition": 0.8,
+      "missingSections": [
+        {
+          "start": 0.05,
+          "end": 0.08
+        }
+      ],
+      "plotId": "plot-01"
+    },
+    {
+      "id": "f-plot-02",
+      "provenance": {
+        "category": "manual"
+      },
+      "fenceType": "wooden_picket",
+      "path": [
+        [50.0, 48.0],
+        [76.0, 48.0],
+        [76.0, 78.0],
+        [50.0, 78.0]
+      ],
+      "closed": true,
+      "heightM": 1.2,
+      "condition": 0.6,
+      "missingSections": [
+        {
+          "start": 0.3,
+          "end": 0.35
+        },
+        {
+          "start": 0.62,
+          "end": 0.66
+        }
+      ],
+      "plotId": "plot-02"
+    },
+    {
+      "id": "f-plot-03-front",
+      "label": "Street fence",
+      "provenance": {
+        "category": "manual"
+      },
+      "fenceType": "metal_sheet",
+      "path": [
+        [84.0, 48.0],
+        [110.0, 48.0]
+      ],
+      "heightM": 1.8,
+      "plotId": "plot-03",
+      "gameplay": {
+        "movement": "block",
+        "projectileCover": "partial",
+        "vision": "full"
+      }
+    },
+    {
+      "id": "f-plot-04",
+      "provenance": {
+        "category": "manual",
+        "notes": "Rotten boards; three sections have fallen."
+      },
+      "fenceType": "wooden_board",
+      "path": [
+        [112.0, 49.0],
+        [138.0, 49.0],
+        [138.0, 79.0],
+        [112.0, 79.0]
+      ],
+      "closed": true,
+      "heightM": 1.6,
+      "condition": 0.3,
+      "missingSections": [
+        {
+          "start": 0.1,
+          "end": 0.22
+        },
+        {
+          "start": 0.48,
+          "end": 0.55
+        },
+        {
+          "start": 0.8,
+          "end": 0.9
+        }
+      ],
+      "plotId": "plot-04",
+      "gameplay": {
+        "movement": "block",
+        "projectileCover": "none",
+        "vision": "full"
+      }
+    },
+    {
+      "id": "f-plot-05",
+      "provenance": {
+        "category": "manual"
+      },
+      "fenceType": "wooden_picket",
+      "path": [
+        [24.0, 4.0],
+        [58.0, 4.0],
+        [58.0, 31.0],
+        [24.0, 31.0]
+      ],
+      "closed": true,
+      "heightM": 1.2,
+      "condition": 0.7,
+      "missingSections": [
+        {
+          "start": 0.4,
+          "end": 0.43
+        }
+      ],
+      "plotId": "plot-05"
+    },
+    {
+      "id": "f-plot-06",
+      "provenance": {
+        "category": "manual"
+      },
+      "fenceType": "chain_link",
+      "path": [
+        [96.0, 34.0],
+        [96.0, 6.0],
+        [130.0, 6.0],
+        [130.0, 34.0]
+      ],
+      "heightM": 1.5,
+      "condition": 0.65,
+      "missingSections": [
+        {
+          "start": 0.7,
+          "end": 0.78
+        }
+      ],
+      "plotId": "plot-06"
+    }
+  ],
+  "infrastructure": [
+    {
+      "id": "pole-01",
+      "provenance": {
+        "category": "manual"
+      },
+      "infrastructureType": "utility_pole",
+      "archetype": "wooden_utility_pole",
+      "transform": {
+        "position": [10.0, 140.94, 34.38]
+      },
+      "heightM": 8.5,
+      "condition": 0.8
+    },
+    {
+      "id": "pole-02",
+      "provenance": {
+        "category": "manual"
+      },
+      "infrastructureType": "utility_pole",
+      "archetype": "wooden_utility_pole",
+      "transform": {
+        "position": [45.0, 140.82, 35.69]
+      },
+      "heightM": 8.5,
+      "condition": 0.8
+    },
+    {
+      "id": "pole-03",
+      "provenance": {
+        "category": "manual"
+      },
+      "infrastructureType": "utility_pole",
+      "archetype": "wooden_utility_pole",
+      "transform": {
+        "position": [80.0, 141.18, 37.0]
+      },
+      "heightM": 8.5,
+      "condition": 0.8
+    },
+    {
+      "id": "pole-04",
+      "provenance": {
+        "category": "manual"
+      },
+      "infrastructureType": "utility_pole",
+      "archetype": "wooden_utility_pole",
+      "transform": {
+        "position": [115.0, 141.42, 38.31]
+      },
+      "heightM": 8.5,
+      "condition": 0.5
+    },
+    {
+      "id": "pole-05",
+      "provenance": {
+        "category": "manual"
+      },
+      "infrastructureType": "utility_pole",
+      "archetype": "wooden_utility_pole",
+      "transform": {
+        "position": [150.0, 141.08, 39.62]
+      },
+      "heightM": 8.5,
+      "condition": 0.8
+    },
+    {
+      "id": "pole-06",
+      "provenance": {
+        "category": "manual"
+      },
+      "infrastructureType": "utility_pole",
+      "archetype": "wooden_utility_pole",
+      "transform": {
+        "position": [82.5, 142.36, 58.0]
+      },
+      "heightM": 7.5,
+      "condition": 0.7
+    },
+    {
+      "id": "pole-07",
+      "provenance": {
+        "category": "manual"
+      },
+      "infrastructureType": "utility_pole",
+      "archetype": "wooden_utility_pole",
+      "transform": {
+        "position": [82.5, 143.92, 80.0]
+      },
+      "heightM": 7.5,
+      "condition": 0.7
+    },
+    {
+      "id": "light-junction",
+      "label": "Lamp on pole 3",
+      "provenance": {
+        "category": "manual",
+        "notes": "Lamp head mounted on pole-03."
+      },
+      "infrastructureType": "light",
+      "transform": {
+        "position": [80.0, 141.18, 37.0]
+      },
+      "heightM": 7.0,
+      "condition": 0.4,
+      "parentId": "pole-03"
+    },
+    {
+      "id": "well-common",
+      "label": "Well",
+      "provenance": {
+        "category": "manual"
+      },
+      "infrastructureType": "well",
+      "archetype": "well_wooden",
+      "transform": {
+        "position": [148.0, 142.23, 60.0]
+      },
+      "heightM": 2.2,
+      "condition": 0.6,
+      "gameplay": {
+        "movement": "block",
+        "projectileCover": "partial",
+        "vision": "partial"
+      }
+    },
+    {
+      "id": "sign-entrance",
+      "label": "Settlement sign",
+      "provenance": {
+        "category": "manual"
+      },
+      "infrastructureType": "sign",
+      "transform": {
+        "position": [4.0, 140.99, 34.0],
+        "yawDeg": 90.0
+      },
+      "heightM": 2.5,
+      "condition": 0.5
+    },
+    {
+      "id": "container-common",
+      "label": "Rubbish container",
+      "provenance": {
+        "category": "manual"
+      },
+      "infrastructureType": "container",
+      "transform": {
+        "position": [153.0, 141.57, 52.0],
+        "yawDeg": 270.0
+      },
+      "heightM": 1.4,
+      "condition": 0.5
+    },
+    {
+      "id": "w-main",
+      "provenance": {
+        "category": "manual"
+      },
+      "infrastructureType": "wire",
+      "wireKind": "power",
+      "poleIds": ["pole-01", "pole-02", "pole-03", "pole-04", "pole-05"],
+      "sagM": 0.6,
+      "condition": 0.8
+    },
+    {
+      "id": "w-lane",
+      "provenance": {
+        "category": "manual"
+      },
+      "infrastructureType": "wire",
+      "wireKind": "power",
+      "poleIds": ["pole-03", "pole-06", "pole-07"],
+      "sagM": 0.5,
+      "condition": 0.6
+    }
+  ],
+  "props": [
+    {
+      "id": "pr-woodpile-02",
+      "provenance": {
+        "category": "manual"
+      },
+      "propType": "woodpile",
+      "transform": {
+        "position": [67.0, 143.42, 74.5],
+        "yawDeg": 270.0
+      },
+      "parentId": "b-banya-02"
+    },
+    {
+      "id": "pr-wheelbarrow-01",
+      "provenance": {
+        "category": "manual"
+      },
+      "propType": "wheelbarrow",
+      "transform": {
+        "position": [40.0, 141.38, 54.0],
+        "yawDeg": 135.0
+      },
+      "condition": 0.6,
+      "parentId": "plot-01"
+    },
+    {
+      "id": "pr-barrel-03",
+      "provenance": {
+        "category": "manual"
+      },
+      "propType": "barrel",
+      "transform": {
+        "position": [92.0, 142.48, 57.5]
+      },
+      "condition": 0.5,
+      "parentId": "b-house-03"
+    },
+    {
+      "id": "pr-bicycle-03",
+      "provenance": {
+        "category": "manual"
+      },
+      "propType": "bicycle",
+      "transform": {
+        "position": [103.0, 143.42, 71.0],
+        "yawDeg": 270.0
+      },
+      "condition": 0.7,
+      "parentId": "b-shed-03"
+    },
+    {
+      "id": "pr-car-wreck-04",
+      "provenance": {
+        "category": "manual"
+      },
+      "propType": "car_wreck",
+      "transform": {
+        "position": [119.0, 142.32, 54.0],
+        "yawDeg": 200.0
+      },
+      "condition": 0.1,
+      "parentId": "plot-04"
+    },
+    {
+      "id": "pr-debris-04",
+      "provenance": {
+        "category": "manual"
+      },
+      "propType": "debris",
+      "transform": {
+        "position": [131.0, 143.24, 70.0],
+        "yawDeg": 30.0
+      },
+      "condition": 0.0,
+      "parentId": "plot-04"
+    },
+    {
+      "id": "pr-gas-05",
+      "provenance": {
+        "category": "manual"
+      },
+      "propType": "gas_cylinder",
+      "transform": {
+        "position": [48.2, 141.21, 18.0]
+      },
+      "parentId": "b-house-05"
+    },
+    {
+      "id": "pr-tires-06",
+      "provenance": {
+        "category": "manual"
+      },
+      "propType": "tires",
+      "transform": {
+        "position": [108.0, 140.98, 26.0]
+      },
+      "condition": 0.3,
+      "parentId": "plot-06"
+    },
+    {
+      "id": "pr-bench-common",
+      "provenance": {
+        "category": "manual"
+      },
+      "propType": "bench",
+      "transform": {
+        "position": [146.0, 141.98, 56.0],
+        "yawDeg": 270.0
+      },
+      "condition": 0.5,
+      "parentId": "plot-common"
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "lm-old-oak",
+      "label": "Old oak at the forest gate",
+      "landmarkType": "large_tree",
+      "position": [72.0, 144.56, 88.0],
+      "importance": 0.6,
+      "visibilityRadiusM": 60.0,
+      "linkedEntityId": "t-old-oak",
+      "gameplayRoles": ["orientation", "rally_point"]
+    },
+    {
+      "id": "lm-junction",
+      "label": "Lane junction",
+      "landmarkType": "crossroads",
+      "position": [80.0, 141.33, 41.0],
+      "linkedEntityId": "n-junction",
+      "gameplayRoles": ["orientation"]
+    },
+    {
+      "id": "lm-abandoned-house",
+      "label": "Abandoned house",
+      "landmarkType": "building",
+      "position": [125.0, 142.91, 64.0],
+      "importance": 0.8,
+      "visibility": "high",
+      "visibilityRadiusM": 90.0,
+      "linkedEntityId": "b-house-04",
+      "gameplayRoles": ["objective", "cover"]
+    },
+    {
+      "id": "lm-well",
+      "label": "Common well",
+      "landmarkType": "well",
+      "position": [148.0, 142.23, 60.0],
+      "importance": 0.4,
+      "visibility": "low",
+      "linkedEntityId": "well-common",
+      "gameplayRoles": ["water_source"]
+    }
+  ],
+  "gameplay": {
+    "navigationAreas": [
+      {
+        "id": "na-pond",
+        "areaType": "blocked",
+        "entityIds": ["wb-pond"],
+        "reason": "Deep water."
+      },
+      {
+        "id": "na-roads",
+        "areaType": "walkable",
+        "entityIds": ["s-main-west", "s-main-east", "s-lane", "s-forest-path"]
+      }
+    ],
+    "coverZones": [
+      {
+        "id": "cz-forest-edge",
+        "label": "Forest edge",
+        "polygon": [
+          [0.0, 80.0],
+          [160.0, 80.0],
+          [160.0, 96.0],
+          [0.0, 96.0]
+        ],
+        "movement": "slow",
+        "vision": "full",
+        "linkedEntityIds": ["vz-forest-edge"]
+      },
+      {
+        "id": "cz-house-04",
+        "label": "Abandoned house walls",
+        "polygon": [
+          [121.5, 61.0],
+          [128.5, 61.0],
+          [128.5, 67.0],
+          [121.5, 67.0]
+        ],
+        "movement": "block",
+        "projectileCover": "full",
+        "vision": "full",
+        "linkedEntityIds": ["b-house-04"]
+      },
+      {
+        "id": "cz-fence-04",
+        "label": "Board fence of plot 4",
+        "polygon": [
+          [111.5, 48.5],
+          [138.5, 48.5],
+          [138.5, 49.5],
+          [111.5, 49.5]
+        ],
+        "movement": "block",
+        "projectileCover": "none",
+        "vision": "full",
+        "linkedEntityIds": ["f-plot-04"],
+        "notes": "Boards stop movement and sight but not bullets."
+      },
+      {
+        "id": "cz-overgrowth-04",
+        "polygon": [
+          [113.0, 50.0],
+          [137.0, 50.0],
+          [137.0, 78.0],
+          [113.0, 78.0]
+        ],
+        "movement": "slow",
+        "projectileCover": "none",
+        "linkedEntityIds": ["vz-overgrown-04"]
+      }
+    ],
+    "combatZones": [
+      {
+        "id": "cbz-plot-04",
+        "label": "Abandoned plot",
+        "polygon": [
+          [110.0, 44.0],
+          [140.0, 44.0],
+          [140.0, 82.0],
+          [110.0, 82.0]
+        ],
+        "engagementRange": "close"
+      }
+    ],
+    "spawnClearances": [
+      {
+        "id": "sp-west",
+        "position": [6.0, 38.0],
+        "radiusM": 5.0,
+        "role": "player_spawn"
+      },
+      {
+        "id": "sp-east",
+        "position": [154.0, 44.0],
+        "radiusM": 5.0,
+        "role": "enemy_spawn"
+      }
+    ],
+    "connectivity": {
+      "entranceIds": ["n-west", "n-east", "n-north"]
+    },
+    "lineOfSight": [
+      {
+        "id": "los-junction-house-04",
+        "fromPosition": [80.0, 143.03, 41.0],
+        "toPosition": [125.0, 144.60999999999999, 64.0],
+        "expected": "partial",
+        "notes": "Fence and overgrowth of plot 4 partially hide the house."
+      }
+    ]
+  },
+  "atmosphere": {
+    "weather": "overcast",
+    "timeOfDay": "morning",
+    "groundWetness": 0.45,
+    "abandonment": 0.4,
+    "vegetationCondition": 0.75,
+    "fogDensity": 0.2,
+    "saturation": 0.85,
+    "contrast": 0.95,
+    "palette": [
+      {
+        "role": "wood_weathered",
+        "color": "#6B5A47"
+      },
+      {
+        "role": "roof_rust",
+        "color": "#8A4B32"
+      },
+      {
+        "role": "foliage_autumn",
+        "color": "#9A7B2F"
+      },
+      {
+        "role": "sky",
+        "color": "#B8BDBF"
+      }
+    ]
+  },
+  "extensions": {
+    "x-fixture.purpose": "contract-tests-and-docs"
+  }
+}

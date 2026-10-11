@@ -40,7 +40,7 @@ def assert_close(expected: Any, actual: Any, path: str = "$") -> None:
     elif isinstance(expected, dict):
         assert isinstance(actual, dict) and set(expected) == set(actual), path
         for key in expected:
-            if key in {"content_hash", "manifest_content_hash", "input_fingerprint"}:
+            if key in {"contentHash", "content_hash", "manifestContentHash", "inputFingerprint"}:
                 continue
             assert_close(expected[key], actual[key], f"{path}.{key}")
     elif isinstance(expected, list):

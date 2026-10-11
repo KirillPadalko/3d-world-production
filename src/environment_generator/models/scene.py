@@ -1,10 +1,14 @@
-"""Abstract scene representation and the portable scene manifest.
+"""Generated scene (internal) and the portable scene manifest (public).
 
-Coordinate system (see ``docs/GENERATION_PIPELINE.md``): metres, right-handed,
-+X east, +Y north, +Z up, origin at the south-west corner of the extent.
-``rotation_deg`` is an extrinsic X-Y-Z Euler rotation; ``rotation_deg[2]`` is
-the yaw, counter-clockwise viewed from above. At yaw 0 an object's local +Y
-("front") faces world +Y.
+Two frames are involved (see :mod:`environment_generator.core.frames`):
+
+* :class:`Scene` / :class:`SceneEntity` are internal and use the generator
+  frame: +X east, +Y north, +Z up; ``rotation_deg[2]`` is a counter-clockwise
+  yaw; an object's front is local +Y.
+* :class:`SceneManifest` / :class:`ManifestEntity` are public and use the
+  location frame shared with LocationBlueprint: +X east, +Y up, +Z north
+  (left-handed); ``rotationDeg[1]`` is the yaw in degrees clockwise from north;
+  an object's front is local +Z. The exporter converts between them.
 """
 
 from __future__ import annotations
@@ -27,14 +31,16 @@ from environment_generator.models.base import (
     PositiveFloat,
     UnitInterval,
 )
-from environment_generator.models.blueprint import (
+from environment_generator.models.blueprint.atmosphere import PaletteColor
+from environment_generator.models.blueprint.gameplay import Gameplay, Landmark
+from environment_generator.models.recipe import GeneratorName
+from environment_generator.models.site import (
     Extent,
     GroundCover,
     Season,
     TimeOfDay,
     Weather,
 )
-from environment_generator.models.recipe import GeneratorName
 
 ParameterValue = str | int | float | bool | list[str]
 RGB = tuple[UnitInterval, UnitInterval, UnitInterval]
@@ -155,27 +161,76 @@ class AtmosphereSettings(ContractModel):
     foliage: Foliage
     style_theme: str
     weathering: UnitInterval
+    ground_wetness: UnitInterval = 0.0
+    saturation: Annotated[float, Field(ge=0.0, le=2.0)] = 1.0
+    contrast: Annotated[float, Field(ge=0.0, le=2.0)] = 1.0
+    abandonment: UnitInterval = 0.0
+    vegetation_condition: UnitInterval = 1.0
+    palette: list[PaletteColor] = Field(default_factory=list)
 
 
 class Scene(ContractModel):
-    """Output of the generation stage, before export."""
+    """Output of the generation stage, before export (generator frame)."""
 
-    blueprint_id: Identifier
+    location_id: Identifier
     extent: Extent
     terrain: TerrainData | None
     atmosphere: AtmosphereSettings | None
     entities: list[SceneEntity]
 
 
+class ManifestTransform(ContractModel):
+    """Transform in the location frame (same as LocationBlueprint and Unity)."""
+
+    position: Point3 = Field(description="[x, y, z]: east, up, north in metres.")
+    rotation_deg: Point3 = Field(
+        default=(0.0, 0.0, 0.0),
+        description="Euler degrees about X, Y, Z applied in Z, X, Y order; Y is the yaw "
+        "(clockwise from north seen from above).",
+    )
+    scale: Point3 = Field(
+        default=(1.0, 1.0, 1.0), description="Along local X (width), Y (height), Z (depth)."
+    )
+
+    @property
+    def yaw_deg(self) -> float:
+        return self.rotation_deg[1]
+
+
+class ManifestEntity(SceneEntity):
+    """A generated entity in the location frame; geometry points are ``[x, y, z]``."""
+
+    transform: ManifestTransform  # type: ignore[assignment]
+
+
 class CoordinateSystem(ContractModel):
-    units: Literal["meters"] = "meters"
-    handedness: Literal["right"] = "right"
-    up_axis: Literal["+z"] = "+z"
-    x_axis: Literal["east"] = "east"
-    y_axis: Literal["north"] = "north"
-    origin: Literal["extent_south_west_corner"] = "extent_south_west_corner"
-    rotation: Literal["euler_xyz_extrinsic_degrees_ccw"] = "euler_xyz_extrinsic_degrees_ccw"
-    forward_axis: Literal["+y"] = "+y"
+    """The manifest's spatial convention (identical to LocationBlueprint v1.0)."""
+
+    unit: Literal["meter"] = "meter"
+    up_axis: Literal["+y"] = "+y"
+    east_axis: Literal["+x"] = "+x"
+    north_axis: Literal["+z"] = "+z"
+    handedness: Literal["left"] = "left"
+    yaw_convention: Literal["degrees_clockwise_from_north"] = "degrees_clockwise_from_north"
+    rotation_order: Literal["zxy"] = "zxy"
+    forward_axis: Literal["+z"] = "+z"
+    origin: Literal["southwest_corner"] = "southwest_corner"
+
+
+class GenerationControls(ContractModel):
+    """Effective generation controls after recipe/blueprint precedence."""
+
+    structural_similarity: UnitInterval
+    visual_variation: UnitInterval
+    detail_density: Annotated[float, Field(ge=0.0, le=4.0)]
+    abandonment: UnitInterval
+
+
+class Annotations(ContractModel):
+    """Blueprint landmarks and gameplay annotations, passed through unchanged."""
+
+    landmarks: list[Landmark] = Field(default_factory=list)
+    gameplay: Gameplay = Field(default_factory=Gameplay)
 
 
 class GeneratorInfo(ContractModel):
@@ -184,8 +239,8 @@ class GeneratorInfo(ContractModel):
 
 
 class ManifestSource(ContractModel):
-    blueprint_id: Identifier
-    blueprint_name: str
+    location_id: Identifier
+    location_name: str
     recipe_id: Identifier
     overrides_id: Identifier | None
     registry_id: Identifier
@@ -193,6 +248,7 @@ class ManifestSource(ContractModel):
     generator_seeds: dict[str, int] = Field(
         description="Seed of each generator task (derived from `seed`, see the plan)."
     )
+    controls: GenerationControls
     input_fingerprint: str
 
 
@@ -213,7 +269,8 @@ class SceneManifest(ContractModel):
     extent: Extent
     terrain: TerrainData | None
     atmosphere: AtmosphereSettings | None
-    entities: list[SceneEntity]
+    entities: list[ManifestEntity]
+    annotations: Annotations = Field(default_factory=Annotations)
     statistics: ManifestStatistics
     content_hash: str = Field(
         description="sha256 of the canonical JSON of this manifest without this field."

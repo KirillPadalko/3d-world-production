@@ -2,14 +2,21 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:environment-generator:schema:location-blueprint:1.0",
   "$defs": {
-    "AtmosphereObservation": {
+    "AnalysisReport": {
       "additionalProperties": false,
-      "description": "Conditions observed in the source material. The recipe may override them.",
       "properties": {
-        "time_of_day": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "file": {
+          "$ref": "#/$defs/FileReference"
+        },
+        "tool": {
           "anyOf": [
             {
-              "$ref": "#/$defs/TimeOfDay"
+              "$ref": "#/$defs/ToolInfo"
             },
             {
               "type": "null"
@@ -17,66 +24,7 @@
           ],
           "default": null
         },
-        "weather": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Weather"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        },
-        "season": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Season"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        }
-      },
-      "title": "AtmosphereObservation",
-      "type": "object"
-    },
-    "Biome": {
-      "enum": [
-        "temperate",
-        "boreal",
-        "mediterranean",
-        "arid",
-        "tropical",
-        "alpine"
-      ],
-      "title": "Biome",
-      "type": "string"
-    },
-    "BlueprintSource": {
-      "additionalProperties": false,
-      "description": "Where the blueprint came from; informative, recorded in provenance.",
-      "properties": {
-        "kind": {
-          "$ref": "#/$defs/SourceKind",
-          "default": "manual"
-        },
-        "reference": {
-          "anyOf": [
-            {
-              "maxLength": 500,
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Reference"
-        },
-        "captured_at": {
+        "createdAt": {
           "anyOf": [
             {
               "format": "date-time",
@@ -87,54 +35,148 @@
             }
           ],
           "default": null,
-          "title": "Captured At"
-        },
-        "analyzer": {
-          "anyOf": [
-            {
-              "maxLength": 200,
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "description": "Tool and version that produced the blueprint.",
-          "title": "Analyzer"
-        },
-        "notes": {
-          "anyOf": [
-            {
-              "maxLength": 2000,
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Notes"
+          "title": "Createdat"
         }
       },
-      "title": "BlueprintSource",
+      "required": [
+        "id",
+        "file"
+      ],
+      "title": "AnalysisReport",
+      "type": "object"
+    },
+    "Atmosphere": {
+      "additionalProperties": false,
+      "description": "Observed or intended look; every value has a neutral default.",
+      "properties": {
+        "weather": {
+          "$ref": "#/$defs/Weather",
+          "default": "clear"
+        },
+        "timeOfDay": {
+          "$ref": "#/$defs/TimeOfDay",
+          "default": "afternoon"
+        },
+        "groundWetness": {
+          "default": 0.0,
+          "description": "0 = dry, 1 = waterlogged.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Groundwetness",
+          "type": "number"
+        },
+        "abandonment": {
+          "default": 0.0,
+          "description": "Overall impression; buildings carry their own value.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Abandonment",
+          "type": "number"
+        },
+        "vegetationCondition": {
+          "default": 1.0,
+          "description": "0 = dead/dry, 1 = lush.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Vegetationcondition",
+          "type": "number"
+        },
+        "fogDensity": {
+          "default": 0.0,
+          "description": "0 = none, 1 = very dense.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Fogdensity",
+          "type": "number"
+        },
+        "saturation": {
+          "default": 1.0,
+          "description": "Colour saturation multiplier; 1 = neutral.",
+          "maximum": 2.0,
+          "minimum": 0.0,
+          "title": "Saturation",
+          "type": "number"
+        },
+        "contrast": {
+          "default": 1.0,
+          "description": "Contrast multiplier; 1 = neutral.",
+          "maximum": 2.0,
+          "minimum": 0.0,
+          "title": "Contrast",
+          "type": "number"
+        },
+        "palette": {
+          "items": {
+            "$ref": "#/$defs/PaletteColor"
+          },
+          "maxItems": 32,
+          "title": "Palette",
+          "type": "array"
+        }
+      },
+      "title": "Atmosphere",
+      "type": "object"
+    },
+    "Biome": {
+      "enum": [
+        "temperate",
+        "boreal",
+        "steppe",
+        "mediterranean",
+        "arid",
+        "tropical",
+        "alpine",
+        "unknown"
+      ],
+      "title": "Biome",
+      "type": "string"
+    },
+    "Bounds": {
+      "additionalProperties": false,
+      "description": "Horizontal extent: x in [0, widthM] (east), z in [0, depthM] (north).",
+      "properties": {
+        "widthM": {
+          "exclusiveMinimum": 0.0,
+          "maximum": 10000.0,
+          "title": "Widthm",
+          "type": "number"
+        },
+        "depthM": {
+          "exclusiveMinimum": 0.0,
+          "maximum": 10000.0,
+          "title": "Depthm",
+          "type": "number"
+        }
+      },
+      "required": [
+        "widthM",
+        "depthM"
+      ],
+      "title": "Bounds",
       "type": "object"
     },
     "Building": {
       "additionalProperties": false,
       "properties": {
         "id": {
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
           "title": "Id",
           "type": "string"
         },
-        "confidence": {
-          "default": 1.0,
-          "description": "Certainty of the analysis that produced this feature.",
-          "maximum": 1.0,
-          "minimum": 0.0,
-          "title": "Confidence",
-          "type": "number"
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
         },
         "tags": {
           "items": {
@@ -145,10 +187,128 @@
           "title": "Tags",
           "type": "array"
         },
-        "notes": {
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
           "anyOf": [
             {
-              "maxLength": 2000,
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "archetype": {
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)*$",
+          "title": "Archetype",
+          "type": "string"
+        },
+        "buildingType": {
+          "$ref": "#/$defs/BuildingType"
+        },
+        "transform": {
+          "$ref": "#/$defs/Transform",
+          "description": "Centre of the footprint at ground level; yaw = direction the front faces."
+        },
+        "dimensions": {
+          "$ref": "#/$defs/Dimensions"
+        },
+        "footprint": {
+          "anyOf": [
+            {
+              "items": {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "maximum": 100000.0,
+                    "minimum": -100000.0,
+                    "type": "number"
+                  },
+                  {
+                    "maximum": 100000.0,
+                    "minimum": -100000.0,
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              "maxItems": 10000,
+              "minItems": 3,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Exact outline in location coordinates; omitted = rectangle from dimensions.",
+          "title": "Footprint"
+        },
+        "floors": {
+          "anyOf": [
+            {
+              "maximum": 60,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Floors"
+        },
+        "condition": {
+          "default": 1.0,
+          "description": "0 = destroyed, 1 = good condition.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Condition",
+          "type": "number"
+        },
+        "abandonment": {
+          "default": 0.0,
+          "description": "0 = inhabited or maintained, 1 = strongly abandoned.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Abandonment",
+          "type": "number"
+        },
+        "roofType": {
+          "$ref": "#/$defs/RoofType",
+          "default": "unknown"
+        },
+        "wallMaterial": {
+          "$ref": "#/$defs/WallMaterial",
+          "default": "unknown"
+        },
+        "openings": {
+          "$ref": "#/$defs/Openings"
+        },
+        "plotId": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
               "type": "string"
             },
             {
@@ -156,385 +316,63 @@
             }
           ],
           "default": null,
-          "title": "Notes"
-        },
-        "kind": {
-          "$ref": "#/$defs/BuildingKind"
-        },
-        "geometry": {
-          "discriminator": {
-            "mapping": {
-              "polygon": "#/$defs/PolygonGeometry",
-              "rectangle": "#/$defs/RectangleGeometry"
-            },
-            "propertyName": "type"
-          },
-          "oneOf": [
-            {
-              "$ref": "#/$defs/PolygonGeometry"
-            },
-            {
-              "$ref": "#/$defs/RectangleGeometry"
-            }
-          ],
-          "title": "Geometry"
-        },
-        "floors": {
-          "default": 1,
-          "maximum": 60,
-          "minimum": 1,
-          "title": "Floors",
-          "type": "integer"
-        },
-        "roof": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/RoofKind"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        },
-        "condition": {
-          "$ref": "#/$defs/Condition",
-          "default": "intact"
-        },
-        "wall_material": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/WallMaterial"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
+          "title": "Plotid"
         }
       },
       "required": [
         "id",
-        "kind",
-        "geometry"
+        "archetype",
+        "buildingType",
+        "transform",
+        "dimensions"
       ],
       "title": "Building",
       "type": "object"
     },
-    "BuildingKind": {
+    "BuildingType": {
       "enum": [
         "house",
-        "apartment_block",
-        "barn",
-        "shed",
+        "bathhouse",
         "garage",
+        "shed",
+        "barn",
+        "greenhouse",
+        "outhouse",
+        "gazebo",
+        "workshop",
+        "shop",
+        "church",
+        "apartment_block",
         "warehouse",
         "factory",
-        "shop",
         "office",
-        "church"
+        "other",
+        "unknown"
       ],
-      "title": "BuildingKind",
+      "title": "BuildingType",
       "type": "string"
     },
-    "Condition": {
-      "enum": [
-        "intact",
-        "damaged",
-        "ruined"
-      ],
-      "title": "Condition",
-      "type": "string"
-    },
-    "ElevationPoint": {
+    "Calibration": {
       "additionalProperties": false,
+      "description": "How local coordinates were scaled and anchored to reality.",
       "properties": {
-        "position": {
-          "maxItems": 2,
-          "minItems": 2,
-          "prefixItems": [
-            {
-              "maximum": 100000.0,
-              "minimum": -100000.0,
-              "type": "number"
-            },
-            {
-              "maximum": 100000.0,
-              "minimum": -100000.0,
-              "type": "number"
-            }
-          ],
-          "title": "Position",
-          "type": "array"
-        },
-        "elevation_m": {
-          "maximum": 9000.0,
-          "minimum": -1000.0,
-          "title": "Elevation M",
-          "type": "number"
-        }
-      },
-      "required": [
-        "position",
-        "elevation_m"
-      ],
-      "title": "ElevationPoint",
-      "type": "object"
-    },
-    "Extent": {
-      "additionalProperties": false,
-      "description": "Size of the playable area; the origin is its south-west corner.",
-      "properties": {
-        "width_m": {
-          "exclusiveMinimum": 0.0,
-          "maximum": 5000.0,
-          "title": "Width M",
-          "type": "number"
-        },
-        "depth_m": {
-          "exclusiveMinimum": 0.0,
-          "maximum": 5000.0,
-          "title": "Depth M",
-          "type": "number"
-        }
-      },
-      "required": [
-        "width_m",
-        "depth_m"
-      ],
-      "title": "Extent",
-      "type": "object"
-    },
-    "Fence": {
-      "additionalProperties": false,
-      "properties": {
-        "id": {
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
-          "title": "Id",
-          "type": "string"
-        },
-        "confidence": {
-          "default": 1.0,
-          "description": "Certainty of the analysis that produced this feature.",
-          "maximum": 1.0,
-          "minimum": 0.0,
-          "title": "Confidence",
-          "type": "number"
-        },
-        "tags": {
-          "items": {
-            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
-            "type": "string"
-          },
-          "maxItems": 32,
-          "title": "Tags",
-          "type": "array"
-        },
-        "notes": {
-          "anyOf": [
-            {
-              "maxLength": 2000,
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Notes"
-        },
-        "kind": {
-          "$ref": "#/$defs/FenceKind"
-        },
-        "geometry": {
-          "$ref": "#/$defs/PolylineGeometry"
-        },
-        "height_m": {
-          "anyOf": [
-            {
-              "exclusiveMinimum": 0.0,
-              "maximum": 10.0,
-              "type": "number"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Height M"
-        },
-        "closed": {
-          "default": false,
-          "description": "Connect the last point back to the first.",
-          "title": "Closed",
-          "type": "boolean"
-        },
-        "gaps": {
-          "items": {
-            "$ref": "#/$defs/FenceGap"
-          },
-          "maxItems": 100,
-          "title": "Gaps",
-          "type": "array"
-        }
-      },
-      "required": [
-        "id",
-        "kind",
-        "geometry"
-      ],
-      "title": "Fence",
-      "type": "object"
-    },
-    "FenceGap": {
-      "additionalProperties": false,
-      "description": "An opening (gate, breach) measured along the fence polyline.",
-      "properties": {
-        "offset_m": {
-          "minimum": 0.0,
-          "title": "Offset M",
-          "type": "number"
-        },
-        "width_m": {
-          "exclusiveMinimum": 0.0,
-          "title": "Width M",
-          "type": "number"
-        }
-      },
-      "required": [
-        "offset_m",
-        "width_m"
-      ],
-      "title": "FenceGap",
-      "type": "object"
-    },
-    "FenceKind": {
-      "enum": [
-        "wooden",
-        "picket",
-        "chain_link",
-        "wire",
-        "stone_wall",
-        "brick_wall",
-        "concrete_wall",
-        "metal_railing"
-      ],
-      "title": "FenceKind",
-      "type": "string"
-    },
-    "GeoReference": {
-      "additionalProperties": false,
-      "description": "Optional real-world anchor of the local origin. Never required.",
-      "properties": {
-        "latitude": {
-          "maximum": 90.0,
-          "minimum": -90.0,
-          "title": "Latitude",
-          "type": "number"
-        },
-        "longitude": {
-          "maximum": 180.0,
-          "minimum": -180.0,
-          "title": "Longitude",
-          "type": "number"
-        },
-        "heading_deg": {
-          "default": 0.0,
-          "description": "Compass bearing of the local +Y axis (0 = local north is true north).",
-          "exclusiveMaximum": 360.0,
-          "minimum": 0.0,
-          "title": "Heading Deg",
-          "type": "number"
-        },
-        "altitude_m": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Altitude M"
-        }
-      },
-      "required": [
-        "latitude",
-        "longitude"
-      ],
-      "title": "GeoReference",
-      "type": "object"
-    },
-    "GroundCover": {
-      "enum": [
-        "grass",
-        "dirt",
-        "sand",
-        "gravel",
-        "snow",
-        "mud",
-        "rock",
-        "paved"
-      ],
-      "title": "GroundCover",
-      "type": "string"
-    },
-    "InfrastructureLine": {
-      "additionalProperties": false,
-      "properties": {
-        "id": {
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
-          "title": "Id",
-          "type": "string"
-        },
-        "confidence": {
-          "default": 1.0,
-          "description": "Certainty of the analysis that produced this feature.",
-          "maximum": 1.0,
-          "minimum": 0.0,
-          "title": "Confidence",
-          "type": "number"
-        },
-        "tags": {
-          "items": {
-            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
-            "type": "string"
-          },
-          "maxItems": 32,
-          "title": "Tags",
-          "type": "array"
-        },
-        "notes": {
-          "anyOf": [
-            {
-              "maxLength": 2000,
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Notes"
-        },
-        "kind": {
+        "method": {
           "enum": [
-            "power_line",
-            "telephone_line",
-            "pipeline"
+            "none",
+            "manual_scale",
+            "reference_points",
+            "gps",
+            "photogrammetry",
+            "survey"
           ],
-          "title": "Kind",
+          "title": "Method",
           "type": "string"
         },
-        "geometry": {
-          "$ref": "#/$defs/PolylineGeometry"
-        },
-        "pole_spacing_m": {
+        "scaleConfidence": {
           "anyOf": [
             {
-              "maximum": 500.0,
-              "minimum": 5.0,
+              "maximum": 1.0,
+              "minimum": 0.0,
               "type": "number"
             },
             {
@@ -542,40 +380,27 @@
             }
           ],
           "default": null,
-          "title": "Pole Spacing M"
-        }
-      },
-      "required": [
-        "id",
-        "kind",
-        "geometry"
-      ],
-      "title": "InfrastructureLine",
-      "type": "object"
-    },
-    "InfrastructurePoint": {
-      "additionalProperties": false,
-      "properties": {
-        "id": {
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
-          "title": "Id",
-          "type": "string"
+          "title": "Scaleconfidence"
         },
-        "confidence": {
-          "default": 1.0,
-          "description": "Certainty of the analysis that produced this feature.",
-          "maximum": 1.0,
-          "minimum": 0.0,
-          "title": "Confidence",
-          "type": "number"
+        "estimatedErrorM": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Estimatederrorm"
         },
-        "tags": {
+        "referencePointIds": {
           "items": {
-            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
             "type": "string"
           },
-          "maxItems": 32,
-          "title": "Tags",
+          "title": "Referencepointids",
           "type": "array"
         },
         "notes": {
@@ -590,85 +415,76 @@
           ],
           "default": null,
           "title": "Notes"
-        },
-        "kind": {
-          "enum": [
-            "street_light",
-            "utility_pole",
-            "transformer",
-            "water_tower",
-            "antenna_mast",
-            "bus_stop",
-            "well",
-            "billboard"
-          ],
-          "title": "Kind",
-          "type": "string"
-        },
-        "geometry": {
-          "$ref": "#/$defs/PointGeometry"
         }
       },
       "required": [
-        "id",
-        "kind",
-        "geometry"
+        "method"
       ],
-      "title": "InfrastructurePoint",
+      "title": "Calibration",
       "type": "object"
     },
-    "PointGeometry": {
+    "CombatZone": {
       "additionalProperties": false,
-      "description": "A single position with an optional heading.",
       "properties": {
-        "type": {
-          "const": "point",
-          "title": "Type",
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
           "type": "string"
         },
-        "position": {
-          "maxItems": 2,
-          "minItems": 2,
-          "prefixItems": [
+        "label": {
+          "anyOf": [
             {
-              "maximum": 100000.0,
-              "minimum": -100000.0,
-              "type": "number"
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
             },
             {
-              "maximum": 100000.0,
-              "minimum": -100000.0,
-              "type": "number"
+              "type": "null"
             }
           ],
-          "title": "Position",
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
           "type": "array"
         },
-        "rotation_deg": {
-          "default": 0.0,
-          "maximum": 360.0,
-          "minimum": -360.0,
-          "title": "Rotation Deg",
-          "type": "number"
-        }
-      },
-      "required": [
-        "type",
-        "position"
-      ],
-      "title": "PointGeometry",
-      "type": "object"
-    },
-    "PolygonGeometry": {
-      "additionalProperties": false,
-      "description": "A closed area. The closing point may be repeated or omitted.",
-      "properties": {
-        "type": {
-          "const": "polygon",
-          "title": "Type",
-          "type": "string"
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
         },
-        "points": {
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "polygon": {
           "items": {
             "maxItems": 2,
             "minItems": 2,
@@ -688,27 +504,419 @@
           },
           "maxItems": 10000,
           "minItems": 3,
-          "title": "Points",
+          "title": "Polygon",
           "type": "array"
+        },
+        "intensity": {
+          "default": "medium",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "title": "Intensity",
+          "type": "string"
+        },
+        "engagementRange": {
+          "default": "mixed",
+          "enum": [
+            "close",
+            "medium",
+            "long",
+            "mixed"
+          ],
+          "title": "Engagementrange",
+          "type": "string"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
         }
       },
       "required": [
-        "type",
-        "points"
+        "id",
+        "polygon"
       ],
-      "title": "PolygonGeometry",
+      "title": "CombatZone",
       "type": "object"
     },
-    "PolylineGeometry": {
+    "Connectivity": {
       "additionalProperties": false,
-      "description": "An open line through two or more points (roads, fences, hedgerows ...).",
+      "description": "Validation preferences for downstream navigation checks.",
       "properties": {
-        "type": {
-          "const": "polyline",
-          "title": "Type",
+        "requireRoadNetworkConnected": {
+          "default": true,
+          "title": "Requireroadnetworkconnected",
+          "type": "boolean"
+        },
+        "requireEntrancesReachable": {
+          "default": true,
+          "title": "Requireentrancesreachable",
+          "type": "boolean"
+        },
+        "entranceIds": {
+          "description": "Road nodes or plots that must be reachable.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Entranceids",
+          "type": "array"
+        }
+      },
+      "title": "Connectivity",
+      "type": "object"
+    },
+    "CoordinateSystem": {
+      "additionalProperties": false,
+      "description": "Declared spatial convention. Only this convention is valid in v1.0.\n\nThe fields are explicit (not implied) so that a document produced for a\ndifferent convention fails validation instead of being silently\nreinterpreted.",
+      "properties": {
+        "unit": {
+          "const": "meter",
+          "title": "Unit",
           "type": "string"
         },
-        "points": {
+        "upAxis": {
+          "const": "+y",
+          "title": "Upaxis",
+          "type": "string"
+        },
+        "eastAxis": {
+          "const": "+x",
+          "title": "Eastaxis",
+          "type": "string"
+        },
+        "northAxis": {
+          "const": "+z",
+          "title": "Northaxis",
+          "type": "string"
+        },
+        "handedness": {
+          "const": "left",
+          "title": "Handedness",
+          "type": "string"
+        },
+        "yawConvention": {
+          "const": "degrees_clockwise_from_north",
+          "title": "Yawconvention",
+          "type": "string"
+        },
+        "origin": {
+          "const": "southwest_corner",
+          "title": "Origin",
+          "type": "string"
+        },
+        "bounds": {
+          "$ref": "#/$defs/Bounds"
+        },
+        "geoReference": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GeoReference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "unit",
+        "upAxis",
+        "eastAxis",
+        "northAxis",
+        "handedness",
+        "yawConvention",
+        "origin",
+        "bounds"
+      ],
+      "title": "CoordinateSystem",
+      "type": "object"
+    },
+    "CoverLevel": {
+      "enum": [
+        "none",
+        "partial",
+        "full"
+      ],
+      "title": "CoverLevel",
+      "type": "string"
+    },
+    "CoverZone": {
+      "additionalProperties": false,
+      "description": "Where cover is intended; movement, projectiles and vision are separate.",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "polygon": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              },
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "maxItems": 10000,
+          "minItems": 3,
+          "title": "Polygon",
+          "type": "array"
+        },
+        "movement": {
+          "$ref": "#/$defs/MovementEffect",
+          "default": "none"
+        },
+        "projectileCover": {
+          "$ref": "#/$defs/CoverLevel",
+          "default": "partial"
+        },
+        "vision": {
+          "$ref": "#/$defs/CoverLevel",
+          "default": "partial"
+        },
+        "linkedEntityIds": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Linkedentityids",
+          "type": "array"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "id",
+        "polygon"
+      ],
+      "title": "CoverZone",
+      "type": "object"
+    },
+    "CurveType": {
+      "enum": [
+        "polyline",
+        "catmull_rom"
+      ],
+      "title": "CurveType",
+      "type": "string"
+    },
+    "Dimensions": {
+      "additionalProperties": false,
+      "description": "Size in the entity's local frame: X width, Z depth (front side), Y height.",
+      "properties": {
+        "widthM": {
+          "exclusiveMinimum": 0.0,
+          "maximum": 10000.0,
+          "title": "Widthm",
+          "type": "number"
+        },
+        "depthM": {
+          "exclusiveMinimum": 0.0,
+          "maximum": 10000.0,
+          "title": "Depthm",
+          "type": "number"
+        },
+        "heightM": {
+          "exclusiveMinimum": 0.0,
+          "maximum": 10000.0,
+          "title": "Heightm",
+          "type": "number"
+        }
+      },
+      "required": [
+        "widthM",
+        "depthM",
+        "heightM"
+      ],
+      "title": "Dimensions",
+      "type": "object"
+    },
+    "DoorState": {
+      "enum": [
+        "closed",
+        "open",
+        "broken",
+        "missing",
+        "boarded",
+        "unknown"
+      ],
+      "title": "DoorState",
+      "type": "string"
+    },
+    "ElevationRange": {
+      "additionalProperties": false,
+      "properties": {
+        "minM": {
+          "maximum": 9000.0,
+          "minimum": -1000.0,
+          "title": "Minm",
+          "type": "number"
+        },
+        "maxM": {
+          "maximum": 9000.0,
+          "minimum": -1000.0,
+          "title": "Maxm",
+          "type": "number"
+        }
+      },
+      "required": [
+        "minM",
+        "maxM"
+      ],
+      "title": "ElevationRange",
+      "type": "object"
+    },
+    "Fence": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "fenceType": {
+          "$ref": "#/$defs/FenceType"
+        },
+        "path": {
           "items": {
             "maxItems": 2,
             "minItems": 2,
@@ -728,46 +936,41 @@
           },
           "maxItems": 10000,
           "minItems": 2,
-          "title": "Points",
+          "title": "Path",
           "type": "array"
-        }
-      },
-      "required": [
-        "type",
-        "points"
-      ],
-      "title": "PolylineGeometry",
-      "type": "object"
-    },
-    "Prop": {
-      "additionalProperties": false,
-      "properties": {
-        "id": {
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
-          "title": "Id",
-          "type": "string"
         },
-        "confidence": {
-          "default": 1.0,
-          "description": "Certainty of the analysis that produced this feature.",
-          "maximum": 1.0,
-          "minimum": 0.0,
-          "title": "Confidence",
+        "closed": {
+          "default": false,
+          "description": "The path returns to its first point.",
+          "title": "Closed",
+          "type": "boolean"
+        },
+        "heightM": {
+          "exclusiveMinimum": 0.0,
+          "maximum": 10.0,
+          "title": "Heightm",
           "type": "number"
         },
-        "tags": {
+        "condition": {
+          "default": 1.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Condition",
+          "type": "number"
+        },
+        "missingSections": {
           "items": {
-            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
-            "type": "string"
+            "$ref": "#/$defs/MissingSection"
           },
-          "maxItems": 32,
-          "title": "Tags",
+          "maxItems": 500,
+          "title": "Missingsections",
           "type": "array"
         },
-        "notes": {
+        "archetype": {
           "anyOf": [
             {
-              "maxLength": 2000,
+              "maxLength": 128,
+              "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)*$",
               "type": "string"
             },
             {
@@ -775,140 +978,12 @@
             }
           ],
           "default": null,
-          "title": "Notes"
+          "title": "Archetype"
         },
-        "kind": {
-          "$ref": "#/$defs/PropKind"
-        },
-        "geometry": {
-          "$ref": "#/$defs/PointGeometry"
-        }
-      },
-      "required": [
-        "id",
-        "kind",
-        "geometry"
-      ],
-      "title": "Prop",
-      "type": "object"
-    },
-    "PropKind": {
-      "enum": [
-        "vehicle",
-        "wreck",
-        "crate",
-        "barrel",
-        "pallet",
-        "sandbags",
-        "hay_bale",
-        "bench",
-        "dumpster",
-        "cart",
-        "firewood",
-        "tires",
-        "generic"
-      ],
-      "title": "PropKind",
-      "type": "string"
-    },
-    "RectangleGeometry": {
-      "additionalProperties": false,
-      "description": "An oriented rectangle; ``size`` is ``[width, depth]`` along local X/Y.",
-      "properties": {
-        "type": {
-          "const": "rectangle",
-          "title": "Type",
-          "type": "string"
-        },
-        "center": {
-          "maxItems": 2,
-          "minItems": 2,
-          "prefixItems": [
-            {
-              "maximum": 100000.0,
-              "minimum": -100000.0,
-              "type": "number"
-            },
-            {
-              "maximum": 100000.0,
-              "minimum": -100000.0,
-              "type": "number"
-            }
-          ],
-          "title": "Center",
-          "type": "array"
-        },
-        "size": {
-          "maxItems": 2,
-          "minItems": 2,
-          "prefixItems": [
-            {
-              "exclusiveMinimum": 0.0,
-              "type": "number"
-            },
-            {
-              "exclusiveMinimum": 0.0,
-              "type": "number"
-            }
-          ],
-          "title": "Size",
-          "type": "array"
-        },
-        "rotation_deg": {
-          "default": 0.0,
-          "maximum": 360.0,
-          "minimum": -360.0,
-          "title": "Rotation Deg",
-          "type": "number"
-        }
-      },
-      "required": [
-        "type",
-        "center",
-        "size"
-      ],
-      "title": "RectangleGeometry",
-      "type": "object"
-    },
-    "Relief": {
-      "enum": [
-        "flat",
-        "gentle",
-        "hilly",
-        "rugged"
-      ],
-      "title": "Relief",
-      "type": "string"
-    },
-    "Road": {
-      "additionalProperties": false,
-      "properties": {
-        "id": {
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
-          "title": "Id",
-          "type": "string"
-        },
-        "confidence": {
-          "default": 1.0,
-          "description": "Certainty of the analysis that produced this feature.",
-          "maximum": 1.0,
-          "minimum": 0.0,
-          "title": "Confidence",
-          "type": "number"
-        },
-        "tags": {
-          "items": {
-            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
-            "type": "string"
-          },
-          "maxItems": 32,
-          "title": "Tags",
-          "type": "array"
-        },
-        "notes": {
+        "materialHint": {
           "anyOf": [
             {
-              "maxLength": 2000,
+              "pattern": "^[a-z][a-z0-9_]{0,47}$",
               "type": "string"
             },
             {
@@ -916,32 +991,25 @@
             }
           ],
           "default": null,
-          "title": "Notes"
+          "title": "Materialhint"
         },
-        "kind": {
-          "$ref": "#/$defs/RoadKind"
-        },
-        "geometry": {
-          "$ref": "#/$defs/PolylineGeometry"
-        },
-        "width_m": {
+        "plotId": {
           "anyOf": [
             {
-              "exclusiveMinimum": 0.5,
-              "maximum": 60.0,
-              "type": "number"
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+              "type": "string"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "title": "Width M"
+          "title": "Plotid"
         },
-        "surface": {
+        "gameplay": {
           "anyOf": [
             {
-              "$ref": "#/$defs/RoadSurface"
+              "$ref": "#/$defs/GameplayHints"
             },
             {
               "type": "null"
@@ -952,22 +1020,2116 @@
       },
       "required": [
         "id",
-        "kind",
-        "geometry"
+        "fenceType",
+        "path",
+        "heightM"
       ],
-      "title": "Road",
+      "title": "Fence",
       "type": "object"
     },
-    "RoadKind": {
+    "FenceType": {
       "enum": [
-        "highway",
-        "street",
-        "rural_road",
-        "dirt_track",
-        "footpath"
+        "wooden_picket",
+        "wooden_board",
+        "chain_link",
+        "metal_sheet",
+        "wire",
+        "brick",
+        "concrete",
+        "stone",
+        "metal_railing",
+        "unknown"
       ],
-      "title": "RoadKind",
+      "title": "FenceType",
       "type": "string"
+    },
+    "FileReference": {
+      "additionalProperties": false,
+      "description": "An external file inside the location package (never embedded data).",
+      "properties": {
+        "path": {
+          "description": "POSIX path relative to the location package root (the blueprint's folder).",
+          "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*://)(?!.*//)(?!(?:.*/)?\\.{1,2}(?:/|$))[^\\x00-\\x1f]{1,1024}$",
+          "title": "Path",
+          "type": "string"
+        },
+        "mediaType": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z]+/[a-z0-9.+-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mediatype"
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Lower-case hex digest; verified when present.",
+          "title": "Sha256"
+        },
+        "sizeBytes": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sizebytes"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "FileReference",
+      "type": "object"
+    },
+    "Frame": {
+      "additionalProperties": false,
+      "description": "One extracted frame that entities may cite as evidence.",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "mediaId": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Mediaid",
+          "type": "string"
+        },
+        "extractionId": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Extractionid"
+        },
+        "timestampS": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Timestamps"
+        },
+        "file": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FileReference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "mediaId"
+      ],
+      "title": "Frame",
+      "type": "object"
+    },
+    "FrameExtraction": {
+      "additionalProperties": false,
+      "description": "How frames were extracted from a media item.",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "mediaId": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Mediaid",
+          "type": "string"
+        },
+        "method": {
+          "enum": [
+            "fixed_interval",
+            "keyframes",
+            "manual"
+          ],
+          "title": "Method",
+          "type": "string"
+        },
+        "intervalS": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Intervals"
+        },
+        "frameCount": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Framecount"
+        },
+        "outputDirectory": {
+          "anyOf": [
+            {
+              "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*://)(?!.*//)(?!(?:.*/)?\\.{1,2}(?:/|$))[^\\x00-\\x1f]{1,1024}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Outputdirectory"
+        },
+        "tool": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ToolInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "mediaId",
+        "method"
+      ],
+      "title": "FrameExtraction",
+      "type": "object"
+    },
+    "Gameplay": {
+      "additionalProperties": false,
+      "description": "Gameplay constraints and annotations, resolved by engine-specific tools.",
+      "properties": {
+        "navigationAreas": {
+          "items": {
+            "$ref": "#/$defs/NavigationArea"
+          },
+          "maxItems": 5000,
+          "title": "Navigationareas",
+          "type": "array"
+        },
+        "coverZones": {
+          "items": {
+            "$ref": "#/$defs/CoverZone"
+          },
+          "maxItems": 5000,
+          "title": "Coverzones",
+          "type": "array"
+        },
+        "combatZones": {
+          "items": {
+            "$ref": "#/$defs/CombatZone"
+          },
+          "maxItems": 1000,
+          "title": "Combatzones",
+          "type": "array"
+        },
+        "spawnClearances": {
+          "items": {
+            "$ref": "#/$defs/SpawnClearance"
+          },
+          "maxItems": 1000,
+          "title": "Spawnclearances",
+          "type": "array"
+        },
+        "connectivity": {
+          "$ref": "#/$defs/Connectivity"
+        },
+        "lineOfSight": {
+          "items": {
+            "$ref": "#/$defs/LineOfSight"
+          },
+          "maxItems": 5000,
+          "title": "Lineofsight",
+          "type": "array"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "title": "Gameplay",
+      "type": "object"
+    },
+    "GameplayHints": {
+      "additionalProperties": false,
+      "description": "Per-entity gameplay intent. ``null`` means \"resolve downstream\".",
+      "properties": {
+        "movement": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MovementEffect"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "projectileCover": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CoverLevel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "vision": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CoverLevel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Visual occlusion."
+        }
+      },
+      "title": "GameplayHints",
+      "type": "object"
+    },
+    "Generation": {
+      "additionalProperties": false,
+      "description": "Generation controls stored with the location (not observations).\n\nA LocationRecipe may override every value; see docs for precedence.",
+      "properties": {
+        "masterSeed": {
+          "default": 0,
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "title": "Masterseed",
+          "type": "integer"
+        },
+        "structuralSimilarity": {
+          "default": 1.0,
+          "description": "1 = keep the observed structure exactly; lower values allow deviation.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Structuralsimilarity",
+          "type": "number"
+        },
+        "visualVariation": {
+          "default": 0.5,
+          "description": "0 = uniform look; 1 = maximum variety of assets and details.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Visualvariation",
+          "type": "number"
+        },
+        "subsystemSeeds": {
+          "additionalProperties": {
+            "maximum": 9223372036854775807,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "description": "Explicit per-subsystem seeds; others are derived from masterSeed.",
+          "propertyNames": {
+            "$ref": "#/$defs/Subsystem"
+          },
+          "title": "Subsystemseeds",
+          "type": "object"
+        }
+      },
+      "title": "Generation",
+      "type": "object"
+    },
+    "GeoPoint": {
+      "additionalProperties": false,
+      "properties": {
+        "latitude": {
+          "maximum": 90.0,
+          "minimum": -90.0,
+          "title": "Latitude",
+          "type": "number"
+        },
+        "longitude": {
+          "maximum": 180.0,
+          "minimum": -180.0,
+          "title": "Longitude",
+          "type": "number"
+        }
+      },
+      "required": [
+        "latitude",
+        "longitude"
+      ],
+      "title": "GeoPoint",
+      "type": "object"
+    },
+    "GeoReference": {
+      "additionalProperties": false,
+      "description": "Approximate real-world anchor of the origin. Informative only.",
+      "properties": {
+        "latitude": {
+          "maximum": 90.0,
+          "minimum": -90.0,
+          "title": "Latitude",
+          "type": "number"
+        },
+        "longitude": {
+          "maximum": 180.0,
+          "minimum": -180.0,
+          "title": "Longitude",
+          "type": "number"
+        },
+        "headingDeg": {
+          "default": 0.0,
+          "description": "Compass bearing of local +Z (0 = local north is true north).",
+          "exclusiveMaximum": 360.0,
+          "minimum": 0.0,
+          "title": "Headingdeg",
+          "type": "number"
+        },
+        "accuracyM": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Accuracym"
+        }
+      },
+      "required": [
+        "latitude",
+        "longitude"
+      ],
+      "title": "GeoReference",
+      "type": "object"
+    },
+    "HeightRange": {
+      "additionalProperties": false,
+      "properties": {
+        "minM": {
+          "maximum": 200.0,
+          "minimum": 0.0,
+          "title": "Minm",
+          "type": "number"
+        },
+        "maxM": {
+          "maximum": 200.0,
+          "minimum": 0.0,
+          "title": "Maxm",
+          "type": "number"
+        }
+      },
+      "required": [
+        "minM",
+        "maxM"
+      ],
+      "title": "HeightRange",
+      "type": "object"
+    },
+    "Heightmap": {
+      "additionalProperties": false,
+      "description": "Elevation raster: ``elevation_m = heightOffsetM + value * heightScaleM``.",
+      "properties": {
+        "file": {
+          "$ref": "#/$defs/FileReference"
+        },
+        "encoding": {
+          "enum": [
+            "raw_u16_le",
+            "raw_f32_le"
+          ],
+          "title": "Encoding",
+          "type": "string"
+        },
+        "columns": {
+          "maximum": 16385,
+          "minimum": 2,
+          "title": "Columns",
+          "type": "integer"
+        },
+        "rows": {
+          "maximum": 16385,
+          "minimum": 2,
+          "title": "Rows",
+          "type": "integer"
+        },
+        "rowOrder": {
+          "$ref": "#/$defs/RowOrder"
+        },
+        "heightScaleM": {
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000.0,
+          "title": "Heightscalem",
+          "type": "number"
+        },
+        "heightOffsetM": {
+          "default": 0.0,
+          "maximum": 9000.0,
+          "minimum": -1000.0,
+          "title": "Heightoffsetm",
+          "type": "number"
+        }
+      },
+      "required": [
+        "file",
+        "encoding",
+        "columns",
+        "rows",
+        "rowOrder",
+        "heightScaleM"
+      ],
+      "title": "Heightmap",
+      "type": "object"
+    },
+    "InfrastructurePoint": {
+      "additionalProperties": false,
+      "description": "A persistent structure at one place (pole, well, light, sign ...).",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "infrastructureType": {
+          "enum": [
+            "utility_pole",
+            "well",
+            "light",
+            "sign",
+            "water_tower",
+            "container",
+            "transformer",
+            "pump",
+            "other"
+          ],
+          "title": "Infrastructuretype",
+          "type": "string"
+        },
+        "archetype": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Archetype"
+        },
+        "transform": {
+          "$ref": "#/$defs/Transform"
+        },
+        "heightM": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 10000.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Heightm"
+        },
+        "condition": {
+          "default": 1.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Condition",
+          "type": "number"
+        },
+        "parentId": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Structure it is attached to (e.g. a light on a pole).",
+          "title": "Parentid"
+        },
+        "gameplay": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GameplayHints"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "infrastructureType",
+        "transform"
+      ],
+      "title": "InfrastructurePoint",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "Landmark": {
+      "additionalProperties": false,
+      "description": "A navigation-relevant feature. It never creates a rendered object itself.",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "landmarkType": {
+          "$ref": "#/$defs/LandmarkType"
+        },
+        "position": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 9000.0,
+              "minimum": -1000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            }
+          ],
+          "title": "Position",
+          "type": "array"
+        },
+        "importance": {
+          "default": 0.5,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Importance",
+          "type": "number"
+        },
+        "visibility": {
+          "$ref": "#/$defs/Visibility",
+          "default": "medium"
+        },
+        "visibilityRadiusM": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 10000.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Visibilityradiusm"
+        },
+        "linkedEntityId": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Building, tree, road node or infrastructure entity this landmark marks.",
+          "title": "Linkedentityid"
+        },
+        "gameplayRoles": {
+          "description": "e.g. navigation, objective, rally_point.",
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]{0,47}$",
+            "type": "string"
+          },
+          "title": "Gameplayroles",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "landmarkType",
+        "position"
+      ],
+      "title": "Landmark",
+      "type": "object"
+    },
+    "LandmarkType": {
+      "enum": [
+        "water_tower",
+        "church",
+        "shop",
+        "large_tree",
+        "crossroads",
+        "well",
+        "gate",
+        "ruin",
+        "sign",
+        "bus_stop",
+        "building",
+        "other"
+      ],
+      "title": "LandmarkType",
+      "type": "string"
+    },
+    "LineOfSight": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "fromPosition": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 9000.0,
+              "minimum": -1000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            }
+          ],
+          "title": "Fromposition",
+          "type": "array"
+        },
+        "toPosition": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 9000.0,
+              "minimum": -1000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            }
+          ],
+          "title": "Toposition",
+          "type": "array"
+        },
+        "expected": {
+          "enum": [
+            "clear",
+            "partial",
+            "blocked"
+          ],
+          "title": "Expected",
+          "type": "string"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "id",
+        "fromPosition",
+        "toPosition",
+        "expected"
+      ],
+      "title": "LineOfSight",
+      "type": "object"
+    },
+    "LocationStatus": {
+      "enum": [
+        "draft",
+        "review",
+        "approved",
+        "deprecated"
+      ],
+      "title": "LocationStatus",
+      "type": "string"
+    },
+    "MediaKind": {
+      "enum": [
+        "video",
+        "image",
+        "image_sequence",
+        "point_cloud",
+        "document",
+        "other"
+      ],
+      "title": "MediaKind",
+      "type": "string"
+    },
+    "Metadata": {
+      "additionalProperties": false,
+      "description": "Document metadata. The schema version lives only in ``schemaVersion``.",
+      "properties": {
+        "createdAt": {
+          "description": "ISO 8601 timestamp with time zone.",
+          "format": "date-time",
+          "title": "Createdat",
+          "type": "string"
+        },
+        "updatedAt": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Updatedat"
+        },
+        "createdBy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ToolInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Tool or person that produced this document."
+        },
+        "generatorVersion": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Environment Generator version this blueprint was last checked with.",
+          "title": "Generatorversion"
+        },
+        "authors": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 50,
+          "title": "Authors",
+          "type": "array"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 64,
+          "title": "Tags",
+          "type": "array"
+        },
+        "biome": {
+          "$ref": "#/$defs/Biome",
+          "default": "unknown"
+        },
+        "season": {
+          "$ref": "#/$defs/Season",
+          "default": "unknown"
+        },
+        "region": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Approximate, informative region description.",
+          "title": "Region"
+        }
+      },
+      "required": [
+        "createdAt"
+      ],
+      "title": "Metadata",
+      "type": "object"
+    },
+    "MissingSection": {
+      "additionalProperties": false,
+      "description": "A gap given as normalised arc length along the path (0 = start, 1 = end).",
+      "properties": {
+        "start": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Start",
+          "type": "number"
+        },
+        "end": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "End",
+          "type": "number"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "MissingSection",
+      "type": "object"
+    },
+    "MovementEffect": {
+      "enum": [
+        "none",
+        "slow",
+        "block"
+      ],
+      "title": "MovementEffect",
+      "type": "string"
+    },
+    "NavigationArea": {
+      "additionalProperties": false,
+      "description": "Desired walkable or blocked space, as a polygon and/or entity references.",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "areaType": {
+          "enum": [
+            "walkable",
+            "blocked"
+          ],
+          "title": "Areatype",
+          "type": "string"
+        },
+        "polygon": {
+          "anyOf": [
+            {
+              "items": {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "maximum": 100000.0,
+                    "minimum": -100000.0,
+                    "type": "number"
+                  },
+                  {
+                    "maximum": 100000.0,
+                    "minimum": -100000.0,
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              "maxItems": 10000,
+              "minItems": 3,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Polygon"
+        },
+        "entityIds": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Entityids",
+          "type": "array"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        }
+      },
+      "required": [
+        "id",
+        "areaType"
+      ],
+      "title": "NavigationArea",
+      "type": "object"
+    },
+    "Observation": {
+      "additionalProperties": false,
+      "description": "A finding from analysis that entities can cite.",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "description": {
+          "maxLength": 2000,
+          "title": "Description",
+          "type": "string"
+        },
+        "kind": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]{0,47}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kind"
+        },
+        "frameIds": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Frameids",
+          "type": "array"
+        },
+        "reportId": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reportid"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        }
+      },
+      "required": [
+        "id",
+        "description"
+      ],
+      "title": "Observation",
+      "type": "object"
+    },
+    "Openings": {
+      "additionalProperties": false,
+      "properties": {
+        "windows": {
+          "$ref": "#/$defs/WindowState",
+          "default": "unknown"
+        },
+        "doors": {
+          "$ref": "#/$defs/DoorState",
+          "default": "unknown"
+        }
+      },
+      "title": "Openings",
+      "type": "object"
+    },
+    "PaletteColor": {
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "description": "e.g. foliage, ground, sky, accent.",
+          "pattern": "^[a-z][a-z0-9_]{0,47}$",
+          "title": "Role",
+          "type": "string"
+        },
+        "color": {
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "title": "Color",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "color"
+      ],
+      "title": "PaletteColor",
+      "type": "object"
+    },
+    "Plot": {
+      "additionalProperties": false,
+      "description": "A land parcel or yard boundary (the fence around it is a separate entity).",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "plotType": {
+          "$ref": "#/$defs/PlotType"
+        },
+        "polygon": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              },
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "maxItems": 10000,
+          "minItems": 3,
+          "title": "Polygon",
+          "type": "array"
+        },
+        "condition": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Upkeep of the plot.",
+          "title": "Condition"
+        },
+        "abandonment": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Abandonment"
+        }
+      },
+      "required": [
+        "id",
+        "plotType",
+        "polygon"
+      ],
+      "title": "Plot",
+      "type": "object"
+    },
+    "PlotType": {
+      "enum": [
+        "dacha_plot",
+        "yard",
+        "garden",
+        "vacant_lot",
+        "common_area",
+        "unknown"
+      ],
+      "title": "PlotType",
+      "type": "string"
+    },
+    "Prop": {
+      "additionalProperties": false,
+      "description": "An individual object or piece of clutter.",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "propType": {
+          "$ref": "#/$defs/PropType"
+        },
+        "archetype": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Archetype"
+        },
+        "transform": {
+          "$ref": "#/$defs/Transform"
+        },
+        "condition": {
+          "default": 1.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Condition",
+          "type": "number"
+        },
+        "parentId": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Plot, building, structure or prop it belongs to or rests on.",
+          "title": "Parentid"
+        }
+      },
+      "required": [
+        "id",
+        "propType",
+        "transform"
+      ],
+      "title": "Prop",
+      "type": "object"
+    },
+    "PropType": {
+      "enum": [
+        "barrel",
+        "tires",
+        "pallet",
+        "woodpile",
+        "tools",
+        "bicycle",
+        "wheelbarrow",
+        "debris",
+        "bucket",
+        "bench",
+        "crate",
+        "gas_cylinder",
+        "car",
+        "car_wreck",
+        "boat",
+        "cart",
+        "dumpster",
+        "hay_bale",
+        "sandbags",
+        "other"
+      ],
+      "title": "PropType",
+      "type": "string"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "description": "Where an entity's data came from and how much it can be trusted.\n\nOptional everywhere: an entity without provenance is a manual authoring\ndecision with no measurement claim.",
+      "properties": {
+        "category": {
+          "$ref": "#/$defs/ProvenanceCategory"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "0 = guess, 1 = certain. Expected for observed and inferred values.",
+          "title": "Confidence"
+        },
+        "method": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z][a-z0-9_]{0,47}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "e.g. photogrammetry, visual_estimate, survey, gps.",
+          "title": "Method"
+        },
+        "positionAccuracyM": {
+          "anyOf": [
+            {
+              "maximum": 10000.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Estimated horizontal position error (1 sigma), metres.",
+          "title": "Positionaccuracym"
+        },
+        "frameIds": {
+          "description": "source.frames this entity was seen in.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Frameids",
+          "type": "array"
+        },
+        "observationIds": {
+          "description": "source.observations supporting this entity.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Observationids",
+          "type": "array"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "required": [
+        "category"
+      ],
+      "title": "Provenance",
+      "type": "object"
+    },
+    "ProvenanceCategory": {
+      "description": "How a value came to be.",
+      "enum": [
+        "observed",
+        "inferred",
+        "manual",
+        "procedural"
+      ],
+      "title": "ProvenanceCategory",
+      "type": "string"
+    },
+    "ReferencePoint": {
+      "additionalProperties": false,
+      "description": "A point identified in both the source material and the local frame.",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "position": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 9000.0,
+              "minimum": -1000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            }
+          ],
+          "title": "Position",
+          "type": "array"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "geo": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GeoPoint"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "position"
+      ],
+      "title": "ReferencePoint",
+      "type": "object"
+    },
+    "RoadCurve": {
+      "additionalProperties": false,
+      "description": "Centre line from the source node through ``controlPoints`` to the target node.\n\n* ``polyline``: straight pieces between consecutive points.\n* ``catmull_rom``: centripetal Catmull-Rom spline (alpha = 0.5) through all\n  points; the first and last points are duplicated as end tangents. See\n  docs/LOCATION_BLUEPRINT.md for the exact formula.",
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/CurveType",
+          "default": "polyline"
+        },
+        "controlPoints": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              },
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "maxItems": 10000,
+          "title": "Controlpoints",
+          "type": "array"
+        }
+      },
+      "title": "RoadCurve",
+      "type": "object"
+    },
+    "RoadImportance": {
+      "enum": [
+        "primary",
+        "secondary",
+        "access",
+        "track",
+        "path"
+      ],
+      "title": "RoadImportance",
+      "type": "string"
+    },
+    "RoadNetwork": {
+      "additionalProperties": false,
+      "properties": {
+        "nodes": {
+          "items": {
+            "$ref": "#/$defs/RoadNode"
+          },
+          "maxItems": 20000,
+          "title": "Nodes",
+          "type": "array"
+        },
+        "segments": {
+          "items": {
+            "$ref": "#/$defs/RoadSegment"
+          },
+          "maxItems": 20000,
+          "title": "Segments",
+          "type": "array"
+        }
+      },
+      "title": "RoadNetwork",
+      "type": "object"
+    },
+    "RoadNode": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "position": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            }
+          ],
+          "title": "Position",
+          "type": "array"
+        },
+        "elevationM": {
+          "anyOf": [
+            {
+              "maximum": 9000.0,
+              "minimum": -1000.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Estimated, optional.",
+          "title": "Elevationm"
+        },
+        "nodeType": {
+          "$ref": "#/$defs/RoadNodeType",
+          "default": "endpoint"
+        }
+      },
+      "required": [
+        "id",
+        "position"
+      ],
+      "title": "RoadNode",
+      "type": "object"
+    },
+    "RoadNodeType": {
+      "enum": [
+        "endpoint",
+        "junction",
+        "entrance",
+        "dead_end",
+        "boundary",
+        "bridge_end"
+      ],
+      "title": "RoadNodeType",
+      "type": "string"
+    },
+    "RoadSegment": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "sourceNodeId": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Sourcenodeid",
+          "type": "string"
+        },
+        "targetNodeId": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Targetnodeid",
+          "type": "string"
+        },
+        "curve": {
+          "$ref": "#/$defs/RoadCurve"
+        },
+        "widthM": {
+          "exclusiveMinimum": 0.3,
+          "maximum": 60.0,
+          "title": "Widthm",
+          "type": "number"
+        },
+        "surface": {
+          "$ref": "#/$defs/RoadSurface"
+        },
+        "importance": {
+          "$ref": "#/$defs/RoadImportance"
+        },
+        "condition": {
+          "default": 1.0,
+          "description": "0 = destroyed, 1 = good.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Condition",
+          "type": "number"
+        },
+        "vegetationIntrusion": {
+          "default": 0.0,
+          "description": "0 = clear, 1 = overgrown edges and centre.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Vegetationintrusion",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "sourceNodeId",
+        "targetNodeId",
+        "widthM",
+        "surface",
+        "importance"
+      ],
+      "title": "RoadSegment",
+      "type": "object"
     },
     "RoadSurface": {
       "enum": [
@@ -975,19 +3137,33 @@
         "concrete",
         "gravel",
         "dirt",
-        "cobblestone"
+        "grass",
+        "sand",
+        "unknown"
       ],
       "title": "RoadSurface",
       "type": "string"
     },
-    "RoofKind": {
+    "RoofType": {
       "enum": [
-        "flat",
         "gable",
         "hip",
-        "mono_pitch"
+        "flat",
+        "shed",
+        "mansard",
+        "collapsed",
+        "unknown"
       ],
-      "title": "RoofKind",
+      "title": "RoofType",
+      "type": "string"
+    },
+    "RowOrder": {
+      "description": "Which edge the first row of a raster lies on (columns always run west to east).",
+      "enum": [
+        "south_to_north",
+        "north_to_south"
+      ],
+      "title": "RowOrder",
       "type": "string"
     },
     "Season": {
@@ -995,50 +3171,718 @@
         "spring",
         "summer",
         "autumn",
-        "winter"
+        "winter",
+        "unknown"
       ],
       "title": "Season",
       "type": "string"
     },
-    "SourceKind": {
+    "SlopeClass": {
       "enum": [
-        "manual",
-        "drone_survey",
-        "satellite",
-        "synthetic"
+        "flat",
+        "gentle",
+        "moderate",
+        "steep",
+        "cliff"
       ],
-      "title": "SourceKind",
+      "title": "SlopeClass",
       "type": "string"
     },
-    "TerrainSpec": {
+    "SlopeZone": {
       "additionalProperties": false,
       "properties": {
-        "base_elevation_m": {
-          "default": 0.0,
-          "maximum": 9000.0,
-          "minimum": -1000.0,
-          "title": "Base Elevation M",
-          "type": "number"
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
         },
-        "relief": {
-          "$ref": "#/$defs/Relief",
-          "default": "gentle"
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
         },
-        "ground_cover": {
-          "$ref": "#/$defs/GroundCover",
-          "default": "grass"
-        },
-        "elevation_points": {
-          "description": "Surveyed spot heights; the terrain interpolates through them.",
+        "tags": {
           "items": {
-            "$ref": "#/$defs/ElevationPoint"
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "slopeClass": {
+          "$ref": "#/$defs/SlopeClass"
+        },
+        "polygon": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              },
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "maxItems": 10000,
+          "minItems": 3,
+          "title": "Polygon",
+          "type": "array"
+        },
+        "averageSlopeDeg": {
+          "anyOf": [
+            {
+              "maximum": 90.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Averageslopedeg"
+        },
+        "aspectDeg": {
+          "anyOf": [
+            {
+              "exclusiveMaximum": 360.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Downhill direction, clockwise from north.",
+          "title": "Aspectdeg"
+        }
+      },
+      "required": [
+        "id",
+        "slopeClass",
+        "polygon"
+      ],
+      "title": "SlopeZone",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "description": "Optional description of the material the blueprint was derived from.",
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/SourceType"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "media": {
+          "items": {
+            "$ref": "#/$defs/SourceMedia"
           },
           "maxItems": 1000,
-          "title": "Elevation Points",
+          "title": "Media",
+          "type": "array"
+        },
+        "frameExtractions": {
+          "items": {
+            "$ref": "#/$defs/FrameExtraction"
+          },
+          "maxItems": 1000,
+          "title": "Frameextractions",
+          "type": "array"
+        },
+        "frames": {
+          "items": {
+            "$ref": "#/$defs/Frame"
+          },
+          "maxItems": 100000,
+          "title": "Frames",
+          "type": "array"
+        },
+        "analysisReports": {
+          "items": {
+            "$ref": "#/$defs/AnalysisReport"
+          },
+          "maxItems": 1000,
+          "title": "Analysisreports",
+          "type": "array"
+        },
+        "calibration": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Calibration"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "referencePoints": {
+          "items": {
+            "$ref": "#/$defs/ReferencePoint"
+          },
+          "maxItems": 1000,
+          "title": "Referencepoints",
+          "type": "array"
+        },
+        "observations": {
+          "items": {
+            "$ref": "#/$defs/Observation"
+          },
+          "maxItems": 100000,
+          "title": "Observations",
+          "type": "array"
+        },
+        "externalIds": {
+          "patternProperties": {
+            "^[a-z][a-z0-9_.-]{0,63}$": {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "title": "Externalids",
+          "type": "object"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "Source",
+      "type": "object"
+    },
+    "SourceMedia": {
+      "additionalProperties": false,
+      "description": "A piece of source material (video, photo set, survey export).",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/MediaKind"
+        },
+        "file": {
+          "$ref": "#/$defs/FileReference"
+        },
+        "capturedAt": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Capturedat"
+        },
+        "durationS": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Durations"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "externalIds": {
+          "description": "Identifiers in other systems (e.g. a capture ID).",
+          "patternProperties": {
+            "^[a-z][a-z0-9_.-]{0,63}$": {
+              "maxLength": 256,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "title": "Externalids",
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "file"
+      ],
+      "title": "SourceMedia",
+      "type": "object"
+    },
+    "SourceType": {
+      "enum": [
+        "manual",
+        "video",
+        "images",
+        "survey",
+        "satellite",
+        "mixed",
+        "synthetic"
+      ],
+      "title": "SourceType",
+      "type": "string"
+    },
+    "SpawnClearance": {
+      "additionalProperties": false,
+      "description": "A circle that must stay free of blocking objects (e.g. a squad spawn).",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "position": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            }
+          ],
+          "title": "Position",
+          "type": "array"
+        },
+        "radiusM": {
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000.0,
+          "title": "Radiusm",
+          "type": "number"
+        },
+        "role": {
+          "default": "spawn",
+          "pattern": "^[a-z][a-z0-9_]{0,47}$",
+          "title": "Role",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "position",
+        "radiusM"
+      ],
+      "title": "SpawnClearance",
+      "type": "object"
+    },
+    "SpeciesWeight": {
+      "additionalProperties": false,
+      "description": "Relative share of a species; consumers use ``weight / sum(weights)``.",
+      "properties": {
+        "species": {
+          "description": "e.g. birch, pine, spruce, lilac, or 'unknown'.",
+          "pattern": "^[a-z][a-z0-9_]{0,47}$",
+          "title": "Species",
+          "type": "string"
+        },
+        "weight": {
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000000.0,
+          "title": "Weight",
+          "type": "number"
+        }
+      },
+      "required": [
+        "species",
+        "weight"
+      ],
+      "title": "SpeciesWeight",
+      "type": "object"
+    },
+    "Subsystem": {
+      "description": "Generation subsystems that may receive their own seed.",
+      "enum": [
+        "terrain",
+        "roads",
+        "buildings",
+        "fences",
+        "infrastructure",
+        "vegetation",
+        "props",
+        "atmosphere",
+        "assets"
+      ],
+      "title": "Subsystem",
+      "type": "string"
+    },
+    "SurfaceType": {
+      "enum": [
+        "grass",
+        "dirt",
+        "gravel",
+        "sand",
+        "mud",
+        "asphalt",
+        "concrete",
+        "moss",
+        "leaf_litter",
+        "rock",
+        "snow",
+        "unknown"
+      ],
+      "title": "SurfaceType",
+      "type": "string"
+    },
+    "SurfaceZone": {
+      "additionalProperties": false,
+      "description": "Ground material inside a polygon (geometry and passability are separate).",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "surface": {
+          "$ref": "#/$defs/SurfaceType"
+        },
+        "polygon": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              },
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "maxItems": 10000,
+          "minItems": 3,
+          "title": "Polygon",
           "type": "array"
         }
       },
-      "title": "TerrainSpec",
+      "required": [
+        "id",
+        "surface",
+        "polygon"
+      ],
+      "title": "SurfaceZone",
+      "type": "object"
+    },
+    "Terrain": {
+      "additionalProperties": false,
+      "description": "Ground of the location. It always covers the full coordinateSystem.bounds.",
+      "properties": {
+        "elevation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ElevationRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Lowest and highest ground elevation, metres."
+        },
+        "heightmap": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Heightmap"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "masks": {
+          "items": {
+            "$ref": "#/$defs/TerrainMask"
+          },
+          "maxItems": 64,
+          "title": "Masks",
+          "type": "array"
+        },
+        "defaultSurface": {
+          "$ref": "#/$defs/SurfaceType",
+          "default": "grass"
+        },
+        "surfaceZones": {
+          "items": {
+            "$ref": "#/$defs/SurfaceZone"
+          },
+          "maxItems": 5000,
+          "title": "Surfacezones",
+          "type": "array"
+        },
+        "slopeZones": {
+          "items": {
+            "$ref": "#/$defs/SlopeZone"
+          },
+          "maxItems": 5000,
+          "title": "Slopezones",
+          "type": "array"
+        },
+        "waterBodies": {
+          "items": {
+            "$ref": "#/$defs/WaterBody"
+          },
+          "maxItems": 1000,
+          "title": "Waterbodies",
+          "type": "array"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "maxLength": 2000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notes"
+        }
+      },
+      "title": "Terrain",
+      "type": "object"
+    },
+    "TerrainMask": {
+      "additionalProperties": false,
+      "description": "A single-channel mask, e.g. wetness or grass density (value / 255 -> 0..1).",
+      "properties": {
+        "file": {
+          "$ref": "#/$defs/FileReference"
+        },
+        "encoding": {
+          "const": "raw_u8",
+          "title": "Encoding",
+          "type": "string"
+        },
+        "columns": {
+          "maximum": 16385,
+          "minimum": 2,
+          "title": "Columns",
+          "type": "integer"
+        },
+        "rows": {
+          "maximum": 16385,
+          "minimum": 2,
+          "title": "Rows",
+          "type": "integer"
+        },
+        "rowOrder": {
+          "$ref": "#/$defs/RowOrder"
+        },
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "meaning": {
+          "description": "What the mask encodes, e.g. ground_wetness.",
+          "pattern": "^[a-z][a-z0-9_]{0,47}$",
+          "title": "Meaning",
+          "type": "string"
+        }
+      },
+      "required": [
+        "file",
+        "encoding",
+        "columns",
+        "rows",
+        "rowOrder",
+        "id",
+        "meaning"
+      ],
+      "title": "TerrainMask",
       "type": "object"
     },
     "TimeOfDay": {
@@ -1053,21 +3897,107 @@
       "title": "TimeOfDay",
       "type": "string"
     },
-    "VegetationArea": {
+    "ToolInfo": {
       "additionalProperties": false,
       "properties": {
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "ToolInfo",
+      "type": "object"
+    },
+    "Transform": {
+      "additionalProperties": false,
+      "description": "Placement of a point entity in the location frame.",
+      "properties": {
+        "position": {
+          "description": "[x, y, z] in metres; y is the elevation.",
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 9000.0,
+              "minimum": -1000.0,
+              "type": "number"
+            },
+            {
+              "maximum": 100000.0,
+              "minimum": -100000.0,
+              "type": "number"
+            }
+          ],
+          "title": "Position",
+          "type": "array"
+        },
+        "yawDeg": {
+          "default": 0.0,
+          "description": "Heading of the entity's front (+Z local), clockwise from north.",
+          "exclusiveMaximum": 360.0,
+          "minimum": 0.0,
+          "title": "Yawdeg",
+          "type": "number"
+        },
+        "snapToTerrain": {
+          "default": true,
+          "description": "Consumers place the entity on the terrain surface; y is then advisory.",
+          "title": "Snaptoterrain",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "position"
+      ],
+      "title": "Transform",
+      "type": "object"
+    },
+    "Tree": {
+      "additionalProperties": false,
+      "description": "A significant individual tree (landmark, cover, or notable object).",
+      "properties": {
         "id": {
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
           "title": "Id",
           "type": "string"
         },
-        "confidence": {
-          "default": 1.0,
-          "description": "Certainty of the analysis that produced this feature.",
-          "maximum": 1.0,
-          "minimum": 0.0,
-          "title": "Confidence",
-          "type": "number"
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
         },
         "tags": {
           "items": {
@@ -1078,10 +4008,46 @@
           "title": "Tags",
           "type": "array"
         },
-        "notes": {
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
           "anyOf": [
             {
-              "maxLength": 2000,
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "species": {
+          "default": "unknown",
+          "pattern": "^[a-z][a-z0-9_]{0,47}$",
+          "title": "Species",
+          "type": "string"
+        },
+        "archetype": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+)*$",
               "type": "string"
             },
             {
@@ -1089,107 +4055,164 @@
             }
           ],
           "default": null,
-          "title": "Notes"
+          "title": "Archetype"
         },
-        "kind": {
-          "enum": [
-            "forest",
-            "woodland",
-            "orchard",
-            "scrub",
-            "meadow"
-          ],
-          "title": "Kind",
-          "type": "string"
+        "transform": {
+          "$ref": "#/$defs/Transform"
         },
-        "geometry": {
-          "discriminator": {
-            "mapping": {
-              "polygon": "#/$defs/PolygonGeometry",
-              "rectangle": "#/$defs/RectangleGeometry"
-            },
-            "propertyName": "type"
-          },
-          "oneOf": [
+        "heightM": {
+          "anyOf": [
             {
-              "$ref": "#/$defs/PolygonGeometry"
+              "exclusiveMinimum": 0.0,
+              "maximum": 10000.0,
+              "type": "number"
             },
             {
-              "$ref": "#/$defs/RectangleGeometry"
+              "type": "null"
             }
           ],
-          "title": "Geometry"
+          "default": null,
+          "title": "Heightm"
+        },
+        "crownDiameterM": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 10000.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Crowndiameterm"
+        },
+        "condition": {
+          "default": 1.0,
+          "description": "0 = dead or broken, 1 = healthy.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Condition",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "transform"
+      ],
+      "title": "Tree",
+      "type": "object"
+    },
+    "VegetationZone": {
+      "additionalProperties": false,
+      "description": "An area of vegetation described statistically (not tree by tree).",
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
+        },
+        "tags": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Tags",
+          "type": "array"
+        },
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "zoneType": {
+          "$ref": "#/$defs/VegetationZoneType"
+        },
+        "polygon": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              },
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "maxItems": 10000,
+          "minItems": 3,
+          "title": "Polygon",
+          "type": "array"
         },
         "density": {
-          "default": 0.6,
+          "description": "Canopy/plant density, 0 = bare, 1 = closed.",
           "maximum": 1.0,
           "minimum": 0.0,
           "title": "Density",
           "type": "number"
-        }
-      },
-      "required": [
-        "id",
-        "kind",
-        "geometry"
-      ],
-      "title": "VegetationArea",
-      "type": "object"
-    },
-    "VegetationLine": {
-      "additionalProperties": false,
-      "properties": {
-        "id": {
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
-          "title": "Id",
-          "type": "string"
         },
-        "confidence": {
-          "default": 1.0,
-          "description": "Certainty of the analysis that produced this feature.",
-          "maximum": 1.0,
-          "minimum": 0.0,
-          "title": "Confidence",
-          "type": "number"
-        },
-        "tags": {
+        "species": {
+          "description": "Relative weights; empty = species unknown.",
           "items": {
-            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
-            "type": "string"
+            "$ref": "#/$defs/SpeciesWeight"
           },
-          "maxItems": 32,
-          "title": "Tags",
+          "maxItems": 64,
+          "title": "Species",
           "type": "array"
         },
-        "notes": {
+        "understoryDensity": {
           "anyOf": [
             {
-              "maxLength": 2000,
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Notes"
-        },
-        "kind": {
-          "enum": [
-            "hedgerow",
-            "tree_line"
-          ],
-          "title": "Kind",
-          "type": "string"
-        },
-        "geometry": {
-          "$ref": "#/$defs/PolylineGeometry"
-        },
-        "spacing_m": {
-          "anyOf": [
-            {
-              "maximum": 100.0,
-              "minimum": 0.5,
+              "maximum": 1.0,
+              "minimum": 0.0,
               "type": "number"
             },
             {
@@ -1197,71 +4220,13 @@
             }
           ],
           "default": null,
-          "title": "Spacing M"
-        }
-      },
-      "required": [
-        "id",
-        "kind",
-        "geometry"
-      ],
-      "title": "VegetationLine",
-      "type": "object"
-    },
-    "VegetationPoint": {
-      "additionalProperties": false,
-      "properties": {
-        "id": {
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
-          "title": "Id",
-          "type": "string"
+          "title": "Understorydensity"
         },
-        "confidence": {
-          "default": 1.0,
-          "description": "Certainty of the analysis that produced this feature.",
-          "maximum": 1.0,
-          "minimum": 0.0,
-          "title": "Confidence",
-          "type": "number"
-        },
-        "tags": {
-          "items": {
-            "pattern": "^[a-z0-9][a-z0-9_:-]{0,47}$",
-            "type": "string"
-          },
-          "maxItems": 32,
-          "title": "Tags",
-          "type": "array"
-        },
-        "notes": {
+        "grassDensity": {
           "anyOf": [
             {
-              "maxLength": 2000,
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Notes"
-        },
-        "kind": {
-          "enum": [
-            "tree",
-            "bush"
-          ],
-          "title": "Kind",
-          "type": "string"
-        },
-        "geometry": {
-          "$ref": "#/$defs/PointGeometry"
-        },
-        "height_m": {
-          "anyOf": [
-            {
-              "exclusiveMinimum": 0.0,
-              "maximum": 120.0,
+              "maximum": 1.0,
+              "minimum": 0.0,
               "type": "number"
             },
             {
@@ -1269,25 +4234,68 @@
             }
           ],
           "default": null,
-          "title": "Height M"
+          "title": "Grassdensity"
+        },
+        "heightRange": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/HeightRange"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Typical plant heights."
         }
       },
       "required": [
         "id",
-        "kind",
-        "geometry"
+        "zoneType",
+        "polygon",
+        "density"
       ],
-      "title": "VegetationPoint",
+      "title": "VegetationZone",
       "type": "object"
+    },
+    "VegetationZoneType": {
+      "enum": [
+        "forest_dense",
+        "forest_light",
+        "meadow",
+        "overgrown_yard",
+        "road_edge",
+        "clearing",
+        "wet_area",
+        "orchard",
+        "garden_beds",
+        "shrubland",
+        "unknown"
+      ],
+      "title": "VegetationZoneType",
+      "type": "string"
+    },
+    "Visibility": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "title": "Visibility",
+      "type": "string"
     },
     "WallMaterial": {
       "enum": [
+        "wood_log",
+        "wood_board",
         "brick",
-        "wood",
         "concrete",
+        "cinder_block",
         "stone",
+        "metal_sheet",
         "plaster",
-        "metal"
+        "glass",
+        "unknown"
       ],
       "title": "WallMaterial",
       "type": "string"
@@ -1296,17 +4304,24 @@
       "additionalProperties": false,
       "properties": {
         "id": {
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
           "title": "Id",
           "type": "string"
         },
-        "confidence": {
-          "default": 1.0,
-          "description": "Certainty of the analysis that produced this feature.",
-          "maximum": 1.0,
-          "minimum": 0.0,
-          "title": "Confidence",
-          "type": "number"
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
         },
         "tags": {
           "items": {
@@ -1317,58 +4332,109 @@
           "title": "Tags",
           "type": "array"
         },
-        "notes": {
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
           "anyOf": [
             {
-              "maxLength": 2000,
-              "type": "string"
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "waterType": {
+          "$ref": "#/$defs/WaterType"
+        },
+        "polygon": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              },
+              {
+                "maximum": 100000.0,
+                "minimum": -100000.0,
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "maxItems": 10000,
+          "minItems": 3,
+          "title": "Polygon",
+          "type": "array"
+        },
+        "surfaceElevationM": {
+          "anyOf": [
+            {
+              "maximum": 9000.0,
+              "minimum": -1000.0,
+              "type": "number"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "title": "Notes"
+          "title": "Surfaceelevationm"
         },
-        "kind": {
-          "$ref": "#/$defs/WaterKind"
-        },
-        "geometry": {
-          "discriminator": {
-            "mapping": {
-              "polygon": "#/$defs/PolygonGeometry",
-              "rectangle": "#/$defs/RectangleGeometry"
-            },
-            "propertyName": "type"
-          },
-          "oneOf": [
+        "depthM": {
+          "anyOf": [
             {
-              "$ref": "#/$defs/PolygonGeometry"
+              "maximum": 500.0,
+              "minimum": 0.0,
+              "type": "number"
             },
             {
-              "$ref": "#/$defs/RectangleGeometry"
+              "type": "null"
             }
           ],
-          "title": "Geometry"
+          "default": null,
+          "title": "Depthm"
         }
       },
       "required": [
         "id",
-        "kind",
-        "geometry"
+        "waterType",
+        "polygon"
       ],
       "title": "WaterBody",
       "type": "object"
     },
-    "WaterKind": {
+    "WaterType": {
       "enum": [
         "pond",
         "lake",
+        "stream",
         "river",
-        "canal",
+        "ditch",
+        "puddle",
         "marsh"
       ],
-      "title": "WaterKind",
+      "title": "WaterType",
       "type": "string"
     },
     "Weather": {
@@ -1377,6 +4443,7 @@
         "partly_cloudy",
         "overcast",
         "fog",
+        "light_rain",
         "rain",
         "storm",
         "snow"
@@ -1384,22 +4451,41 @@
       "title": "Weather",
       "type": "string"
     },
-    "Zone": {
+    "WindowState": {
+      "enum": [
+        "intact",
+        "broken",
+        "boarded",
+        "missing",
+        "mixed",
+        "unknown"
+      ],
+      "title": "WindowState",
+      "type": "string"
+    },
+    "Wire": {
       "additionalProperties": false,
-      "description": "A land-use area. Zones drive procedural infill (e.g. extra houses).",
+      "description": "Overhead wire strung along an ordered chain of utility poles.",
       "properties": {
         "id": {
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
           "title": "Id",
           "type": "string"
         },
-        "confidence": {
-          "default": 1.0,
-          "description": "Certainty of the analysis that produced this feature.",
-          "maximum": 1.0,
-          "minimum": 0.0,
-          "title": "Confidence",
-          "type": "number"
+        "label": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable name; never a key.",
+          "title": "Label"
         },
         "tags": {
           "items": {
@@ -1410,83 +4496,102 @@
           "title": "Tags",
           "type": "array"
         },
-        "notes": {
+        "previousIds": {
+          "description": "Former IDs of this entity (renames); overrides that use them still resolve.",
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Previousids",
+          "type": "array"
+        },
+        "provenance": {
           "anyOf": [
             {
-              "maxLength": 2000,
-              "type": "string"
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "extensions": {
+          "patternProperties": {
+            "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+              "$ref": "#/$defs/JsonValue"
+            }
+          },
+          "title": "Extensions",
+          "type": "object"
+        },
+        "infrastructureType": {
+          "const": "wire",
+          "title": "Infrastructuretype",
+          "type": "string"
+        },
+        "wireKind": {
+          "default": "unknown",
+          "enum": [
+            "power",
+            "telephone",
+            "unknown"
+          ],
+          "title": "Wirekind",
+          "type": "string"
+        },
+        "poleIds": {
+          "items": {
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "maxItems": 1000,
+          "minItems": 2,
+          "title": "Poleids",
+          "type": "array"
+        },
+        "sagM": {
+          "anyOf": [
+            {
+              "maximum": 20.0,
+              "minimum": 0.0,
+              "type": "number"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "title": "Notes"
+          "title": "Sagm"
         },
-        "kind": {
-          "$ref": "#/$defs/ZoneKind"
-        },
-        "geometry": {
-          "discriminator": {
-            "mapping": {
-              "polygon": "#/$defs/PolygonGeometry",
-              "rectangle": "#/$defs/RectangleGeometry"
-            },
-            "propertyName": "type"
-          },
-          "oneOf": [
-            {
-              "$ref": "#/$defs/PolygonGeometry"
-            },
-            {
-              "$ref": "#/$defs/RectangleGeometry"
-            }
-          ],
-          "title": "Geometry"
-        },
-        "density": {
-          "default": 0.5,
+        "condition": {
+          "default": 1.0,
           "maximum": 1.0,
           "minimum": 0.0,
-          "title": "Density",
+          "title": "Condition",
           "type": "number"
         }
       },
       "required": [
         "id",
-        "kind",
-        "geometry"
+        "infrastructureType",
+        "poleIds"
       ],
-      "title": "Zone",
+      "title": "Wire",
       "type": "object"
-    },
-    "ZoneKind": {
-      "enum": [
-        "residential",
-        "commercial",
-        "industrial",
-        "agricultural",
-        "military",
-        "park",
-        "forest",
-        "open_field",
-        "wasteland"
-      ],
-      "title": "ZoneKind",
-      "type": "string"
     }
   },
   "additionalProperties": false,
-  "description": "Structured description of a real-world location (public contract v1.0).",
+  "description": "Estimated spatial and semantic structure of a real-world location (v1.0).\n\nDescribes what is known about a place, not how it must be rendered.",
   "properties": {
-    "schema_version": {
+    "schemaVersion": {
       "const": "1.0",
-      "title": "Schema Version",
+      "title": "Schemaversion",
       "type": "string"
     },
-    "id": {
-      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$",
-      "title": "Id",
+    "locationId": {
+      "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+      "title": "Locationid",
       "type": "string"
     },
     "name": {
@@ -1508,13 +4613,23 @@
       "default": null,
       "title": "Description"
     },
-    "source": {
-      "$ref": "#/$defs/BlueprintSource"
+    "status": {
+      "$ref": "#/$defs/LocationStatus",
+      "default": "draft"
     },
-    "geo_reference": {
+    "metadata": {
+      "$ref": "#/$defs/Metadata"
+    },
+    "coordinateSystem": {
+      "$ref": "#/$defs/CoordinateSystem"
+    },
+    "generation": {
+      "$ref": "#/$defs/Generation"
+    },
+    "source": {
       "anyOf": [
         {
-          "$ref": "#/$defs/GeoReference"
+          "$ref": "#/$defs/Source"
         },
         {
           "type": "null"
@@ -1522,88 +4637,49 @@
       ],
       "default": null
     },
-    "extent": {
-      "$ref": "#/$defs/Extent"
-    },
-    "biome": {
-      "$ref": "#/$defs/Biome",
-      "default": "temperate"
-    },
     "terrain": {
-      "$ref": "#/$defs/TerrainSpec"
-    },
-    "atmosphere": {
-      "$ref": "#/$defs/AtmosphereObservation"
-    },
-    "zones": {
-      "items": {
-        "$ref": "#/$defs/Zone"
-      },
-      "maxItems": 500,
-      "title": "Zones",
-      "type": "array"
+      "$ref": "#/$defs/Terrain"
     },
     "roads": {
+      "$ref": "#/$defs/RoadNetwork"
+    },
+    "plots": {
       "items": {
-        "$ref": "#/$defs/Road"
+        "$ref": "#/$defs/Plot"
       },
-      "maxItems": 2000,
-      "title": "Roads",
+      "maxItems": 5000,
+      "title": "Plots",
       "type": "array"
     },
     "buildings": {
       "items": {
         "$ref": "#/$defs/Building"
       },
-      "maxItems": 5000,
+      "maxItems": 10000,
       "title": "Buildings",
       "type": "array"
     },
-    "vegetation": {
+    "vegetationZones": {
       "items": {
-        "discriminator": {
-          "mapping": {
-            "bush": "#/$defs/VegetationPoint",
-            "forest": "#/$defs/VegetationArea",
-            "hedgerow": "#/$defs/VegetationLine",
-            "meadow": "#/$defs/VegetationArea",
-            "orchard": "#/$defs/VegetationArea",
-            "scrub": "#/$defs/VegetationArea",
-            "tree": "#/$defs/VegetationPoint",
-            "tree_line": "#/$defs/VegetationLine",
-            "woodland": "#/$defs/VegetationArea"
-          },
-          "propertyName": "kind"
-        },
-        "oneOf": [
-          {
-            "$ref": "#/$defs/VegetationArea"
-          },
-          {
-            "$ref": "#/$defs/VegetationLine"
-          },
-          {
-            "$ref": "#/$defs/VegetationPoint"
-          }
-        ]
+        "$ref": "#/$defs/VegetationZone"
       },
       "maxItems": 5000,
-      "title": "Vegetation",
+      "title": "Vegetationzones",
       "type": "array"
     },
-    "water": {
+    "trees": {
       "items": {
-        "$ref": "#/$defs/WaterBody"
+        "$ref": "#/$defs/Tree"
       },
-      "maxItems": 500,
-      "title": "Water",
+      "maxItems": 10000,
+      "title": "Trees",
       "type": "array"
     },
     "fences": {
       "items": {
         "$ref": "#/$defs/Fence"
       },
-      "maxItems": 2000,
+      "maxItems": 10000,
       "title": "Fences",
       "type": "array"
     },
@@ -1611,30 +4687,29 @@
       "items": {
         "discriminator": {
           "mapping": {
-            "antenna_mast": "#/$defs/InfrastructurePoint",
-            "billboard": "#/$defs/InfrastructurePoint",
-            "bus_stop": "#/$defs/InfrastructurePoint",
-            "pipeline": "#/$defs/InfrastructureLine",
-            "power_line": "#/$defs/InfrastructureLine",
-            "street_light": "#/$defs/InfrastructurePoint",
-            "telephone_line": "#/$defs/InfrastructureLine",
+            "container": "#/$defs/InfrastructurePoint",
+            "light": "#/$defs/InfrastructurePoint",
+            "other": "#/$defs/InfrastructurePoint",
+            "pump": "#/$defs/InfrastructurePoint",
+            "sign": "#/$defs/InfrastructurePoint",
             "transformer": "#/$defs/InfrastructurePoint",
             "utility_pole": "#/$defs/InfrastructurePoint",
             "water_tower": "#/$defs/InfrastructurePoint",
-            "well": "#/$defs/InfrastructurePoint"
+            "well": "#/$defs/InfrastructurePoint",
+            "wire": "#/$defs/Wire"
           },
-          "propertyName": "kind"
+          "propertyName": "infrastructureType"
         },
         "oneOf": [
           {
             "$ref": "#/$defs/InfrastructurePoint"
           },
           {
-            "$ref": "#/$defs/InfrastructureLine"
+            "$ref": "#/$defs/Wire"
           }
         ]
       },
-      "maxItems": 5000,
+      "maxItems": 10000,
       "title": "Infrastructure",
       "type": "array"
     },
@@ -1642,40 +4717,40 @@
       "items": {
         "$ref": "#/$defs/Prop"
       },
-      "maxItems": 10000,
+      "maxItems": 50000,
       "title": "Props",
       "type": "array"
     },
-    "metadata": {
-      "additionalProperties": {
-        "anyOf": [
-          {
-            "type": "string"
-          },
-          {
-            "type": "integer"
-          },
-          {
-            "type": "number"
-          },
-          {
-            "type": "boolean"
-          }
-        ]
+    "landmarks": {
+      "items": {
+        "$ref": "#/$defs/Landmark"
       },
-      "propertyNames": {
-        "maxLength": 64,
-        "minLength": 1
+      "maxItems": 1000,
+      "title": "Landmarks",
+      "type": "array"
+    },
+    "gameplay": {
+      "$ref": "#/$defs/Gameplay"
+    },
+    "atmosphere": {
+      "$ref": "#/$defs/Atmosphere"
+    },
+    "extensions": {
+      "patternProperties": {
+        "^x-[a-z0-9][a-z0-9_.-]{0,63}$": {
+          "$ref": "#/$defs/JsonValue"
+        }
       },
-      "title": "Metadata",
+      "title": "Extensions",
       "type": "object"
     }
   },
   "required": [
-    "schema_version",
-    "id",
+    "schemaVersion",
+    "locationId",
     "name",
-    "extent"
+    "metadata",
+    "coordinateSystem"
   ],
   "title": "LocationBlueprint",
   "type": "object"

@@ -26,34 +26,32 @@ OUTPUT = EXAMPLES / "expected-output"
 @dataclass(frozen=True)
 class Case:
     name: str
-    blueprint: str
+    location: str
     recipe: str
     overrides: str | None = None
 
     def bundle(self) -> InputBundle:
         return InputBundle(
-            blueprint=EXAMPLES / "blueprints" / self.blueprint,
+            blueprint=EXAMPLES / "locations" / self.location / "location.blueprint.json",
             recipe=EXAMPLES / "recipes" / self.recipe,
             overrides=EXAMPLES / "overrides" / self.overrides if self.overrides else None,
         )
 
 
 CASES = (
-    Case(
-        "rural-crossroads.stylized-rural",
-        "rural-crossroads.blueprint.json",
-        "stylized-rural.recipe.json",
-    ),
+    Case("rural-crossroads.stylized-rural", "rural-crossroads", "stylized-rural.recipe.json"),
     Case(
         "rural-crossroads.stylized-rural.designer-pass-01",
-        "rural-crossroads.blueprint.json",
+        "rural-crossroads",
         "stylized-rural.recipe.json",
         "rural-crossroads.designer-pass.overrides.json",
     ),
+    Case("industrial-outskirts.war-torn", "industrial-outskirts", "war-torn.recipe.json"),
     Case(
-        "industrial-outskirts.war-torn",
-        "industrial-outskirts.blueprint.json",
-        "war-torn.recipe.json",
+        "dacha-forest-edge.dacha-overgrown.designer-pass-01",
+        "dacha-forest-edge",
+        "dacha-overgrown.recipe.json",
+        "dacha-forest-edge.designer-pass.overrides.json",
     ),
 )
 

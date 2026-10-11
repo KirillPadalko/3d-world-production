@@ -19,14 +19,17 @@ from typing import Any
 FLOAT_DECIMALS = 4
 
 
-def canonicalize(value: Any, decimals: int = FLOAT_DECIMALS) -> Any:
-    """Recursively round floats, normalise ``-0.0`` and convert tuples to lists."""
+def canonicalize(value: Any, decimals: int | None = FLOAT_DECIMALS) -> Any:
+    """Recursively round floats, normalise ``-0.0`` and convert tuples to lists.
+
+    ``decimals=None`` keeps floats exactly (lossless round trips).
+    """
     if isinstance(value, bool) or value is None or isinstance(value, (int, str)):
         return value
     if isinstance(value, float):
         if not math.isfinite(value):
             raise ValueError(f"non-finite float cannot be serialised: {value!r}")
-        rounded = round(value, decimals)
+        rounded = value if decimals is None else round(value, decimals)
         return 0.0 if rounded == 0.0 else rounded
     if isinstance(value, Mapping):
         return {str(k): canonicalize(v, decimals) for k, v in value.items()}
@@ -89,6 +92,9 @@ def _format(value: Any, level: int, indent: int) -> str:
     raise TypeError(f"unsupported type for JSON: {type(value).__name__}")
 
 
-def pretty_json(value: Any, indent: int = 2) -> str:
-    """Readable JSON with rounded floats and inline scalar arrays; ends with a newline."""
-    return _format(canonicalize(value), 0, indent) + "\n"
+def pretty_json(value: Any, indent: int = 2, decimals: int | None = FLOAT_DECIMALS) -> str:
+    """Readable JSON with inline scalar arrays; ends with a newline.
+
+    Floats are rounded to ``decimals`` places (``None`` keeps them exactly).
+    """
+    return _format(canonicalize(value, decimals), 0, indent) + "\n"

@@ -1,0 +1,490 @@
+{
+  "schemaVersion": "1.0",
+  "locationId": "industrial-outskirts",
+  "name": "Industrial outskirts",
+  "description": "Edge of a town: a factory compound behind concrete walls, warehouses along a service road, an apartment block and allotment gardens. Hand-authored example. Converted from the v0.1 example format; see CHANGELOG.",
+  "metadata": {
+    "createdAt": "2026-10-09T20:56:04Z",
+    "createdBy": {
+      "name": "hand-authored"
+    },
+    "authors": ["environment-generator examples"],
+    "tags": ["example"],
+    "biome": "temperate",
+    "season": "autumn"
+  },
+  "coordinateSystem": {
+    "unit": "meter",
+    "upAxis": "+y",
+    "eastAxis": "+x",
+    "northAxis": "+z",
+    "handedness": "left",
+    "yawConvention": "degrees_clockwise_from_north",
+    "origin": "southwest_corner",
+    "bounds": {
+      "widthM": 180.0,
+      "depthM": 140.0
+    },
+    "geoReference": {
+      "latitude": 51.0,
+      "longitude": 10.0,
+      "headingDeg": 12.0
+    }
+  },
+  "source": {
+    "type": "synthetic",
+    "description": "The geo reference is illustrative only."
+  },
+  "terrain": {
+    "elevation": {
+      "minM": 119.85,
+      "maxM": 120.15
+    },
+    "defaultSurface": "dirt"
+  },
+  "roads": {
+    "nodes": [
+      {
+        "id": "n-01",
+        "position": [0.0, 52.0],
+        "nodeType": "boundary"
+      },
+      {
+        "id": "n-02",
+        "position": [60.0, 53.5],
+        "nodeType": "junction"
+      },
+      {
+        "id": "n-03",
+        "position": [112.0, 53.0],
+        "nodeType": "junction"
+      },
+      {
+        "id": "n-04",
+        "position": [180.0, 50.0],
+        "nodeType": "boundary"
+      },
+      {
+        "id": "n-05",
+        "position": [60.0, 75.0],
+        "nodeType": "dead_end"
+      },
+      {
+        "id": "n-06",
+        "position": [112.0, 140.0],
+        "nodeType": "boundary"
+      },
+      {
+        "id": "n-07",
+        "position": [112.0, 22.0],
+        "nodeType": "dead_end"
+      },
+      {
+        "id": "n-08",
+        "position": [178.0, 6.0],
+        "nodeType": "dead_end"
+      }
+    ],
+    "segments": [
+      {
+        "id": "r-service-1",
+        "sourceNodeId": "n-01",
+        "targetNodeId": "n-02",
+        "widthM": 7.0,
+        "surface": "concrete",
+        "importance": "secondary"
+      },
+      {
+        "id": "r-service-2",
+        "sourceNodeId": "n-02",
+        "targetNodeId": "n-03",
+        "curve": {
+          "controlPoints": [
+            [90.0, 54.0]
+          ]
+        },
+        "widthM": 7.0,
+        "surface": "concrete",
+        "importance": "secondary"
+      },
+      {
+        "id": "r-service-3",
+        "sourceNodeId": "n-03",
+        "targetNodeId": "n-04",
+        "widthM": 7.0,
+        "surface": "concrete",
+        "importance": "secondary"
+      },
+      {
+        "id": "r-gate",
+        "sourceNodeId": "n-02",
+        "targetNodeId": "n-05",
+        "widthM": 6.5,
+        "surface": "concrete",
+        "importance": "secondary"
+      },
+      {
+        "id": "r-estate",
+        "sourceNodeId": "n-03",
+        "targetNodeId": "n-06",
+        "widthM": 6.5,
+        "surface": "asphalt",
+        "importance": "secondary"
+      },
+      {
+        "id": "t-allotments",
+        "sourceNodeId": "n-07",
+        "targetNodeId": "n-08",
+        "curve": {
+          "controlPoints": [
+            [160.0, 18.0]
+          ]
+        },
+        "widthM": 3.5,
+        "surface": "dirt",
+        "importance": "track"
+      }
+    ]
+  },
+  "plots": [
+    {
+      "id": "z-compound",
+      "plotType": "unknown",
+      "polygon": [
+        [10.0, 60.0],
+        [100.0, 60.0],
+        [100.0, 130.0],
+        [10.0, 130.0]
+      ]
+    },
+    {
+      "id": "z-housing",
+      "plotType": "vacant_lot",
+      "polygon": [
+        [112.0, 72.0],
+        [178.0, 72.0],
+        [178.0, 138.0],
+        [112.0, 138.0]
+      ]
+    }
+  ],
+  "buildings": [
+    {
+      "id": "b-factory",
+      "archetype": "factory",
+      "buildingType": "factory",
+      "transform": {
+        "position": [40.0, 120.0, 105.0],
+        "yawDeg": 180.0
+      },
+      "dimensions": {
+        "widthM": 40.0,
+        "depthM": 22.0,
+        "heightM": 7.5
+      },
+      "floors": 2,
+      "wallMaterial": "brick"
+    },
+    {
+      "id": "b-warehouse-1",
+      "archetype": "warehouse",
+      "buildingType": "warehouse",
+      "transform": {
+        "position": [85.0, 120.0, 95.0],
+        "yawDeg": 90.0
+      },
+      "dimensions": {
+        "widthM": 26.0,
+        "depthM": 16.0,
+        "heightM": 4.5
+      },
+      "floors": 1,
+      "roofType": "gable"
+    },
+    {
+      "id": "b-warehouse-2",
+      "archetype": "warehouse",
+      "buildingType": "warehouse",
+      "transform": {
+        "position": [30.0, 120.0, 72.0],
+        "yawDeg": 180.0
+      },
+      "dimensions": {
+        "widthM": 28.0,
+        "depthM": 14.0,
+        "heightM": 3.5
+      },
+      "floors": 1,
+      "condition": 0.45,
+      "roofType": "flat"
+    },
+    {
+      "id": "b-office",
+      "archetype": "office",
+      "buildingType": "office",
+      "transform": {
+        "position": [80.0, 120.0, 72.0],
+        "yawDeg": 180.0
+      },
+      "dimensions": {
+        "widthM": 14.0,
+        "depthM": 10.0,
+        "heightM": 9.5
+      },
+      "floors": 3,
+      "roofType": "flat"
+    },
+    {
+      "id": "b-apartments",
+      "archetype": "apartment_block",
+      "buildingType": "apartment_block",
+      "transform": {
+        "position": [140.0, 120.0, 110.0],
+        "yawDeg": 270.0
+      },
+      "dimensions": {
+        "widthM": 24.0,
+        "depthM": 12.0,
+        "heightM": 15.5
+      },
+      "floors": 5,
+      "roofType": "flat"
+    },
+    {
+      "id": "b-garages",
+      "archetype": "garage",
+      "buildingType": "garage",
+      "transform": {
+        "position": [140.0, 120.0, 70.0],
+        "yawDeg": 180.0
+      },
+      "dimensions": {
+        "widthM": 7.0,
+        "depthM": 5.0,
+        "heightM": 3.5
+      },
+      "floors": 1,
+      "roofType": "flat"
+    }
+  ],
+  "vegetationZones": [
+    {
+      "id": "allotments",
+      "zoneType": "orchard",
+      "polygon": [
+        [121.606, 26.953],
+        [157.557, 25.069],
+        [158.394, 41.047],
+        [122.443, 42.931]
+      ],
+      "density": 0.6
+    },
+    {
+      "id": "wasteland-scrub",
+      "zoneType": "shrubland",
+      "polygon": [
+        [2.0, 4.0],
+        [95.0, 2.0],
+        [100.0, 44.0],
+        [4.0, 44.0]
+      ],
+      "density": 0.4
+    },
+    {
+      "id": "park-woodland",
+      "zoneType": "forest_light",
+      "polygon": [
+        [152.0, 101.0],
+        [178.0, 101.0],
+        [178.0, 139.0],
+        [152.0, 139.0]
+      ],
+      "density": 0.7
+    }
+  ],
+  "trees": [
+    {
+      "id": "estate-trees-01",
+      "transform": {
+        "position": [118.0, 120.0, 60.0]
+      }
+    },
+    {
+      "id": "estate-trees-02",
+      "transform": {
+        "position": [118.0, 120.0, 66.909]
+      }
+    },
+    {
+      "id": "estate-trees-03",
+      "transform": {
+        "position": [118.0, 120.0, 73.818]
+      }
+    },
+    {
+      "id": "estate-trees-04",
+      "transform": {
+        "position": [118.0, 120.0, 80.727]
+      }
+    },
+    {
+      "id": "estate-trees-05",
+      "transform": {
+        "position": [118.0, 120.0, 87.636]
+      }
+    },
+    {
+      "id": "estate-trees-06",
+      "transform": {
+        "position": [118.0, 120.0, 94.545]
+      }
+    },
+    {
+      "id": "estate-trees-07",
+      "transform": {
+        "position": [118.0, 120.0, 101.455]
+      }
+    },
+    {
+      "id": "estate-trees-08",
+      "transform": {
+        "position": [118.0, 120.0, 108.364]
+      }
+    },
+    {
+      "id": "estate-trees-09",
+      "transform": {
+        "position": [118.0, 120.0, 115.273]
+      }
+    },
+    {
+      "id": "estate-trees-10",
+      "transform": {
+        "position": [118.0, 120.0, 122.182]
+      }
+    },
+    {
+      "id": "estate-trees-11",
+      "transform": {
+        "position": [118.0, 120.0, 129.091]
+      }
+    },
+    {
+      "id": "estate-trees-12",
+      "transform": {
+        "position": [118.0, 120.0, 136.0]
+      }
+    }
+  ],
+  "fences": [
+    {
+      "id": "f-compound",
+      "fenceType": "concrete",
+      "path": [
+        [8.0, 60.0],
+        [100.0, 60.0],
+        [100.0, 132.0],
+        [8.0, 132.0]
+      ],
+      "closed": true,
+      "heightM": 2.5,
+      "missingSections": [
+        {
+          "start": 0.1524,
+          "end": 0.1707
+        }
+      ]
+    },
+    {
+      "id": "f-allotments",
+      "fenceType": "wire",
+      "path": [
+        [120.0, 24.5],
+        [160.0, 22.5],
+        [161.0, 44.0],
+        [121.0, 46.0]
+      ],
+      "closed": true,
+      "heightM": 1.2
+    }
+  ],
+  "infrastructure": [
+    {
+      "id": "power-estate-p01",
+      "infrastructureType": "utility_pole",
+      "transform": {
+        "position": [106.0, 120.0, 58.5]
+      },
+      "heightM": 9.0
+    },
+    {
+      "id": "power-estate-p02",
+      "infrastructureType": "utility_pole",
+      "transform": {
+        "position": [106.0, 120.0, 84.667]
+      },
+      "heightM": 9.0
+    },
+    {
+      "id": "power-estate-p03",
+      "infrastructureType": "utility_pole",
+      "transform": {
+        "position": [106.0, 120.0, 111.333]
+      },
+      "heightM": 9.0
+    },
+    {
+      "id": "power-estate-p04",
+      "infrastructureType": "utility_pole",
+      "transform": {
+        "position": [106.0, 120.0, 138.0]
+      },
+      "heightM": 9.0
+    },
+    {
+      "id": "power-estate",
+      "infrastructureType": "wire",
+      "wireKind": "power",
+      "poleIds": ["power-estate-p01", "power-estate-p02", "power-estate-p03", "power-estate-p04"]
+    },
+    {
+      "id": "i-mast",
+      "infrastructureType": "other",
+      "archetype": "antenna_mast",
+      "transform": {
+        "position": [92.0, 120.0, 124.0]
+      }
+    },
+    {
+      "id": "i-billboard",
+      "infrastructureType": "other",
+      "archetype": "billboard",
+      "transform": {
+        "position": [150.0, 120.0, 60.0],
+        "yawDeg": 180.0
+      }
+    }
+  ],
+  "props": [
+    {
+      "id": "p-truck",
+      "propType": "car",
+      "transform": {
+        "position": [70.0, 120.0, 66.0],
+        "yawDeg": 270.0
+      }
+    },
+    {
+      "id": "p-dumpster",
+      "propType": "dumpster",
+      "transform": {
+        "position": [128.0, 120.0, 92.0],
+        "yawDeg": 270.0
+      }
+    }
+  ],
+  "atmosphere": {
+    "weather": "overcast",
+    "timeOfDay": "morning"
+  }
+}

@@ -54,7 +54,7 @@ class GenerationReport(ContractModel):
     success: bool
     dry_run: bool
     error: ReportError | None = None
-    blueprint_id: str | None = None
+    location_id: str | None = None
     recipe_id: str | None = None
     overrides_id: str | None = None
     seed: int | None = None

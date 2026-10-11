@@ -1,0 +1,907 @@
+{
+  "schemaVersion": "1.0",
+  "locationId": "rural-crossroads",
+  "name": "Rural crossroads village",
+  "description": "A small farming village where a rural road meets a village street and two dirt tracks. Hand-authored example standing in for the output of a future location-analysis step. Converted from the v0.1 example format; see CHANGELOG.",
+  "metadata": {
+    "createdAt": "2026-10-09T20:56:04Z",
+    "createdBy": {
+      "name": "hand-authored"
+    },
+    "authors": ["environment-generator examples"],
+    "tags": ["example"],
+    "biome": "temperate",
+    "season": "summer"
+  },
+  "coordinateSystem": {
+    "unit": "meter",
+    "upAxis": "+y",
+    "eastAxis": "+x",
+    "northAxis": "+z",
+    "handedness": "left",
+    "yawConvention": "degrees_clockwise_from_north",
+    "origin": "southwest_corner",
+    "bounds": {
+      "widthM": 260.0,
+      "depthM": 220.0
+    }
+  },
+  "source": {
+    "type": "synthetic",
+    "description": "Fictional location; coordinates are local metres from the south-west corner."
+  },
+  "terrain": {
+    "elevation": {
+      "minM": 0.5,
+      "maxM": 3.5
+    },
+    "waterBodies": [
+      {
+        "id": "pond-farm",
+        "waterType": "pond",
+        "polygon": [
+          [66.0, 128.0],
+          [80.0, 126.0],
+          [86.0, 134.0],
+          [80.0, 144.0],
+          [68.0, 143.0],
+          [63.0, 136.0]
+        ]
+      }
+    ],
+    "notes": "v0 spot heights were not carried over (v1.0 stores measured terrain as a heightmap file)."
+  },
+  "roads": {
+    "nodes": [
+      {
+        "id": "n-01",
+        "position": [0.0, 108.0],
+        "nodeType": "boundary"
+      },
+      {
+        "id": "n-02",
+        "position": [60.0, 110.0],
+        "nodeType": "junction"
+      },
+      {
+        "id": "n-03",
+        "position": [130.0, 112.0],
+        "nodeType": "junction"
+      },
+      {
+        "id": "n-04",
+        "position": [198.0, 115.9],
+        "nodeType": "junction"
+      },
+      {
+        "id": "n-05",
+        "position": [230.0, 118.5],
+        "nodeType": "junction"
+      },
+      {
+        "id": "n-06",
+        "position": [260.0, 120.0],
+        "nodeType": "boundary"
+      },
+      {
+        "id": "n-07",
+        "position": [124.0, 220.0],
+        "nodeType": "boundary"
+      },
+      {
+        "id": "n-08",
+        "position": [175.0, 0.0],
+        "nodeType": "boundary"
+      },
+      {
+        "id": "n-09",
+        "position": [40.0, 185.0],
+        "nodeType": "dead_end"
+      },
+      {
+        "id": "n-10",
+        "position": [196.0, 92.0],
+        "nodeType": "dead_end"
+      },
+      {
+        "id": "n-11",
+        "position": [234.0, 220.0],
+        "nodeType": "boundary"
+      }
+    ],
+    "segments": [
+      {
+        "id": "r-main-1",
+        "sourceNodeId": "n-01",
+        "targetNodeId": "n-02",
+        "widthM": 5.5,
+        "surface": "asphalt",
+        "importance": "primary"
+      },
+      {
+        "id": "r-main-2",
+        "sourceNodeId": "n-02",
+        "targetNodeId": "n-03",
+        "widthM": 5.5,
+        "surface": "asphalt",
+        "importance": "primary"
+      },
+      {
+        "id": "r-main-3",
+        "sourceNodeId": "n-03",
+        "targetNodeId": "n-04",
+        "widthM": 5.5,
+        "surface": "asphalt",
+        "importance": "primary"
+      },
+      {
+        "id": "r-main-4",
+        "sourceNodeId": "n-04",
+        "targetNodeId": "n-05",
+        "curve": {
+          "controlPoints": [
+            [200.0, 116.0]
+          ]
+        },
+        "widthM": 5.5,
+        "surface": "asphalt",
+        "importance": "primary"
+      },
+      {
+        "id": "r-main-5",
+        "sourceNodeId": "n-05",
+        "targetNodeId": "n-06",
+        "widthM": 5.5,
+        "surface": "asphalt",
+        "importance": "primary"
+      },
+      {
+        "id": "r-north",
+        "sourceNodeId": "n-03",
+        "targetNodeId": "n-07",
+        "curve": {
+          "controlPoints": [
+            [128.0, 160.0]
+          ]
+        },
+        "widthM": 6.5,
+        "surface": "asphalt",
+        "importance": "secondary"
+      },
+      {
+        "id": "r-south",
+        "sourceNodeId": "n-03",
+        "targetNodeId": "n-08",
+        "curve": {
+          "controlPoints": [
+            [138.0, 70.0],
+            [160.0, 30.0]
+          ]
+        },
+        "widthM": 3.5,
+        "surface": "dirt",
+        "importance": "track"
+      },
+      {
+        "id": "r-farm",
+        "provenance": {
+          "category": "manual",
+          "confidence": 0.9
+        },
+        "sourceNodeId": "n-02",
+        "targetNodeId": "n-09",
+        "curve": {
+          "controlPoints": [
+            [55.0, 150.0]
+          ]
+        },
+        "widthM": 3.5,
+        "surface": "dirt",
+        "importance": "track"
+      },
+      {
+        "id": "r-yard",
+        "sourceNodeId": "n-04",
+        "targetNodeId": "n-10",
+        "widthM": 3.5,
+        "surface": "dirt",
+        "importance": "track"
+      },
+      {
+        "id": "p-forest",
+        "provenance": {
+          "category": "manual",
+          "confidence": 0.7
+        },
+        "sourceNodeId": "n-05",
+        "targetNodeId": "n-11",
+        "curve": {
+          "controlPoints": [
+            [236.0, 150.0],
+            [228.0, 190.0]
+          ]
+        },
+        "widthM": 1.6,
+        "surface": "gravel",
+        "importance": "path"
+      }
+    ]
+  },
+  "plots": [
+    {
+      "id": "z-village",
+      "plotType": "vacant_lot",
+      "polygon": [
+        [95.0, 118.0],
+        [165.0, 118.0],
+        [165.0, 210.0],
+        [95.0, 210.0]
+      ]
+    },
+    {
+      "id": "z-farm",
+      "plotType": "garden",
+      "polygon": [
+        [0.0, 125.0],
+        [92.0, 125.0],
+        [92.0, 220.0],
+        [0.0, 220.0]
+      ]
+    },
+    {
+      "id": "z-yard",
+      "plotType": "unknown",
+      "polygon": [
+        [168.0, 48.0],
+        [226.0, 48.0],
+        [226.0, 102.0],
+        [168.0, 102.0]
+      ]
+    },
+    {
+      "id": "z-fields",
+      "provenance": {
+        "category": "manual",
+        "confidence": 0.8
+      },
+      "plotType": "common_area",
+      "polygon": [
+        [0.0, 0.0],
+        [125.0, 0.0],
+        [125.0, 96.0],
+        [0.0, 96.0]
+      ]
+    }
+  ],
+  "buildings": [
+    {
+      "id": "b-house-1",
+      "archetype": "house",
+      "buildingType": "house",
+      "transform": {
+        "position": [111.0, 2.0, 135.0],
+        "yawDeg": 90.0
+      },
+      "dimensions": {
+        "widthM": 10.0,
+        "depthM": 8.0,
+        "heightM": 7.5
+      },
+      "floors": 2,
+      "roofType": "gable",
+      "wallMaterial": "brick"
+    },
+    {
+      "id": "b-house-2",
+      "archetype": "house",
+      "buildingType": "house",
+      "transform": {
+        "position": [111.0, 2.0, 152.0],
+        "yawDeg": 92.0
+      },
+      "dimensions": {
+        "widthM": 9.0,
+        "depthM": 8.0,
+        "heightM": 4.5
+      },
+      "floors": 1,
+      "roofType": "hip",
+      "wallMaterial": "plaster"
+    },
+    {
+      "id": "b-house-3",
+      "archetype": "house",
+      "buildingType": "house",
+      "transform": {
+        "position": [143.0, 2.0, 141.0],
+        "yawDeg": 268.0
+      },
+      "dimensions": {
+        "widthM": 11.0,
+        "depthM": 8.0,
+        "heightM": 7.5
+      },
+      "floors": 2,
+      "roofType": "gable"
+    },
+    {
+      "id": "b-house-4",
+      "label": "L-shaped footprint traced from imagery.",
+      "provenance": {
+        "category": "manual",
+        "confidence": 0.85
+      },
+      "archetype": "house",
+      "buildingType": "house",
+      "transform": {
+        "position": [142.5, 2.0, 164.0],
+        "yawDeg": 270.0
+      },
+      "dimensions": {
+        "widthM": 12.0,
+        "depthM": 9.0,
+        "heightM": 4.5
+      },
+      "footprint": [
+        [138.0, 158.0],
+        [147.0, 158.0],
+        [147.0, 166.0],
+        [142.0, 166.0],
+        [142.0, 170.0],
+        [138.0, 170.0]
+      ],
+      "floors": 1,
+      "roofType": "gable"
+    },
+    {
+      "id": "b-shop",
+      "archetype": "shop",
+      "buildingType": "shop",
+      "transform": {
+        "position": [149.0, 2.0, 126.0],
+        "yawDeg": 177.0
+      },
+      "dimensions": {
+        "widthM": 12.0,
+        "depthM": 9.0,
+        "heightM": 3.5
+      },
+      "floors": 1,
+      "roofType": "flat"
+    },
+    {
+      "id": "b-church",
+      "archetype": "church",
+      "buildingType": "church",
+      "transform": {
+        "position": [100.0, 2.0, 92.0]
+      },
+      "dimensions": {
+        "widthM": 16.0,
+        "depthM": 10.0,
+        "heightM": 4.5
+      },
+      "floors": 1,
+      "roofType": "gable",
+      "wallMaterial": "stone"
+    },
+    {
+      "id": "b-barn",
+      "archetype": "barn",
+      "buildingType": "barn",
+      "transform": {
+        "position": [25.0, 2.0, 160.0],
+        "yawDeg": 110.0
+      },
+      "dimensions": {
+        "widthM": 18.0,
+        "depthM": 10.0,
+        "heightM": 4.5
+      },
+      "floors": 1,
+      "condition": 0.45,
+      "roofType": "gable",
+      "wallMaterial": "wood_board"
+    },
+    {
+      "id": "b-shed-1",
+      "archetype": "shed",
+      "buildingType": "shed",
+      "transform": {
+        "position": [30.0, 2.0, 140.0],
+        "yawDeg": 170.0
+      },
+      "dimensions": {
+        "widthM": 6.0,
+        "depthM": 4.0,
+        "heightM": 4.5
+      },
+      "floors": 1
+    },
+    {
+      "id": "b-farmhouse",
+      "archetype": "house",
+      "buildingType": "house",
+      "transform": {
+        "position": [72.0, 2.0, 162.0],
+        "yawDeg": 180.0
+      },
+      "dimensions": {
+        "widthM": 10.0,
+        "depthM": 8.0,
+        "heightM": 4.5
+      },
+      "floors": 1,
+      "roofType": "gable",
+      "wallMaterial": "wood_board"
+    },
+    {
+      "id": "b-warehouse",
+      "archetype": "warehouse",
+      "buildingType": "warehouse",
+      "transform": {
+        "position": [188.0, 2.0, 70.0],
+        "yawDeg": 345.0
+      },
+      "dimensions": {
+        "widthM": 30.0,
+        "depthM": 18.0,
+        "heightM": 4.5
+      },
+      "floors": 1,
+      "roofType": "gable",
+      "wallMaterial": "metal_sheet"
+    },
+    {
+      "id": "b-garage",
+      "archetype": "garage",
+      "buildingType": "garage",
+      "transform": {
+        "position": [216.0, 2.0, 92.0],
+        "yawDeg": 340.0
+      },
+      "dimensions": {
+        "widthM": 7.0,
+        "depthM": 5.0,
+        "heightM": 3.5
+      },
+      "floors": 1,
+      "roofType": "flat"
+    }
+  ],
+  "vegetationZones": [
+    {
+      "id": "forest-east",
+      "zoneType": "forest_dense",
+      "polygon": [
+        [178.0, 138.0],
+        [260.0, 132.0],
+        [260.0, 220.0],
+        [170.0, 220.0],
+        [166.0, 186.0]
+      ],
+      "density": 0.75
+    },
+    {
+      "id": "orchard-1",
+      "zoneType": "orchard",
+      "polygon": [
+        [61.804, 183.98],
+        [91.731, 186.073],
+        [90.196, 208.02],
+        [60.269, 205.927]
+      ],
+      "density": 0.85
+    },
+    {
+      "id": "scrub-south",
+      "zoneType": "shrubland",
+      "polygon": [
+        [150.0, 6.0],
+        [205.0, 4.0],
+        [215.0, 40.0],
+        [168.0, 44.0]
+      ],
+      "density": 0.5
+    },
+    {
+      "id": "meadow-west",
+      "zoneType": "meadow",
+      "polygon": [
+        [10.0, 25.0],
+        [70.0, 25.0],
+        [70.0, 75.0],
+        [10.0, 75.0]
+      ],
+      "density": 0.4
+    },
+    {
+      "id": "hedge-fields",
+      "zoneType": "shrubland",
+      "polygon": [
+        [4.984, 101.25],
+        [83.984, 102.25],
+        [84.016, 99.75],
+        [5.016, 98.75]
+      ],
+      "density": 0.9
+    }
+  ],
+  "trees": [
+    {
+      "id": "trees-main-road-01",
+      "transform": {
+        "position": [160.0, 2.0, 105.0]
+      }
+    },
+    {
+      "id": "trees-main-road-02",
+      "transform": {
+        "position": [166.857, 2.0, 105.429]
+      }
+    },
+    {
+      "id": "trees-main-road-03",
+      "transform": {
+        "position": [173.714, 2.0, 105.857]
+      }
+    },
+    {
+      "id": "trees-main-road-04",
+      "transform": {
+        "position": [180.571, 2.0, 106.286]
+      }
+    },
+    {
+      "id": "trees-main-road-05",
+      "transform": {
+        "position": [187.429, 2.0, 106.714]
+      }
+    },
+    {
+      "id": "trees-main-road-06",
+      "transform": {
+        "position": [208.0, 2.0, 108.0]
+      }
+    },
+    {
+      "id": "trees-main-road-07",
+      "transform": {
+        "position": [214.857, 2.0, 108.429]
+      }
+    },
+    {
+      "id": "trees-main-road-08",
+      "transform": {
+        "position": [221.714, 2.0, 108.857]
+      }
+    },
+    {
+      "id": "trees-main-road-09",
+      "transform": {
+        "position": [228.571, 2.0, 109.286]
+      }
+    },
+    {
+      "id": "trees-main-road-10",
+      "transform": {
+        "position": [235.429, 2.0, 109.714]
+      }
+    },
+    {
+      "id": "trees-main-road-11",
+      "transform": {
+        "position": [242.286, 2.0, 110.143]
+      }
+    },
+    {
+      "id": "trees-main-road-12",
+      "transform": {
+        "position": [249.143, 2.0, 110.571]
+      }
+    },
+    {
+      "id": "trees-main-road-13",
+      "transform": {
+        "position": [256.0, 2.0, 111.0]
+      }
+    },
+    {
+      "id": "t-oak-1",
+      "transform": {
+        "position": [118.0, 2.0, 183.0]
+      },
+      "heightM": 14.0
+    },
+    {
+      "id": "t-oak-2",
+      "transform": {
+        "position": [88.0, 2.0, 140.0]
+      }
+    },
+    {
+      "id": "t-lone-field",
+      "transform": {
+        "position": [92.0, 2.0, 40.0]
+      }
+    }
+  ],
+  "fences": [
+    {
+      "id": "f-farmyard",
+      "fenceType": "wooden_board",
+      "path": [
+        [8.0, 130.0],
+        [40.0, 130.0],
+        [40.0, 176.0],
+        [8.0, 176.0]
+      ],
+      "closed": true,
+      "heightM": 1.2,
+      "missingSections": [
+        {
+          "start": 0.3205,
+          "end": 0.3462
+        }
+      ]
+    },
+    {
+      "id": "f-garden-1",
+      "fenceType": "wooden_picket",
+      "path": [
+        [104.0, 128.5],
+        [120.0, 128.5]
+      ],
+      "heightM": 1.0
+    },
+    {
+      "id": "f-churchyard",
+      "fenceType": "stone",
+      "path": [
+        [89.0, 102.0],
+        [89.0, 82.0],
+        [111.0, 82.0],
+        [111.0, 102.0]
+      ],
+      "heightM": 1.2
+    },
+    {
+      "id": "f-yard",
+      "fenceType": "chain_link",
+      "path": [
+        [168.0, 48.0],
+        [226.0, 48.0],
+        [226.0, 102.0],
+        [168.0, 102.0]
+      ],
+      "closed": true,
+      "heightM": 2.0
+    }
+  ],
+  "infrastructure": [
+    {
+      "id": "power-west-p01",
+      "infrastructureType": "utility_pole",
+      "transform": {
+        "position": [0.0, 2.0, 117.0]
+      },
+      "heightM": 9.0
+    },
+    {
+      "id": "power-west-p02",
+      "infrastructureType": "utility_pole",
+      "transform": {
+        "position": [30.667, 2.0, 117.333]
+      },
+      "heightM": 9.0
+    },
+    {
+      "id": "power-west-p03",
+      "infrastructureType": "utility_pole",
+      "transform": {
+        "position": [62.333, 2.0, 117.678]
+      },
+      "heightM": 9.0
+    },
+    {
+      "id": "power-west-p04",
+      "infrastructureType": "utility_pole",
+      "transform": {
+        "position": [92.0, 2.0, 118.0]
+      },
+      "heightM": 9.0
+    },
+    {
+      "id": "power-west-p05",
+      "infrastructureType": "utility_pole",
+      "transform": {
+        "position": [97.0, 2.0, 139.0]
+      },
+      "heightM": 9.0
+    },
+    {
+      "id": "power-west-p06",
+      "infrastructureType": "utility_pole",
+      "transform": {
+        "position": [102.0, 2.0, 160.0]
+      },
+      "heightM": 9.0
+    },
+    {
+      "id": "power-west-p07",
+      "infrastructureType": "utility_pole",
+      "transform": {
+        "position": [101.0, 2.0, 189.0]
+      },
+      "heightM": 9.0
+    },
+    {
+      "id": "power-west-p08",
+      "infrastructureType": "utility_pole",
+      "transform": {
+        "position": [100.0, 2.0, 218.0]
+      },
+      "heightM": 9.0
+    },
+    {
+      "id": "power-west",
+      "infrastructureType": "wire",
+      "wireKind": "power",
+      "poleIds": ["power-west-p01", "power-west-p02", "power-west-p03", "power-west-p04", "power-west-p05", "power-west-p06", "power-west-p07", "power-west-p08"]
+    },
+    {
+      "id": "telephone-main-p01",
+      "provenance": {
+        "category": "manual",
+        "confidence": 0.6
+      },
+      "infrastructureType": "utility_pole",
+      "transform": {
+        "position": [140.0, 2.0, 106.0]
+      },
+      "heightM": 7.5
+    },
+    {
+      "id": "telephone-main-p02",
+      "provenance": {
+        "category": "manual",
+        "confidence": 0.6
+      },
+      "infrastructureType": "utility_pole",
+      "transform": {
+        "position": [169.5, 2.0, 107.75]
+      },
+      "heightM": 7.5
+    },
+    {
+      "id": "telephone-main-p03",
+      "provenance": {
+        "category": "manual",
+        "confidence": 0.6
+      },
+      "infrastructureType": "utility_pole",
+      "transform": {
+        "position": [200.996, 2.0, 109.618]
+      },
+      "heightM": 7.5
+    },
+    {
+      "id": "telephone-main-p04",
+      "provenance": {
+        "category": "manual",
+        "confidence": 0.6
+      },
+      "infrastructureType": "utility_pole",
+      "transform": {
+        "position": [228.5, 2.0, 111.25]
+      },
+      "heightM": 7.5
+    },
+    {
+      "id": "telephone-main-p05",
+      "provenance": {
+        "category": "manual",
+        "confidence": 0.6
+      },
+      "infrastructureType": "utility_pole",
+      "transform": {
+        "position": [258.0, 2.0, 113.0]
+      },
+      "heightM": 7.5
+    },
+    {
+      "id": "telephone-main",
+      "provenance": {
+        "category": "manual",
+        "confidence": 0.6
+      },
+      "infrastructureType": "wire",
+      "wireKind": "telephone",
+      "poleIds": ["telephone-main-p01", "telephone-main-p02", "telephone-main-p03", "telephone-main-p04", "telephone-main-p05"]
+    },
+    {
+      "id": "i-transformer",
+      "infrastructureType": "transformer",
+      "transform": {
+        "position": [92.0, 2.0, 124.0]
+      }
+    },
+    {
+      "id": "i-water-tower",
+      "infrastructureType": "water_tower",
+      "transform": {
+        "position": [50.0, 2.0, 208.0]
+      }
+    },
+    {
+      "id": "i-bus-stop",
+      "infrastructureType": "other",
+      "archetype": "bus_stop",
+      "transform": {
+        "position": [139.0, 2.0, 117.5],
+        "yawDeg": 180.0
+      }
+    },
+    {
+      "id": "i-well",
+      "infrastructureType": "well",
+      "transform": {
+        "position": [58.0, 2.0, 168.0]
+      }
+    }
+  ],
+  "props": [
+    {
+      "id": "p-car-1",
+      "propType": "car",
+      "transform": {
+        "position": [118.0, 2.0, 118.0],
+        "yawDeg": 270.0
+      }
+    },
+    {
+      "id": "p-wreck-1",
+      "provenance": {
+        "category": "manual",
+        "confidence": 0.75
+      },
+      "propType": "car_wreck",
+      "transform": {
+        "position": [155.0, 2.0, 60.0],
+        "yawDeg": 325.0
+      }
+    },
+    {
+      "id": "p-sandbags-1",
+      "propType": "sandbags",
+      "transform": {
+        "position": [123.0, 2.0, 104.0]
+      }
+    },
+    {
+      "id": "p-hay-1",
+      "propType": "hay_bale",
+      "transform": {
+        "position": [14.0, 2.0, 146.0]
+      }
+    },
+    {
+      "id": "p-hay-2",
+      "propType": "hay_bale",
+      "transform": {
+        "position": [16.5, 2.0, 143.0]
+      }
+    },
+    {
+      "id": "p-crates-1",
+      "propType": "crate",
+      "transform": {
+        "position": [206.0, 2.0, 96.0],
+        "yawDeg": 345.0
+      }
+    }
+  ],
+  "atmosphere": {
+    "weather": "partly_cloudy"
+  }
+}

@@ -3,17 +3,18 @@
 [![CI](https://github.com/KirillPadalko/3d-world-production/actions/workflows/ci.yml/badge.svg)](https://github.com/KirillPadalko/3d-world-production/actions/workflows/ci.yml)
 
 A standalone, deterministic procedural environment generator for an isometric
-tactical game. It turns a **LocationBlueprint** (a structured description of a
-real place) and a **LocationRecipe** (how to stylise it), plus optional
-**LocationOverrides** (designer edits), into a portable, engine-agnostic
-**scene manifest**: terrain, roads, buildings, fences, infrastructure,
-vegetation, props and atmosphere, each entity with a stable ID, archetype,
-transform, parameters and provenance.
+tactical game. It turns a **LocationBlueprint** (the engine-independent
+description of a real place, contract v1.0) and a **LocationRecipe** (how to
+stylise it), plus optional **LocationOverrides** (designer edits), into a
+portable, engine-agnostic **scene manifest**: terrain, roads, buildings,
+fences, infrastructure, vegetation, props and atmosphere, each entity with a
+stable ID, archetype, transform, parameters and provenance.
 
-![Rural crossroads, stylized-rural recipe](examples/expected-output/rural-crossroads.stylized-rural/preview.svg)
+![Dacha settlement at the forest edge](examples/expected-output/dacha-forest-edge.dacha-overgrown.designer-pass-01/preview.svg)
 
-*Top-down preview of `examples/expected-output/rural-crossroads.stylized-rural`
-(638 entities, generated in about 0.15 s).*
+*Top-down preview of the dacha fixture with the `dacha-overgrown` recipe and a
+designer pass (`examples/expected-output/dacha-forest-edge.dacha-overgrown.designer-pass-01`,
+589 entities).*
 
 ## Where this fits
 
@@ -26,11 +27,12 @@ drone footage -> frames -> location analysis -> LocationBlueprint -> LocationRec
 
 | Part of the workflow | Status |
 | --- | --- |
-| Blueprint / recipe / overrides contracts (Pydantic + JSON Schema) | **Implemented** |
-| Validation (contract, semantic, generated layout) | **Implemented** |
+| LocationBlueprint v1.0 contract: models, JSON Schema, versioning, migrations, structured diagnostics | **Implemented** ([spec](docs/LOCATION_BLUEPRINT.md)) |
+| Recipe / overrides contracts (Pydantic + JSON Schema) | **Implemented** |
+| Validation (version, schema, semantic, references, external files, generated layout) | **Implemented** |
 | Planning, 8 generator slots, asset resolution, manifest export, reports | **Implemented** |
 | CLI, SVG preview, dry run, replay from a saved plan | **Implemented** |
-| Unity coordinate conversion helpers (pure math) | **Implemented** |
+| Unity coordinate helpers (the manifest already uses Unity's axes) | **Implemented** |
 | Drone footage / location analysis | Interface + stub (fails loudly) |
 | Blender processing | Interface + stub (fails loudly) |
 | Unity scene import | Interface + stub; the manifest is the integration contract |
@@ -45,16 +47,18 @@ Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/).
 ```bash
 uv sync                      # creates .venv from uv.lock (reproducible)
 
-uv run envgen generate \
-  --blueprint examples/blueprints/rural-crossroads.blueprint.json \
-  --recipe    examples/recipes/stylized-rural.recipe.json \
-  --overrides examples/overrides/rural-crossroads.designer-pass.overrides.json \
-  --output-dir out/rural --preview
+uv run envgen blueprint validate examples/locations/dacha-forest-edge/location.blueprint.json
 
-uv run envgen verify out/rural/scene-manifest.json
+uv run envgen generate \
+  --blueprint examples/locations/dacha-forest-edge/location.blueprint.json \
+  --recipe    examples/recipes/dacha-overgrown.recipe.json \
+  --overrides examples/overrides/dacha-forest-edge.designer-pass.overrides.json \
+  --output-dir out/dacha --preview
+
+uv run envgen verify out/dacha/scene-manifest.json
 ```
 
-`out/rural` now contains `scene-manifest.json`, `generation-report.json` and
+`out/dacha` now contains `scene-manifest.json`, `generation-report.json` and
 `preview.svg`. Running the same command again produces byte-identical files.
 
 Without uv: `python -m venv .venv && .venv/bin/pip install -e .` and use
@@ -64,7 +68,10 @@ Without uv: `python -m venv .venv && .venv/bin/pip install -e .` and use
 
 | Command | Purpose |
 | --- | --- |
-| `envgen validate -b BLUEPRINT [-r RECIPE] [-o OVERRIDES]` | Contract + semantic validation, no generation |
+| `envgen blueprint validate FILE [--json] [--no-external]` | Validate one blueprint: version, schema, semantics, references, files |
+| `envgen blueprint format FILE [--check \| --output OUT]` | Canonical, deterministic JSON |
+| `envgen blueprint migrate FILE (--output OUT \| --in-place)` | Upgrade to the current schema version (never overwrites silently) |
+| `envgen validate -b BLUEPRINT [-r RECIPE] [-o OVERRIDES]` | Validate blueprint, recipe and overrides together, no generation |
 | `envgen plan -b ... [--seed N] [--output plan.json]` | Dry run: stages 1-4, prints and optionally saves the plan |
 | `envgen generate -b ... -d DIR [--seed N] [--dry-run] [--preview] [--write-plan] [--no-timings]` | Full pipeline |
 | `envgen generate --plan plan.json -d DIR` | Generate from a saved plan (stages 5-8) |
@@ -87,7 +94,7 @@ from environment_generator.pipeline import InputBundle, Pipeline, PipelineOption
 
 result = Pipeline().run(
     InputBundle(
-        blueprint=Path("examples/blueprints/minimal.blueprint.json"),
+        blueprint=Path("examples/locations/minimal/location.blueprint.json"),
         recipe=None,  # built-in default recipe
         seed_override=7,
     ),
@@ -107,27 +114,38 @@ generator, the validator or the exporter can be replaced through the
 
 ## Inputs and outputs
 
-* **LocationBlueprint** ([schema](schemas/location-blueprint.schema.json)) - what
-  is there: extent, terrain and spot heights, zones, roads, buildings,
-  vegetation, water, fences, infrastructure, props, observed atmosphere. Features
-  use GeoJSON-like geometry in local metres and carry an analysis `confidence`.
+All public documents are camelCase JSON in one spatial frame: metres, `+X`
+east, `+Y` up, `+Z` north, yaw in degrees clockwise from north.
+
+* **LocationBlueprint** ([spec](docs/LOCATION_BLUEPRINT.md),
+  [schema](schemas/location-blueprint.schema.json)) - what is there: bounds,
+  terrain (external heightmap and masks, surface and slope zones, water), a
+  road graph with splines, plots, buildings (condition, abandonment), vegetation
+  zones with species weights, trees, fences with missing sections,
+  infrastructure, props, landmarks, gameplay annotations (movement, projectile
+  cover and vision kept apart) and atmosphere. Every entity has a stable ID
+  and provenance (`observed`, `inferred`, `manual`, `procedural` + confidence).
+  It lives in a *location package* folder with its external files.
 * **LocationRecipe** ([schema](schemas/location-recipe.schema.json)) - how to turn
-  it into a game map: master seed, asset tag preferences, per-generator
-  settings (zone infill, damage ratio, vegetation density, street lights,
-  clutter, lighting overrides) and layout validation limits.
+  any blueprint into a game map: seeds and generation controls (falling back
+  to the blueprint), asset filters, per-generator settings and layout limits.
+  It contains no geometry or observations.
 * **LocationOverrides** ([schema](schemas/location-overrides.schema.json)) -
-  designer edits that survive regeneration: recipe merge patch, seed,
-  add/remove/patch blueprint features, and remove/re-skin/move generated
-  entities by stable ID.
+  designer edits for one location by stable ID: `update` (merge patch),
+  `replaceArchetype`, `delete`, `add`, and placement overrides of generated
+  entities; conflicts fail or are reported, never dropped; the blueprint file
+  is never modified.
 * **Asset registry** ([schema](schemas/asset-registry.schema.json)) - abstract
   archetypes with nominal dimensions, tags, variants, biomes, tactical cover
-  hints and an opaque `asset_ref` that an engine maps to real assets.
+  hints and an opaque `assetRef` that an engine maps to real assets.
 * **Scene manifest** ([schema](schemas/scene-manifest.schema.json)) - the
-  output: heightfield, atmosphere, entities sorted by ID, statistics and a
-  `sha256` content hash.
+  output: heightfield, atmosphere, entities sorted by ID, landmarks and
+  gameplay annotations, statistics and a `sha256` content hash.
 
-Examples live in [`examples/`](examples/); the expected outputs for three
-input combinations are committed under
+Examples live in [`examples/`](examples/): four location packages under
+`examples/locations/` (including the
+[dacha fixture](docs/LOCATION_BLUEPRINT.md#the-dacha-fixture)), recipes and
+overrides. Expected outputs for four input combinations are committed under
 [`examples/expected-output/`](examples/expected-output/) and checked by the
 golden tests.
 
@@ -147,9 +165,10 @@ entities. Details: [docs/GENERATION_PIPELINE.md](docs/GENERATION_PIPELINE.md#det
 ```
 schemas/                     public JSON Schemas (generated from the models, drift-checked in CI)
 src/environment_generator/
-  core/          errors, issues, geometry, PRNG, hashing, spatial index, terrain sampling
-  models/        Pydantic contracts and stage models; JSON Schema export
-  validation/    contract loading, semantic checks, layout validator + rules
+  core/          errors, issues, geometry, frames, curves, PRNG, hashing, spatial index, terrain
+  models/        Pydantic contracts (models/blueprint/ = LocationBlueprint v1.0) and stage models
+  blueprint/     blueprint services: versioning, IO, validation, overrides, site adapter
+  validation/    contract loading, recipe/registry checks, layout validator + rules
   assets/        registry loading, palette filtering, deterministic asset resolver
   generators/    generator slot interfaces + built-in implementations
   planning/      dependency ordering and seed derivation
@@ -158,7 +177,7 @@ src/environment_generator/
   reporting/     text summary and SVG preview
   adapters/      external integration interfaces (stubs) + Unity coordinate helpers
   cli/           envgen command line
-examples/                    blueprints, recipes, overrides, expected output
+examples/                    location packages, recipes, overrides, expected output
 tests/                       unit, integration (end-to-end, determinism, golden), contract
 scripts/                     maintenance scripts (regenerate expected output)
 docs/                        architecture, pipeline, adapters, development, roadmap
@@ -166,6 +185,7 @@ docs/                        architecture, pipeline, adapters, development, road
 
 ## Documentation
 
+* [LocationBlueprint v1.0](docs/LOCATION_BLUEPRINT.md) - the input contract: fields, conventions, IDs, provenance, versioning, validation
 * [Architecture](docs/ARCHITECTURE.md) - boundaries, interfaces, design decisions
 * [Generation pipeline](docs/GENERATION_PIPELINE.md) - stages, coordinate system, IDs, determinism, manifest format
 * [Adapters](docs/ADAPTERS.md) - integration points and a Unity integration guide

@@ -1,0 +1,197 @@
+{
+  "reportVersion": "1.0",
+  "generator": {
+    "name": "environment-generator",
+    "version": "0.2.0"
+  },
+  "success": true,
+  "dryRun": false,
+  "error": null,
+  "locationId": "dacha-forest-edge",
+  "recipeId": "dacha-overgrown",
+  "overridesId": "dacha-designer-pass-01",
+  "seed": 20261001,
+  "inputFingerprint": "sha256:197bdeb2e9454d2c6884216f650b66353389324194865e09ce708e36e4e68ed3",
+  "manifestContentHash": "sha256:2568f0f33e0f95f17f5b278b062974ffff94d5f8899aa3bf8a3443c61246f169",
+  "stages": [
+    {
+      "name": "load_inputs",
+      "status": "succeeded",
+      "durationMs": null,
+      "summary": {
+        "location_id": "dacha-forest-edge",
+        "schema_version": "1.0",
+        "recipe_id": "dacha-overgrown",
+        "archetypes": 118,
+        "overrides_id": "dacha-designer-pass-01"
+      },
+      "issues": []
+    },
+    {
+      "name": "resolve_inputs",
+      "status": "succeeded",
+      "durationMs": null,
+      "summary": {
+        "seed": 20261001,
+        "applied_operations": 5,
+        "placement_overrides": 2,
+        "dropped_features": 0,
+        "site_features": 56
+      },
+      "issues": [
+        {
+          "severity": "info",
+          "code": "GENERATION_CONTROL_RECORDED",
+          "message": "structuralSimilarity and visualVariation are recorded in the plan and manifest; the built-in generators do not vary their output with them yet.",
+          "category": "interpretation",
+          "location": null,
+          "path": "generation",
+          "entityIds": [],
+          "suggestion": null
+        },
+        {
+          "severity": "info",
+          "code": "NOT_INTERPRETED",
+          "message": "1 slope zones are kept in the blueprint but not used by the built-in terrain generator (it applies terrain.defaultSurface).",
+          "category": "interpretation",
+          "location": null,
+          "path": "terrain.slopeZones",
+          "entityIds": [],
+          "suggestion": null
+        },
+        {
+          "severity": "info",
+          "code": "NOT_INTERPRETED",
+          "message": "1 terrain masks are kept in the blueprint but not used by the built-in terrain generator (it applies terrain.defaultSurface).",
+          "category": "interpretation",
+          "location": null,
+          "path": "terrain.masks",
+          "entityIds": [],
+          "suggestion": null
+        },
+        {
+          "severity": "info",
+          "code": "NOT_INTERPRETED",
+          "message": "1 vegetation zone(s) of type garden_beds are not populated by the built-in vegetation generator.",
+          "category": "interpretation",
+          "location": null,
+          "path": "vegetationZones",
+          "entityIds": [],
+          "suggestion": null
+        },
+        {
+          "severity": "info",
+          "code": "NOT_INTERPRETED",
+          "message": "3 surface zones are kept in the blueprint but not used by the built-in terrain generator (it applies terrain.defaultSurface).",
+          "category": "interpretation",
+          "location": null,
+          "path": "terrain.surfaceZones",
+          "entityIds": [],
+          "suggestion": null
+        },
+        {
+          "severity": "info",
+          "code": "PASSED_THROUGH",
+          "message": "Landmarks and gameplay annotations are copied to the manifest unchanged.",
+          "category": "interpretation",
+          "location": null,
+          "path": null,
+          "entityIds": [],
+          "suggestion": null
+        }
+      ]
+    },
+    {
+      "name": "resolve_assets",
+      "status": "succeeded",
+      "durationMs": null,
+      "summary": {
+        "registry_id": "builtin-stylized",
+        "archetypes": 96,
+        "excluded_archetypes": 22,
+        "unmet_needs": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "plan_generation",
+      "status": "succeeded",
+      "durationMs": null,
+      "summary": {
+        "tasks": 8,
+        "order": "terrain > roads > buildings > fences > infrastructure > vegetation > props > atmosphere",
+        "estimated_entities": 533
+      },
+      "issues": []
+    },
+    {
+      "name": "generate_scene",
+      "status": "succeeded",
+      "durationMs": null,
+      "summary": {
+        "entities": 589,
+        "entities.terrain": 2,
+        "entities.roads": 6,
+        "entities.buildings": 11,
+        "entities.fences": 238,
+        "entities.infrastructure": 13,
+        "entities.vegetation": 281,
+        "entities.props": 38,
+        "entities.atmosphere": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "validate_layout",
+      "status": "succeeded",
+      "durationMs": null,
+      "summary": {
+        "rules": 7,
+        "checked_entities": 589,
+        "errors": 0,
+        "warnings": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "export_manifest",
+      "status": "succeeded",
+      "durationMs": null,
+      "summary": {
+        "content_hash": "sha256:2568f0f33e0f95f17f5b278b062974ffff94d5f8899aa3bf8a3443c61246f169",
+        "entities": 589,
+        "path": "scene-manifest.json"
+      },
+      "issues": []
+    },
+    {
+      "name": "build_report",
+      "status": "succeeded",
+      "durationMs": null,
+      "summary": {},
+      "issues": []
+    }
+  ],
+  "statistics": {
+    "entities": 589,
+    "placeholders": 0,
+    "category.building": 11,
+    "category.fence": 238,
+    "category.infrastructure": 13,
+    "category.prop": 38,
+    "category.road": 6,
+    "category.terrain": 1,
+    "category.vegetation": 281,
+    "category.water": 1
+  },
+  "issueCounts": {
+    "error": 0,
+    "warning": 0,
+    "info": 6
+  },
+  "outputs": {
+    "manifest": "scene-manifest.json",
+    "preview": "preview.svg",
+    "report": "generation-report.json"
+  }
+}

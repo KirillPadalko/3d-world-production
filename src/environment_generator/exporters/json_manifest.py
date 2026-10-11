@@ -1,4 +1,9 @@
-"""Portable JSON scene manifest (``scene-manifest.json``)."""
+"""Portable JSON scene manifest (``scene-manifest.json``).
+
+The internal :class:`Scene` uses the generator frame; the manifest uses the
+location frame shared with LocationBlueprint (see :mod:`core.frames`). Every
+spatial value is converted here, in one place.
+"""
 
 from __future__ import annotations
 
@@ -8,14 +13,25 @@ from typing import Any
 
 from environment_generator import GENERATOR_NAME, __version__
 from environment_generator.core.errors import ExportError
+from environment_generator.core.frames import (
+    generator_scale_to_location,
+    generator_to_location,
+    generator_yaw_to_location,
+)
 from environment_generator.core.hashing import fingerprint, pretty_json
 from environment_generator.exporters.base import ExportResult, SceneExporter
 from environment_generator.models.pipeline import GenerationPlan
 from environment_generator.models.scene import (
+    AtmosphereSettings,
+    EntityPolygon,
+    EntityPolyline,
     GeneratorInfo,
+    ManifestEntity,
     ManifestSource,
     ManifestStatistics,
+    ManifestTransform,
     Scene,
+    SceneEntity,
     SceneManifest,
 )
 from environment_generator.validation.contract import load_document
@@ -24,8 +40,8 @@ MANIFEST_FILENAME = "scene-manifest.json"
 
 
 def manifest_content_hash(manifest_data: dict[str, Any]) -> str:
-    """Hash of a manifest's JSON data, ignoring its ``content_hash`` field."""
-    body = {k: v for k, v in manifest_data.items() if k != "content_hash"}
+    """Hash of a manifest's JSON data, ignoring its ``contentHash`` field."""
+    body = {k: v for k, v in manifest_data.items() if k != "contentHash"}
     return fingerprint(body)
 
 
@@ -38,8 +54,42 @@ def load_manifest(path: Path | str) -> SceneManifest:
     return load_document(SceneManifest, path, "manifest")
 
 
+def manifest_entity(entity: SceneEntity) -> ManifestEntity:
+    """Convert a generated entity to the location frame."""
+    transform = entity.transform
+    pitch, roll, yaw = transform.rotation_deg
+    if pitch != 0.0 or roll != 0.0:
+        # Generators only rotate around the vertical axis; refuse rather than guess.
+        raise ExportError(
+            f"Entity '{entity.id}' has a non-yaw rotation {transform.rotation_deg}; "
+            "only yaw rotations can be exported"
+        )
+    geometry = entity.geometry
+    if isinstance(geometry, EntityPolyline | EntityPolygon):
+        geometry = geometry.model_copy(
+            update={"points": [generator_to_location(p) for p in geometry.points]}
+        )
+    data = entity.model_dump(exclude={"transform", "geometry"})
+    return ManifestEntity(
+        **data,
+        transform=ManifestTransform(
+            position=generator_to_location(transform.position),
+            rotation_deg=(0.0, generator_yaw_to_location(yaw), 0.0),
+            scale=generator_scale_to_location(transform.scale),
+        ),
+        geometry=geometry,
+    )
+
+
+def manifest_atmosphere(atmosphere: AtmosphereSettings) -> AtmosphereSettings:
+    """Atmosphere with its light direction vector in the location frame."""
+    return atmosphere.model_copy(
+        update={"key_light_direction": generator_to_location(atmosphere.key_light_direction)}
+    )
+
+
 def build_manifest(scene: Scene, plan: GenerationPlan) -> SceneManifest:
-    entities = sorted(scene.entities, key=lambda e: e.id)
+    entities = [manifest_entity(e) for e in sorted(scene.entities, key=lambda e: e.id)]
     by_category = Counter(e.category.value for e in entities)
     by_generator = Counter(e.provenance.generator.value for e in entities)
     data: dict[str, Any] = {
@@ -48,19 +98,25 @@ def build_manifest(scene: Scene, plan: GenerationPlan) -> SceneManifest:
             mode="json"
         ),
         "source": ManifestSource(
-            blueprint_id=plan.blueprint.id,
-            blueprint_name=plan.blueprint.name,
+            location_id=plan.location_id,
+            location_name=plan.location_name,
             recipe_id=plan.recipe.id,
             overrides_id=plan.overrides_id,
             registry_id=plan.palette.registry_id,
             seed=plan.seed,
             generator_seeds={task.generator.value: task.seed for task in plan.tasks},
+            controls=plan.controls,
             input_fingerprint=plan.input_fingerprint,
         ).model_dump(mode="json"),
         "extent": scene.extent.model_dump(mode="json"),
         "terrain": scene.terrain.model_dump(mode="json") if scene.terrain else None,
-        "atmosphere": scene.atmosphere.model_dump(mode="json") if scene.atmosphere else None,
+        "atmosphere": (
+            manifest_atmosphere(scene.atmosphere).model_dump(mode="json")
+            if scene.atmosphere
+            else None
+        ),
         "entities": [e.model_dump(mode="json") for e in entities],
+        "annotations": plan.annotations.model_dump(mode="json"),
         "statistics": ManifestStatistics(
             entity_count=len(entities),
             by_category=dict(sorted(by_category.items())),

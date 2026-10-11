@@ -19,11 +19,7 @@ from environment_generator.adapters import (
     to_unity_scale,
     to_unity_yaw,
 )
-from environment_generator.adapters.unity import (
-    manifest_rotation_matrix,
-    matrix_to_quaternion,
-    to_unity_rotation_matrix,
-)
+from environment_generator.adapters.unity import manifest_rotation_matrix, matrix_to_quaternion
 from environment_generator.core.errors import AdapterUnavailableError
 from environment_generator.pipeline import InputBundle, Pipeline
 from tests.conftest import MINIMAL_BLUEPRINT
@@ -71,35 +67,38 @@ def test_adapter_listing_is_honest() -> None:
     assert adapters["scene-manifest-json"].status is AdapterStatus.LOCAL
 
 
-def test_position_and_scale_swap_y_and_z() -> None:
-    assert to_unity_position((1.0, 2.0, 3.0)) == (1.0, 3.0, 2.0)
-    assert to_unity_scale((1.0, 2.0, 3.0)) == (1.0, 3.0, 2.0)
+def test_manifest_frame_is_unity_frame() -> None:
+    """The manifest already uses Unity's axes: no component is swapped."""
+    assert to_unity_position((1.0, 2.0, 3.0)) == (1.0, 2.0, 3.0)
+    assert to_unity_scale((1.0, 2.0, 3.0)) == (1.0, 2.0, 3.0)
+    assert to_unity_yaw(-90.0) == 270.0
 
 
 @pytest.mark.parametrize("yaw", [0.0, 30.0, 90.0, 180.0, 271.5])
-def test_yaw_keeps_the_front_facing_the_same_world_direction(yaw: float) -> None:
-    # Manifest front (local +Y) in world ENU coordinates.
-    front_enu = (-math.sin(math.radians(yaw)), math.cos(math.radians(yaw)), 0.0)
-    # Unity forward (+Z) rotated by the converted rotation, mapped back to ENU.
-    q = to_unity_rotation((0.0, 0.0, yaw))
-    forward_unity = _rotate_by_quaternion(q, (0.0, 0.0, 1.0))
-    front_back_to_enu = (forward_unity[0], forward_unity[2], forward_unity[1])
-    assert front_back_to_enu == pytest.approx(front_enu, abs=1e-9)
-    # For pure yaw the quaternion is a rotation about Unity's Y axis by -yaw.
-    expected_y = to_unity_yaw(yaw)
+def test_yaw_turns_the_front_clockwise_from_north(yaw: float) -> None:
+    # Location frame: +X east, +Z north; a clockwise heading points (sin, cos) in (x, z).
+    q = to_unity_rotation((0.0, yaw, 0.0))
+    front = _rotate_by_quaternion(q, (0.0, 0.0, 1.0))
+    expected = (math.sin(math.radians(yaw)), 0.0, math.cos(math.radians(yaw)))
+    assert front == pytest.approx(expected, abs=1e-9)
+    # Equal to Unity's Quaternion.Euler(0, yaw, 0) = (0, sin(yaw/2), 0, cos(yaw/2)).
     assert (q[0], q[2]) == pytest.approx((0.0, 0.0), abs=1e-12)
-    assert 2 * math.degrees(math.atan2(q[1], q[3])) % 360 == pytest.approx(expected_y % 360)
+    assert 2 * math.degrees(math.atan2(q[1], q[3])) % 360 == pytest.approx(to_unity_yaw(yaw))
 
 
 @pytest.mark.parametrize("rotation", [(10.0, 0.0, 0.0), (0.0, -25.0, 40.0), (15.0, 30.0, 200.0)])
-def test_general_rotations_commute_with_the_axis_swap(rotation: Vec3) -> None:
-    swap = to_unity_position
+def test_rotation_order_is_z_then_x_then_y(rotation: Vec3) -> None:
+    """Quaternion.Euler semantics: rotate about Z, then X, then Y (world axes)."""
+    from environment_generator.adapters.unity import _rotation_x, _rotation_y, _rotation_z
+
+    rx, ry, rz = (math.radians(a) for a in rotation)
     vector = (0.3, -1.2, 2.5)
-    rotated_enu = _apply(manifest_rotation_matrix(rotation), vector)
-    rotated_unity = _apply(to_unity_rotation_matrix(rotation), swap(vector))
-    assert rotated_unity == pytest.approx(swap(rotated_enu))
+    step = _apply(_rotation_z(rz), vector)
+    step = _apply(_rotation_x(rx), step)
+    step = _apply(_rotation_y(ry), step)
+    assert _apply(manifest_rotation_matrix(rotation), vector) == pytest.approx(step)
     q = to_unity_rotation(rotation)
-    assert _rotate_by_quaternion(q, swap(vector)) == pytest.approx(swap(rotated_enu))
+    assert _rotate_by_quaternion(q, vector) == pytest.approx(step)
     assert math.isclose(sum(c * c for c in q), 1.0)
 
 
@@ -108,16 +107,3 @@ def test_matrix_to_quaternion_branches() -> None:
         q = matrix_to_quaternion(manifest_rotation_matrix(rotation))
         assert math.isclose(sum(c * c for c in q), 1.0)
         assert q[3] >= 0.0
-
-
-@pytest.mark.parametrize("rotation", [(10.0, 0.0, 0.0), (0.0, -25.0, 40.0), (15.0, 30.0, 200.0)])
-def test_documented_csharp_formula_matches(rotation: Vec3) -> None:
-    """docs/ADAPTERS.md: AngleAxis(-rz, up) * AngleAxis(-ry, forward) * AngleAxis(-rx, right)."""
-    from environment_generator.adapters.unity import _matmul, _rotation_x, _rotation_y, _rotation_z
-
-    rx, ry, rz = (math.radians(a) for a in rotation)
-    # In Unity axes: up = Y, forward = Z, right = X; AngleAxis builds the standard matrix.
-    documented = _matmul(_rotation_y(-rz), _matmul(_rotation_z(-ry), _rotation_x(-rx)))
-    converted = to_unity_rotation_matrix(rotation)
-    for row_a, row_b in zip(documented, converted, strict=True):
-        assert row_a == pytest.approx(row_b)
