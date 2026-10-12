@@ -1,0 +1,15 @@
+{
+  "name": "com.environment-generator.importer",
+  "version": "0.1.0",
+  "displayName": "Environment Generator Importer",
+  "description": "Imports scene-manifest.json files produced by the Environment Generator: Unity terrain from the heightfield, prefabs bound to archetypes (with placeholders for unbound ones), road, junction and water meshes, cables, lighting and fog, landmarks and gameplay annotations. Re-imports update objects by stable entity ID.",
+  "unity": "2021.3",
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.1"
+  },
+  "keywords": ["procedural", "level-design", "terrain", "importer", "environment"],
+  "author": {
+    "name": "Environment Generator contributors"
+  },
+  "license": "MIT"
+}

@@ -1,9 +1,9 @@
 """Unity integration adapter.
 
-STATUS: the integrator is a STUB - importing a manifest into a Unity project
-is the job of a Unity-side (C#) importer that does not exist yet. The
-coordinate helpers below are real, pure-math functions with tests; a Unity
-importer can port them line by line.
+STATUS: the Python integrator is a STUB - importing a manifest into a Unity
+project is done inside Unity by the C# Editor package in
+``integrations/unity/com.environment-generator.importer``. The coordinate
+helpers below are real, pure-math functions with tests.
 
 The manifest uses the location frame of LocationBlueprint v1.0: metres,
 +X east, +Y up, +Z north, left-handed, an object's front is local +Z, and
@@ -153,6 +153,8 @@ class UnconfiguredUnityIntegrator(UnitySceneIntegrator):
 
     def integrate(self, manifest_path: Path, project_path: Path) -> UnityIntegrationResult:
         raise AdapterUnavailableError(
-            "Unity integration is not implemented in this phase. Consume scene-manifest.json with "
-            "a Unity-side importer; docs/ADAPTERS.md describes the contract and coordinate mapping."
+            "Unity integration does not run from Python. Import scene-manifest.json inside Unity "
+            "with the package in integrations/unity/com.environment-generator.importer (editor "
+            "window, or Unity -batchmode -executeMethod EnvGen.Importer.Editor.BatchImport.Run); "
+            "see docs/ADAPTERS.md."
         )

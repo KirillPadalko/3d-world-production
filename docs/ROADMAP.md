@@ -27,13 +27,15 @@
 
 ## Phase 1 - Unity integration
 
-* C# editor importer for `scene-manifest.json` following
-  [ADAPTERS.md](ADAPTERS.md#unity-integration-guide-for-the-future-importer):
-  terrain, prefab instantiation by archetype, road/water meshes, cables,
-  lighting, incremental re-import by stable ID.
-* An engine asset registry (real prefab bounds and keys) checked in alongside
-  the game project.
-* Import-side validation and a round-trip test scene.
+* Done: C# Editor importer package for `scene-manifest.json`
+  (`integrations/unity`, see [ADAPTERS.md](ADAPTERS.md#unity-integration)):
+  terrain, prefab registry with variants and fitting, placeholders, road,
+  junction and water meshes, sagging cables, lighting and fog, landmarks and
+  gameplay annotations, content-hash check, incremental re-import by stable ID,
+  batch-mode and Unity MCP entry points.
+* Next: compile and run the importer in a real Unity project in CI (Unity
+  licence needed), a round-trip test scene, and a game-side prefab registry
+  with real prefab bounds.
 
 ## Phase 2 - location analysis
 

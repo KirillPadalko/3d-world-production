@@ -45,5 +45,8 @@ uv run python scripts/regenerate_expected_output.py   # after changing generated
 The integration contract is `scene-manifest.json`
 (`schemas/scene-manifest.schema.json`). It already uses Unity's axes
 (positions, scales and `Quaternion.Euler(rotationDeg)` are used unchanged).
-Follow `docs/ADAPTERS.md#unity-integration-guide-for-the-future-importer` for
-terrain, entities, annotations and lighting.
+The Unity Editor importer is the package in
+`integrations/unity/com.environment-generator.importer` (see
+`docs/ADAPTERS.md#unity-integration`). Its engine-free core is tested with
+`dotnet test integrations/unity/tests/EnvGen.Importer.Core.Tests`; after adding
+files to the package run `uv run python scripts/unity_package_meta.py`.

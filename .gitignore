@@ -30,3 +30,7 @@ htmlcov/
 *.swp
 .DS_Store
 Thumbs.db
+
+# .NET build output (Unity importer tests)
+integrations/unity/tests/**/bin/
+integrations/unity/tests/**/obj/

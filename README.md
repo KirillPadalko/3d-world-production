@@ -35,7 +35,7 @@ drone footage -> frames -> location analysis -> LocationBlueprint -> LocationRec
 | Unity coordinate helpers (the manifest already uses Unity's axes) | **Implemented** |
 | Drone footage / location analysis | Interface + stub (fails loudly) |
 | Blender processing | Interface + stub (fails loudly) |
-| Unity scene import | Interface + stub; the manifest is the integration contract |
+| Unity scene import | **Unity Editor package** in [`integrations/unity`](integrations/unity/com.environment-generator.importer/README.md) (core unit-tested with .NET; not yet compiled inside Unity in CI) |
 
 No external services, accounts, API keys, MCP servers, Unity or Blender are
 needed. The core imports only the standard library and Pydantic.
@@ -177,9 +177,10 @@ src/environment_generator/
   reporting/     text summary and SVG preview
   adapters/      external integration interfaces (stubs) + Unity coordinate helpers
   cli/           envgen command line
+integrations/unity/          Unity Editor importer package (C#) and its .NET tests
 examples/                    location packages, recipes, overrides, expected output
 tests/                       unit, integration (end-to-end, determinism, golden), contract
-scripts/                     maintenance scripts (regenerate expected output)
+scripts/                     maintenance scripts (regenerate expected output, Unity .meta files)
 docs/                        architecture, pipeline, adapters, development, roadmap
 ```
 

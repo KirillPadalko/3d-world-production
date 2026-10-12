@@ -90,3 +90,19 @@ jobs:
           /tmp/wheel-env/bin/envgen blueprint validate "$GITHUB_WORKSPACE/examples/locations/dacha-forest-edge/location.blueprint.json"
           /tmp/wheel-env/bin/envgen generate -b "$GITHUB_WORKSPACE/examples/locations/minimal/location.blueprint.json" -d /tmp/wheel-out
           /tmp/wheel-env/bin/envgen verify /tmp/wheel-out/scene-manifest.json
+
+  unity-importer:
+    name: Unity importer core (.NET)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - name: Package .meta files are complete and stable
+        run: uv run --no-project python scripts/unity_package_meta.py --check
+      - name: Core unit tests (manifest reader, content hash, geometry, planning)
+        run: dotnet test integrations/unity/tests/EnvGen.Importer.Core.Tests

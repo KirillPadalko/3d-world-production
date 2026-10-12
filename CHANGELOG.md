@@ -4,6 +4,25 @@ All notable changes are documented here. Versions follow
 [Semantic Versioning](https://semver.org/); any change to generated output
 bumps the version (see docs/DEVELOPMENT.md).
 
+## Unreleased
+
+Generated output is unchanged (generator and package versions stay 0.2.0).
+
+* Unity Editor importer package `com.environment-generator.importer`
+  (`integrations/unity`): imports `scene-manifest.json` into a scene with a
+  terrain asset, prefabs bound by archetype or category/kind in a prefab
+  registry (placeholders of the right size otherwise, three fit modes),
+  generated meshes for roads, junctions and water, sagging cables, sun and
+  fog, and landmarks and gameplay annotations as marker objects with gizmos.
+  Re-import matches entities by stable ID and is one undo step. Entry points
+  for the editor window, `-batchmode` (`BatchImport.Run`) and Unity MCP
+  (`BatchImport.ImportIntoScene`). The importer recomputes the content hash
+  exactly as the generator does.
+* The engine-free part of the importer (manifest reader, content hash,
+  terrain resampling, mesh builders, prefab lookup, re-import planning) is
+  unit-tested with .NET in CI; `scripts/unity_package_meta.py` creates and
+  checks the package's `.meta` files.
+
 ## 0.2.0 - 2026-10-11
 
 **LocationBlueprint contract v1.0** (`docs/LOCATION_BLUEPRINT.md`). The

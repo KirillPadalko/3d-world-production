@@ -1,0 +1,21 @@
+{
+    "name": "EnvGen.Importer.Editor",
+    "rootNamespace": "EnvGen.Importer.Editor",
+    "references": [
+        "EnvGen.Importer.Core",
+        "EnvGen.Importer"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Newtonsoft.Json.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

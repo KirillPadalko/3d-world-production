@@ -59,7 +59,10 @@ def available_adapters() -> list[AdapterInfo]:
             status=AdapterStatus.STUB,
             interface="environment_generator.adapters.UnitySceneIntegrator",
             workflow_step="Unity scene integration",
-            description="Interface only; coordinate conversion helpers are implemented.",
+            description=(
+                "Python interface only; the Unity Editor importer package is in "
+                "integrations/unity (import inside Unity or via -batchmode)."
+            ),
         ),
     ]
 

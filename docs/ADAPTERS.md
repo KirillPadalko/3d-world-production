@@ -24,7 +24,7 @@
 | `asset-registry-json` | local | `assets.AssetResolver` | asset selection |
 | `scene-manifest-json` | local | `exporters.SceneExporter` | portable scene export |
 | `blender` | stub | `adapters.BlenderProcessor` | Blender processing |
-| `unity` | stub (+ real coordinate helpers) | `adapters.UnitySceneIntegrator` | Unity scene integration |
+| `unity` | Unity Editor package (`integrations/unity`); Python side stub + coordinate helpers | `adapters.UnitySceneIntegrator` | Unity scene integration |
 
 ## Location analysis (footage -> blueprint)
 
@@ -115,31 +115,45 @@ static Quaternion ToUnityRotation(float[] r) => Quaternion.Euler(r[0], r[1], r[2
 For Z-up tools (Blender) use `(x, z, y)` for positions and scales and a
 rotation of `-yaw` about `+Z`.
 
-## Unity integration guide (for the future importer)
+## Unity integration
 
-The importer is a Unity-side (C#) editor tool that reads
-`scene-manifest.json`. Suggested approach:
+The Unity Editor package
+[`integrations/unity/com.environment-generator.importer`](../integrations/unity/com.environment-generator.importer/README.md)
+imports `scene-manifest.json` into a scene (menu **Tools > Environment Generator**,
+`-batchmode -executeMethod EnvGen.Importer.Editor.BatchImport.Run`, or
+`BatchImport.ImportIntoScene(...)` from a Unity MCP tool). Archetypes are bound to
+prefabs in a `EnvGenPrefabRegistry` asset; unbound ones become placeholder boxes.
+Re-imports update objects by stable entity ID. Its engine-free core is tested
+with `dotnet test integrations/unity/tests/EnvGen.Importer.Core.Tests`; the Unity
+layer has not been compiled inside Unity in this repository's CI.
 
-1. **Validate first.** Run `envgen verify scene-manifest.json` in the build
-   pipeline (or recompute the hash: SHA-256 of the compact, key-sorted JSON
-   without `contentHash`, floats as written). Check `manifestVersion` and
-   `coordinateSystem` before importing.
+How it maps the manifest (also the guide for any other engine importer):
+
+1. **Validate first.** The importer refuses other `manifestVersion` values and
+   any `coordinateSystem` other than the location frame, and recomputes
+   `contentHash` exactly as the generator does (SHA-256 of the compact,
+   key-sorted JSON without `contentHash`, floats rounded to 4 decimals with
+   Python's `round` and written with Python's `repr`); a mismatch means the file
+   was edited after generation.
 2. **Terrain.** Create a `TerrainData` with `size = (widthM, max - min,
    depthM)` placed at `(0, minElevationM, 0)`. Unity heightmaps need a
    `2^n + 1` resolution, so resample the manifest grid bilinearly;
    `heights[row][column]` maps to Unity `heights[z, x]` (rows run south to
    north = +Z), normalised to `(h - min) / (max - min)`. Pick the terrain
    layer from `terrain.groundCover` / the `terrain` entity's archetype.
-3. **Entities.** Instantiate the prefab mapped from `archetypeId` (or
-   `assetRef`), choose model `variant`, apply the transform as it is and
-   name the GameObject after `id`. Because IDs are stable, re-imports can
-   update existing objects instead of rebuilding the scene. For
-   `placeholder: true` spawn a visible stand-in box sized by `dimensions`.
+3. **Entities.** One GameObject per entity, named after its `id`, carrying the
+   manifest transform as it is. The prefab mapped from `archetypeId` (else
+   `category/kind`; several prefabs = variants chosen by `variant`) sits in a
+   child, fitted to `dimensions` (bottom centre on the entity position) or
+   scaled by the manifest `scale`. Because IDs are stable, re-imports update
+   existing objects instead of rebuilding the scene. Unbound archetypes become
+   a stand-in box sized by `dimensions`.
 4. **Geometry entities.** Roads (`geometry.type = polyline`, `widthM`) become
-   spline or ribbon meshes along world-space points; junction entities mark
-   where to blend them. Water (`polygon`) becomes a flat mesh at the given
-   height. Cables are line renderers through the pole tops
-   (`parameters.supportEntityIds` names the poles).
+   ribbon meshes along the world-space points; junction entities become discs
+   of `widthM` diameter. Water (`polygon`) becomes a flat mesh at the mean point
+   height. Cables are line renderers through the pole tops with
+   `parameters.sagM` sag per span (`parameters.supportEntityIds` names the
+   poles).
 5. **Fences and walls** are individual panels (transform at the panel centre,
    local X along the fence, `scale.x` stretched to the exact length), so they
    can be destroyed or used as cover individually.
