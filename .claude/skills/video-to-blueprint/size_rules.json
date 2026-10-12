@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "description": "Size ranges used by review_blueprint.py. 'typical' covers most real objects of the type (outside it: info, double-check the measurement); 'plausible' is the hard sanity range (outside it: warning, almost certainly a scale or unit error). Metres; areas in square metres. Tuned for rural and suburban Eastern Europe; widen them for other regions rather than bending measurements to fit.",
+  "buildings": {
+    "house": {"widthM": {"typical": [5, 14], "plausible": [3, 40]}, "depthM": {"typical": [4, 12], "plausible": [3, 30]}, "heightM": {"typical": [4, 10], "plausible": [2.5, 20]}},
+    "bathhouse": {"widthM": {"typical": [2.5, 6], "plausible": [1.5, 10]}, "depthM": {"typical": [2.5, 6], "plausible": [1.5, 10]}, "heightM": {"typical": [2.5, 5], "plausible": [2, 7]}},
+    "garage": {"widthM": {"typical": [3, 7], "plausible": [2.5, 15]}, "depthM": {"typical": [5, 8], "plausible": [3.5, 15]}, "heightM": {"typical": [2.2, 4], "plausible": [1.8, 7]}},
+    "shed": {"widthM": {"typical": [1.5, 6], "plausible": [1, 12]}, "depthM": {"typical": [1.5, 5], "plausible": [1, 12]}, "heightM": {"typical": [2, 4], "plausible": [1.5, 6]}},
+    "barn": {"widthM": {"typical": [6, 25], "plausible": [4, 60]}, "depthM": {"typical": [5, 15], "plausible": [3, 30]}, "heightM": {"typical": [4, 10], "plausible": [3, 15]}},
+    "greenhouse": {"widthM": {"typical": [2.5, 4], "plausible": [1.5, 12]}, "depthM": {"typical": [3, 10], "plausible": [2, 40]}, "heightM": {"typical": [1.8, 3], "plausible": [1.2, 6]}},
+    "outhouse": {"widthM": {"typical": [0.9, 1.6], "plausible": [0.7, 2.5]}, "depthM": {"typical": [0.9, 1.8], "plausible": [0.7, 2.5]}, "heightM": {"typical": [1.9, 2.6], "plausible": [1.6, 3.5]}},
+    "gazebo": {"widthM": {"typical": [2, 5], "plausible": [1.5, 10]}, "depthM": {"typical": [2, 5], "plausible": [1.5, 10]}, "heightM": {"typical": [2.2, 4], "plausible": [2, 6]}},
+    "workshop": {"widthM": {"typical": [4, 12], "plausible": [2.5, 30]}, "depthM": {"typical": [4, 10], "plausible": [2.5, 30]}, "heightM": {"typical": [2.5, 5], "plausible": [2, 10]}},
+    "shop": {"widthM": {"typical": [6, 20], "plausible": [3, 60]}, "depthM": {"typical": [5, 15], "plausible": [3, 40]}, "heightM": {"typical": [3, 8], "plausible": [2.5, 15]}},
+    "church": {"widthM": {"typical": [8, 30], "plausible": [4, 80]}, "depthM": {"typical": [12, 45], "plausible": [5, 100]}, "heightM": {"typical": [8, 40], "plausible": [5, 80]}},
+    "apartment_block": {"widthM": {"typical": [12, 120], "plausible": [8, 250]}, "depthM": {"typical": [10, 16], "plausible": [8, 30]}, "heightM": {"typical": [9, 50], "plausible": [6, 100]}},
+    "warehouse": {"widthM": {"typical": [15, 80], "plausible": [6, 300]}, "depthM": {"typical": [10, 40], "plausible": [5, 150]}, "heightM": {"typical": [5, 12], "plausible": [3, 25]}},
+    "factory": {"widthM": {"typical": [15, 150], "plausible": [6, 400]}, "depthM": {"typical": [10, 80], "plausible": [5, 200]}, "heightM": {"typical": [6, 20], "plausible": [3, 40]}},
+    "office": {"widthM": {"typical": [10, 40], "plausible": [5, 100]}, "depthM": {"typical": [8, 20], "plausible": [5, 50]}, "heightM": {"typical": [6, 30], "plausible": [3, 100]}},
+    "other": {"widthM": {"typical": [1, 60], "plausible": [0.5, 300]}, "depthM": {"typical": [1, 60], "plausible": [0.5, 300]}, "heightM": {"typical": [1.5, 20], "plausible": [0.5, 100]}},
+    "unknown": {"widthM": {"typical": [1, 60], "plausible": [0.5, 300]}, "depthM": {"typical": [1, 60], "plausible": [0.5, 300]}, "heightM": {"typical": [1.5, 20], "plausible": [0.5, 100]}}
+  },
+  "floors": {"storeyHeightM": 4.0, "roofAllowanceM": 5.0},
+  "plots": {
+    "dacha_plot": {"areaM2": {"typical": [400, 1500], "plausible": [150, 5000]}},
+    "yard": {"areaM2": {"typical": [100, 3000], "plausible": [20, 20000]}},
+    "garden": {"areaM2": {"typical": [50, 3000], "plausible": [10, 20000]}},
+    "vacant_lot": {"areaM2": {"typical": [200, 5000], "plausible": [20, 50000]}},
+    "common_area": {"areaM2": {"typical": [100, 10000], "plausible": [10, 100000]}},
+    "unknown": {"areaM2": {"typical": [50, 10000], "plausible": [10, 100000]}}
+  },
+  "fences": {
+    "wooden_picket": {"heightM": {"typical": [0.9, 1.6], "plausible": [0.5, 2.5]}},
+    "wooden_board": {"heightM": {"typical": [1.5, 2.2], "plausible": [0.8, 3.5]}},
+    "chain_link": {"heightM": {"typical": [1.2, 2.2], "plausible": [0.8, 4]}},
+    "metal_sheet": {"heightM": {"typical": [1.6, 2.5], "plausible": [1, 4]}},
+    "wire": {"heightM": {"typical": [0.8, 1.6], "plausible": [0.4, 2.5]}},
+    "brick": {"heightM": {"typical": [1.5, 2.5], "plausible": [0.5, 4]}},
+    "concrete": {"heightM": {"typical": [2, 3], "plausible": [1, 4.5]}},
+    "stone": {"heightM": {"typical": [0.6, 2], "plausible": [0.3, 4]}},
+    "metal_railing": {"heightM": {"typical": [0.9, 1.5], "plausible": [0.5, 3]}},
+    "unknown": {"heightM": {"typical": [0.5, 3], "plausible": [0.2, 10]}}
+  },
+  "infrastructure": {
+    "utility_pole": {"heightM": {"typical": [7, 11], "plausible": [5, 16]}},
+    "light": {"heightM": {"typical": [3, 10], "plausible": [0.3, 15]}},
+    "well": {"heightM": {"typical": [0.6, 2.5], "plausible": [0.3, 4]}},
+    "sign": {"heightM": {"typical": [1.5, 3.5], "plausible": [0.5, 8]}},
+    "water_tower": {"heightM": {"typical": [12, 30], "plausible": [6, 50]}},
+    "container": {"heightM": {"typical": [1, 2.6], "plausible": [0.5, 3]}},
+    "transformer": {"heightM": {"typical": [1.5, 3], "plausible": [1, 9]}},
+    "pump": {"heightM": {"typical": [0.8, 1.6], "plausible": [0.4, 3]}},
+    "other": {"heightM": {"typical": [0.3, 15], "plausible": [0.1, 60]}}
+  },
+  "trees": {
+    "birch": {"heightM": {"typical": [12, 25], "plausible": [3, 35]}, "crownDiameterM": {"typical": [4, 10], "plausible": [1, 16]}},
+    "pine": {"heightM": {"typical": [15, 30], "plausible": [3, 40]}, "crownDiameterM": {"typical": [4, 10], "plausible": [1, 15]}},
+    "spruce": {"heightM": {"typical": [15, 30], "plausible": [2, 45]}, "crownDiameterM": {"typical": [3, 8], "plausible": [1, 12]}},
+    "oak": {"heightM": {"typical": [12, 30], "plausible": [3, 40]}, "crownDiameterM": {"typical": [8, 20], "plausible": [2, 30]}},
+    "aspen": {"heightM": {"typical": [15, 25], "plausible": [3, 35]}, "crownDiameterM": {"typical": [4, 10], "plausible": [1, 15]}},
+    "alder": {"heightM": {"typical": [10, 20], "plausible": [3, 30]}, "crownDiameterM": {"typical": [4, 10], "plausible": [1, 15]}},
+    "willow": {"heightM": {"typical": [6, 20], "plausible": [2, 30]}, "crownDiameterM": {"typical": [5, 15], "plausible": [1, 25]}},
+    "linden": {"heightM": {"typical": [15, 25], "plausible": [3, 35]}, "crownDiameterM": {"typical": [6, 14], "plausible": [2, 20]}},
+    "maple": {"heightM": {"typical": [10, 25], "plausible": [3, 35]}, "crownDiameterM": {"typical": [6, 14], "plausible": [2, 20]}},
+    "poplar": {"heightM": {"typical": [15, 30], "plausible": [3, 40]}, "crownDiameterM": {"typical": [5, 14], "plausible": [2, 20]}},
+    "apple": {"heightM": {"typical": [3, 8], "plausible": [1.5, 12]}, "crownDiameterM": {"typical": [3, 7], "plausible": [1, 10]}},
+    "pear": {"heightM": {"typical": [4, 10], "plausible": [1.5, 15]}, "crownDiameterM": {"typical": [3, 7], "plausible": [1, 10]}},
+    "cherry": {"heightM": {"typical": [2.5, 6], "plausible": [1.5, 10]}, "crownDiameterM": {"typical": [2, 5], "plausible": [1, 8]}},
+    "plum": {"heightM": {"typical": [3, 6], "plausible": [1.5, 10]}, "crownDiameterM": {"typical": [2, 5], "plausible": [1, 8]}},
+    "unknown": {"heightM": {"typical": [3, 30], "plausible": [1, 50]}, "crownDiameterM": {"typical": [2, 15], "plausible": [0.5, 35]}}
+  },
+  "roads": {
+    "primary": {"widthM": {"typical": [4, 12], "plausible": [3, 30]}},
+    "secondary": {"widthM": {"typical": [3, 8], "plausible": [2.5, 20]}},
+    "access": {"widthM": {"typical": [3, 6], "plausible": [2, 12]}},
+    "track": {"widthM": {"typical": [2.5, 4.5], "plausible": [1.8, 8]}},
+    "path": {"widthM": {"typical": [0.5, 2], "plausible": [0.3, 4]}}
+  }
+}

@@ -68,7 +68,7 @@ known-first-party = ["environment_generator"]
 [tool.mypy]
 python_version = "3.11"
 strict = true
-files = ["src"]
+files = ["src", ".claude/skills/video-to-blueprint/scripts"]
 plugins = ["pydantic.mypy"]
 warn_unreachable = true
 

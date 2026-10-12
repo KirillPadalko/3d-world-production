@@ -11,7 +11,9 @@ MVP that runs on its own:
   generation, asset abstraction, a portable scene manifest, reports, CLI, a
   preview, tests and CI;
 * out of scope (interfaces only): footage analysis, Blender processing, Unity
-  import, any network, account or MCP integration.
+  import, any network, account or MCP integration. Outside the core, footage
+  analysis is done by Claude with the `video-to-blueprint` skill
+  (`.claude/skills/`) and Unity import by the package in `integrations/unity`.
 
 Nothing in the core imports Unity, `bpy`, MCP SDKs or AI SDKs, and no adapter
 pretends to work: stubs raise `AdapterUnavailableError`.

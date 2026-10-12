@@ -39,8 +39,13 @@
 
 ## Phase 2 - location analysis
 
-* Frame extraction from drone footage, georeferencing and orthomosaic
-  generation.
+* Done: the `video-to-blueprint` Claude skill (`.claude/skills/`): frame
+  extraction with contact sheets, DJI telemetry, scale tools (footprint,
+  reference ratios, ground homography), provenance rules, plausibility review
+  and a validate -> fix loop. The analysis itself is done by Claude, frame by
+  frame.
+* Next: georeferencing and orthomosaic generation (OpenDroneMap) as an input
+  to the skill, for metre-accurate maps.
 * Detection/segmentation of roads, building footprints, vegetation, water and
   fences into a `LocationBlueprint` with confidences, behind
   `LocationAnalyzer`.

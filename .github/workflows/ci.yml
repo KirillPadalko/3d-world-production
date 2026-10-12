@@ -55,6 +55,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install (locked)
         run: uv sync --locked
+      - name: Install ffmpeg (video-to-blueprint skill tests)
+        if: matrix.python-version == '3.12'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
       - name: Unit, integration and contract tests
         run: uv run pytest --cov --cov-report=term
       - name: CLI smoke test

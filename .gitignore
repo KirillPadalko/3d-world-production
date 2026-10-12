@@ -34,3 +34,8 @@ Thumbs.db
 # .NET build output (Unity importer tests)
 integrations/unity/tests/**/bin/
 integrations/unity/tests/**/obj/
+
+# Location packages made from footage: keep blueprints and notes, not the media
+/locations/*/media/
+/locations/*/frames/
+/locations/*/*.bak

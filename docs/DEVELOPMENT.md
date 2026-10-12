@@ -27,10 +27,16 @@ Without uv: `python -m venv .venv && .venv/bin/pip install -e . pytest pytest-co
 | Check schemas are current | `uv run envgen schema check` |
 | Regenerate golden output | `uv run python scripts/regenerate_expected_output.py` |
 | Build sdist + wheel | `uv build` |
+| Unity importer core tests | `dotnet test integrations/unity/tests/EnvGen.Importer.Core.Tests` |
 
 CI (`.github/workflows/ci.yml`) runs formatting, lint, `mypy --strict`, the
 schema drift check, the test suite on Python 3.11, 3.12 and 3.13, a CLI smoke
-test, and builds the wheel and runs it from a clean environment.
+test, the Unity importer's .NET tests, and builds the wheel and runs it from a
+clean environment.
+
+The tests of the `video-to-blueprint` skill that run ffmpeg
+(`tests/integration/test_video_skill_ffmpeg.py`) are skipped when `ffmpeg` is
+not on PATH; CI installs it for Python 3.12.
 
 ## Tests
 

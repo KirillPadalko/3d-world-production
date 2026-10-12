@@ -16,6 +16,18 @@ uv run envgen blueprint validate examples/locations/dacha-forest-edge/location.b
 uv run python scripts/regenerate_expected_output.py   # after changing generated output
 ```
 
+## Video -> blueprint skill
+
+`.claude/skills/video-to-blueprint/` is a Claude Code skill: `SKILL.md` (the
+workflow), `reference/` (scale and sizes, provenance, mapping, the fix loop),
+`size_rules.json` (plausibility ranges) and `scripts/` (stdlib + ffmpeg
+`frames.py` and `scale.py`; `location_package.py` and `review_blueprint.py`
+use this package). Its tests are `tests/unit/test_video_skill.py` and
+`tests/integration/test_video_skill_ffmpeg.py` (skipped without ffmpeg); the
+scripts are type-checked by `uv run mypy`. Keep `size_rules.json` keys equal to
+the blueprint vocabularies (a test enforces it). User location packages go to
+`locations/` (footage and frames there are git-ignored).
+
 ## Invariants
 
 * The core never imports Unity, `bpy`, MCP or AI SDKs, or network libraries;

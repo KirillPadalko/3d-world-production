@@ -22,6 +22,22 @@ Generated output is unchanged (generator and package versions stay 0.2.0).
   terrain resampling, mesh builders, prefab lookup, re-import planning) is
   unit-tested with .NET in CI; `scripts/unity_package_meta.py` creates and
   checks the package's `.meta` files.
+* Claude Code skill `video-to-blueprint` (`.claude/skills/video-to-blueprint`):
+  turns a video of a real place into a location package. `SKILL.md` is the
+  workflow (frames, frame of reference and scale, mapping order, validate ->
+  fix loop, report); `reference/` covers scale estimation with a table of
+  reference objects, a confidence rubric, provenance and frame citations,
+  field mapping and what each diagnostic means. Scripts: `frames.py` (ffmpeg:
+  interval, scene-cut and manual extraction, labelled contact sheets, DJI
+  telemetry with a nadir scale hint, measuring grids, full-resolution crops,
+  SVG preview rendering, and a `source` section built only from extracted
+  files), `scale.py` (nadir footprint, image -> ground mapping, ground-plane
+  homography, reference ratios, combining estimates, yaw, fence fractions),
+  `location_package.py` (create a valid blueprint, sync `source` with new
+  extractions without losing cited frames) and `review_blueprint.py`
+  (contract validation plus footage checks: evidence, confidence against
+  calibration, size plausibility from `size_rules.json`, archetypes,
+  copy-paste). Footage and frames under `locations/` are git-ignored.
 
 ## 0.2.0 - 2026-10-11
 

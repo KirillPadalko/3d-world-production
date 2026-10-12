@@ -20,13 +20,21 @@
 
 | Adapter | Status | Interface | Workflow step |
 | --- | --- | --- | --- |
-| `location-analysis` | stub | `adapters.LocationAnalyzer` | drone footage -> LocationBlueprint |
+| `location-analysis` | stub (the Claude skill `video-to-blueprint` covers this step) | `adapters.LocationAnalyzer` | drone footage -> LocationBlueprint |
 | `asset-registry-json` | local | `assets.AssetResolver` | asset selection |
 | `scene-manifest-json` | local | `exporters.SceneExporter` | portable scene export |
 | `blender` | stub | `adapters.BlenderProcessor` | Blender processing |
 | `unity` | Unity Editor package (`integrations/unity`); Python side stub + coordinate helpers | `adapters.UnitySceneIntegrator` | Unity scene integration |
 
 ## Location analysis (footage -> blueprint)
+
+Today this step is done by Claude with the
+[`video-to-blueprint` skill](../.claude/skills/video-to-blueprint/SKILL.md):
+ffmpeg frame extraction (interval, scene cuts or chosen moments; DJI telemetry
+sidecars), scale from telemetry, reference objects or a ground homography,
+honest provenance with frame citations, and a validate -> fix loop
+(`review_blueprint.py` adds footage-specific checks to `envgen blueprint
+validate`). The Python adapter below remains a stub for an automated backend.
 
 ```python
 class LocationAnalyzer(ABC):

@@ -33,12 +33,22 @@ drone footage -> frames -> location analysis -> LocationBlueprint -> LocationRec
 | Planning, 8 generator slots, asset resolution, manifest export, reports | **Implemented** |
 | CLI, SVG preview, dry run, replay from a saved plan | **Implemented** |
 | Unity coordinate helpers (the manifest already uses Unity's axes) | **Implemented** |
-| Drone footage / location analysis | Interface + stub (fails loudly) |
+| Footage -> LocationBlueprint | **Claude skill** [`video-to-blueprint`](.claude/skills/video-to-blueprint/SKILL.md): ffmpeg frame extraction, scale estimation, provenance rules and a validate -> fix loop (Claude does the analysis; the Python `LocationAnalyzer` adapter stays a stub) |
 | Blender processing | Interface + stub (fails loudly) |
 | Unity scene import | **Unity Editor package** in [`integrations/unity`](integrations/unity/com.environment-generator.importer/README.md) (core unit-tested with .NET; not yet compiled inside Unity in CI) |
 
 No external services, accounts, API keys, MCP servers, Unity or Blender are
 needed. The core imports only the standard library and Pydantic.
+
+### From a video
+
+In Claude Code, open this repository and give Claude a video of the place
+("make a location blueprint from `~/Videos/dacha.mp4`"). The
+[`video-to-blueprint`](.claude/skills/video-to-blueprint/SKILL.md) skill
+extracts frames with ffmpeg, measures the place against known objects or drone
+telemetry, writes `locations/<id>/location.blueprint.json` with every entity
+citing the frames it was seen in, and repeats validation and fixes until the
+blueprint is clean and generates. Requires `ffmpeg` on PATH.
 
 ## Quick start
 
@@ -178,6 +188,7 @@ src/environment_generator/
   adapters/      external integration interfaces (stubs) + Unity coordinate helpers
   cli/           envgen command line
 integrations/unity/          Unity Editor importer package (C#) and its .NET tests
+.claude/skills/              Claude Code skills (video-to-blueprint: footage -> location package)
 examples/                    location packages, recipes, overrides, expected output
 tests/                       unit, integration (end-to-end, determinism, golden), contract
 scripts/                     maintenance scripts (regenerate expected output, Unity .meta files)
